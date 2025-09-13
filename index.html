@@ -3,111 +3,64 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Moreno Arquitetura — Glass</title>
-  <meta name="description" content="Arquitetura curitibana, com alma brasileira. Variante com estética de vidro (glassmorphism) minimalista.">
+  <title>moreno — arquitetura curitibana</title>
+  <meta name="description" content="Moreno: arquitetura curitibana com alma brasileira. Manifesto e direcionadores do estúdio." />
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&family=Space+Grotesk:wght@600;700&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="style.css">
-  <meta name="theme-color" content="#4E6A4E">
+  <link rel="stylesheet" href="style.css?v=1">
+  <script src="script.js" defer></script>
+  <meta name="theme-color" content="#f6f7f6">
 </head>
-<body class="bg">
+<body class="light">
   <a class="skip" href="#conteudo">Pular para o conteúdo</a>
 
-  <!-- Fundo com layers para realçar o vidro -->
-  <div class="bg-layers" aria-hidden="true"></div>
-
-  <header class="hdr glass" role="banner" aria-label="Cabeçalho do site">
+  <header class="hdr" role="banner">
     <div class="wrap bar">
-      <div class="brand">moreno.arq</div>
+      <a class="brand" href="index.html" aria-label="Página inicial">moreno</a>
       <nav aria-label="Principal">
-        <a href="#projetos">Projetos</a>
-        <a href="#sobre">Sobre</a>
-        <a href="#contato">Contato</a>
-        <button class="motion-toggle" aria-pressed="false" aria-label="Alternar animações">⚡</button>
+        <a href="projetos.html">Projetos</a>
+        <a href="sobre.html">Sobre</a>
+        <a href="contato.html">Contato</a>
       </nav>
     </div>
   </header>
 
-  <main id="conteudo" class="wrap">
-    <!-- HERO com tipografia expressiva -->
-    <section class="hero reveal" aria-labelledby="ttl-hero">
-      <h1 id="ttl-hero" class="kinetic">
-        ARQUITETURA <span class="neon">CURITIBANA</span> <br/> COM ALMA BRASILEIRA
+  <main id="conteudo">
+    <!-- HERO com manifesto imperativo -->
+    <section class="hero hero-landing wrap reveal" aria-labelledby="ttl-hero">
+      <h1 id="ttl-hero" class="headline">
+        PROJETAMOS LARES<br>
+        QUE RESPIRAM LUZ,<br>
+        CALOR HUMANO E<br>
+        NATUREZA URBANA.
       </h1>
-      <p class="sub">Simplicidade sofisticada, luz natural e materiais honestos.</p>
-      <a class="btn glass-strong" href="#projetos">ver projetos</a>
-    </section>
-
-    <!-- PROJETOS -->
-    <section id="projetos" class="section reveal" aria-labelledby="ttl-projs">
-      <h2 id="ttl-projs"><span class="dot" aria-hidden="true"></span> Projetos</h2>
-      <div class="grid">
-        <article class="card">
-          <div class="media parallax">
-            <img src="https://images.unsplash.com/photo-1501183638710-841dd1904471?q=80&w=1200&auto=format&fit=crop" alt="Casa Ahú — fachada com luz e sombra">
-          </div>
-          <div class="chip glass-soft" role="note" aria-label="Casa Ahú: luz, sombra e textura">
-            <strong>Casa Ahú</strong><span>luz, sombra e textura</span>
-          </div>
-        </article>
-
-        <article class="card">
-          <div class="media parallax">
-            <img src="https://images.unsplash.com/photo-1499955085172-a104c9463ece?q=80&w=1200&auto=format&fit=crop" alt="Interiores Juvevê — madeira e tons neutros">
-          </div>
-          <div class="chip glass-soft" role="note" aria-label="Interiores Juvevê: madeira e tons neutros">
-            <strong>Interiores Juvevê</strong><span>madeira e tons neutros</span>
-          </div>
-        </article>
-
-        <article class="card">
-          <div class="media parallax">
-            <img src="https://images.unsplash.com/photo-1524758631624-e2822e304c36?q=80&w=1200&auto=format&fit=crop" alt="Comercial Batel — mínimo e funcional">
-          </div>
-          <div class="chip glass-soft" role="note" aria-label="Comercial Batel: mínimo, funcional, elegante">
-            <strong>Comercial Batel</strong><span>mínimo, funcional, elegante</span>
-          </div>
-        </article>
+      <p class="lead">
+        Arquitetura curitibana. Brasileira com “s”. Materiais honestos, conforto ambiental, simplicidade sofisticada.
+      </p>
+      <div class="cta-row">
+        <a class="btn" href="projetos.html">ver projetos</a>
+        <a class="btn ghost" href="sobre.html">quem somos</a>
       </div>
     </section>
 
-    <!-- SOBRE -->
-    <section id="sobre" class="section reveal" aria-labelledby="ttl-sobre">
-      <h2 id="ttl-sobre"><span class="dot" aria-hidden="true"></span> Sobre</h2>
-      <div class="about">
-        <div class="panel glass-soft">
-          <p>Somos o <strong>Moreno Arquitetura</strong>, estúdio curitibano com essência brasileira. Projetamos residências e interiores com linguagem contemporânea e identidade local, priorizando luz natural, conforto e materiais honestos.</p>
-          <p>Manifesto: “Arquitetura acolhedora, sustentável e em harmonia com o clima e a cultura. Cada projeto oferece conforto, identidade e conexão com a natureza.”</p>
-        </div>
-        <div class="panel logo-box glass-soft" aria-label="Monograma">
-          <svg width="160" height="160" viewBox="0 0 100 100" role="img" aria-label="Monograma Moreno">
-            <rect x="18" y="22" width="12" height="56" fill="#111"/>
-            <rect x="44" y="30" width="12" height="48" fill="#111"/>
-            <rect x="70" y="22" width="12" height="56" fill="#111"/>
-            <circle cx="82" cy="74" r="4" fill="#4E6A4E"/>
-            <rect x="5" y="5" width="90" height="90" fill="none" stroke="rgba(17,17,17,.15)"/>
-          </svg>
-        </div>
-      </div>
-    </section>
-
-    <!-- CONTATO -->
-    <section id="contato" class="section reveal" aria-labelledby="ttl-contato">
-      <h2 id="ttl-contato"><span class="dot" aria-hidden="true"></span> Contato</h2>
-      <div class="contact glass">
-        <div>
-          <strong>Vamos conversar sobre o seu projeto?</strong><br/>
-          <small>Curitiba • Brasil</small>
-        </div>
-        <div class="cta-wrap">
-          <a class="btn glass-strong" href="mailto:leonardo@moreno.arq.br">leonardo@moreno.arq.br</a>
-          <a class="btn glass-strong" href="https://www.instagram.com/moreno.arquitetura_/" target="_blank" rel="noopener">instagram</a>
-        </div>
-      </div>
+    <!-- mini-statement em 3 pilares -->
+    <section class="wrap trio reveal" aria-label="Pilares">
+      <article class="pill">
+        <h3>Luz & Clima</h3>
+        <p>Orientação, ventilação cruzada e conforto térmico pensados desde o primeiro traço.</p>
+      </article>
+      <article class="pill">
+        <h3>Materiais honestos</h3>
+        <p>Madeira, pedra e texturas reais. Beleza que envelhece bem.</p>
+      </article>
+      <article class="pill">
+        <h3>Brasil com s</h3>
+        <p>Essência local, soluções contemporâneas e afeto no morar.</p>
+      </article>
     </section>
   </main>
 
-  <footer class="ftr glass-soft">© 2025 Moreno Arquitetura</footer>
-
-  <script src="script.js"></script>
+  <footer class="ftr">
+    © 2025 moreno — Curitiba, Brasil
+  </footer>
 </body>
 </html>
