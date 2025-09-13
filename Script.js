@@ -1,7 +1,7 @@
-// Respeitar prefers-reduced-motion
+// Respeita prefers-reduced-motion
 const prefersReduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 
-// Toggle manual de movimento (acessível)
+// Botão para desligar movimento manualmente
 const toggle = document.querySelector('.motion-toggle');
 if (toggle){
   toggle.addEventListener('click', ()=>{
@@ -38,21 +38,19 @@ document.querySelectorAll('a[href^="#"]').forEach(link=>{
 });
 
 // Parallax leve nos cards
-const cards = document.querySelectorAll('.parallax');
-cards.forEach(box=>{
+document.querySelectorAll('.parallax').forEach(box=>{
   let raf = null;
+  const img = box.querySelector('img');
   box.addEventListener('mousemove', (e)=>{
     if(prefersReduced || document.documentElement.classList.contains('no-motion')) return;
-    const rect = box.getBoundingClientRect();
-    const dx = (e.clientX - rect.left)/rect.width - 0.5;
-    const dy = (e.clientY - rect.top)/rect.height - 0.5;
+    const r = box.getBoundingClientRect();
+    const dx = (e.clientX - r.left)/r.width - 0.5;
+    const dy = (e.clientY - r.top)/r.height - 0.5;
     if(raf) cancelAnimationFrame(raf);
-    raf = requestAnimationFrame(()=>{
-      box.querySelector('img').style.transform = `scale(1.06) translate(${dx*6}px, ${dy*6}px)`;
-    });
+    raf = requestAnimationFrame(()=>{ img.style.transform = `scale(1.06) translate(${dx*6}px, ${dy*6}px)`; });
   });
   box.addEventListener('mouseleave', ()=>{
     if(raf) cancelAnimationFrame(raf);
-    box.querySelector('img').style.transform = '';
+    img.style.transform = '';
   });
 });
