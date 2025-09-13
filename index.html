@@ -3,18 +3,21 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Moreno Arquitetura — Curitiba</title>
-  <meta name="description" content="Arquitetura curitibana, com alma brasileira. Projetos residenciais e interiores com simpliclicidade sofisticada, luz natural e materiais honestos." />
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&family=Space+Grotesk:wght@400;600;700&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="style.css" />
+  <title>Moreno Arquitetura — Glass</title>
+  <meta name="description" content="Arquitetura curitibana, com alma brasileira. Variante com estética de vidro (glassmorphism) minimalista.">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&family=Space+Grotesk:wght@600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="style_glass.css">
   <meta name="theme-color" content="#4E6A4E">
 </head>
-<body>
+<body class="bg">
   <a class="skip" href="#conteudo">Pular para o conteúdo</a>
 
-  <header class="hdr" role="banner" aria-label="Cabeçalho do site">
+  <!-- Fundo com layers para realçar o vidro -->
+  <div class="bg-layers" aria-hidden="true"></div>
+
+  <header class="hdr glass" role="banner" aria-label="Cabeçalho do site">
     <div class="wrap bar">
-      <div class="brand" aria-label="Moreno Arquitetura">moreno.arq</div>
+      <div class="brand">moreno.arq</div>
       <nav aria-label="Principal">
         <a href="#projetos">Projetos</a>
         <a href="#sobre">Sobre</a>
@@ -22,101 +25,89 @@
         <button class="motion-toggle" aria-pressed="false" aria-label="Alternar animações">⚡</button>
       </nav>
     </div>
-    <div class="marquee" aria-hidden="true">
-      <span>lares com alma • arquitetura curitibana • brasil com s • </span>
-      <span>lares com alma • arquitetura curitibana • brasil com s • </span>
-    </div>
   </header>
 
-  <main id="conteudo">
-    <!-- HERO com tipografia expressiva / cinética -->
-    <section class="hero wrap reveal" aria-labelledby="ttl-hero">
-      <h1 id="ttl-hero" class="kinetic" aria-describedby="sub-hero">
-        ARQUITETURA<br><span data-spark>CURITIBANA</span><br>COM ALMA BRASILEIRA
+  <main id="conteudo" class="wrap">
+    <!-- HERO com tipografia expressiva -->
+    <section class="hero reveal" aria-labelledby="ttl-hero">
+      <h1 id="ttl-hero" class="kinetic">
+        ARQUITETURA <span class="neon">CURITIBANA</span> <br/> COM ALMA BRASILEIRA
       </h1>
-      <p id="sub-hero" class="sub">Simplicidade sofisticada, luz natural e materiais honestos.</p>
-      <a class="btn" href="#projetos">ver projetos</a>
-    </section>
-
-    <!-- MIXED MEDIA / COLAGEM -->
-    <section class="collage wrap reveal" aria-label="Colagem editorial">
-      <figure class="stack">
-        <img src="https://images.unsplash.com/photo-1501183638710-841dd1904471?q=80&w=1200&auto=format&fit=crop" alt="Fachada com luz e sombra" />
-        <img class="float" src="https://images.unsplash.com/photo-1499955085172-a104c9463ece?q=80&w=1200&auto=format&fit=crop" alt="Detalhe de interior em madeira" />
-        <!-- Ilustração orgânica (analog) -->
-        <svg class="scribble" viewBox="0 0 200 80" aria-hidden="true">
-          <path d="M10,40 C40,10 80,70 110,40 C140,10 180,70 190,40" fill="none" stroke="currentColor" stroke-width="3" />
-        </svg>
-      </figure>
-      <div class="collage-copy">
-        <h2 class="alt-chrome">Sutileza <span>retro-futurista</span></h2>
-        <p>Texturas orgânicas, tipografia ousada e composições que conectam o artesanal ao digital. Curitiba como referência de sobriedade e natureza — com brilho contemporâneo.</p>
-      </div>
+      <p class="sub">Simplicidade sofisticada, luz natural e materiais honestos.</p>
+      <a class="btn glass-strong" href="#projetos">ver projetos</a>
     </section>
 
     <!-- PROJETOS -->
-    <section id="projetos" class="section wrap reveal" aria-labelledby="ttl-projs">
+    <section id="projetos" class="section reveal" aria-labelledby="ttl-projs">
       <h2 id="ttl-projs"><span class="dot" aria-hidden="true"></span> Projetos</h2>
       <div class="grid">
-        <article class="card" aria-label="Casa Ahú">
+        <article class="card">
           <div class="media parallax">
-            <img src="https://images.unsplash.com/photo-1501183638710-841dd1904471?q=80&w=1200&auto=format&fit=crop" alt="Casa Ahú — fachada com luz e sombra" />
+            <img src="https://images.unsplash.com/photo-1501183638710-841dd1904471?q=80&w=1200&auto=format&fit=crop" alt="Casa Ahú — fachada com luz e sombra">
           </div>
-          <div class="cap"><div><h3>Casa Ahú</h3><p>luz, sombra e textura</p></div></div>
+          <div class="chip glass-soft" role="note" aria-label="Casa Ahú: luz, sombra e textura">
+            <strong>Casa Ahú</strong><span>luz, sombra e textura</span>
+          </div>
         </article>
-        <article class="card" aria-label="Interiores Juvevê">
+
+        <article class="card">
           <div class="media parallax">
-            <img src="https://images.unsplash.com/photo-1499955085172-a104c9463ece?q=80&w=1200&auto=format&fit=crop" alt="Interiores Juvevê — madeira e tons neutros" />
+            <img src="https://images.unsplash.com/photo-1499955085172-a104c9463ece?q=80&w=1200&auto=format&fit=crop" alt="Interiores Juvevê — madeira e tons neutros">
           </div>
-          <div class="cap"><div><h3>Interiores Juvevê</h3><p>madeira e tons neutros</p></div></div>
+          <div class="chip glass-soft" role="note" aria-label="Interiores Juvevê: madeira e tons neutros">
+            <strong>Interiores Juvevê</strong><span>madeira e tons neutros</span>
+          </div>
         </article>
-        <article class="card" aria-label="Comercial Batel">
+
+        <article class="card">
           <div class="media parallax">
-            <img src="https://images.unsplash.com/photo-1524758631624-e2822e304c36?q=80&w=1200&auto=format&fit=crop" alt="Comercial Batel — mínimo e funcional" />
+            <img src="https://images.unsplash.com/photo-1524758631624-e2822e304c36?q=80&w=1200&auto=format&fit=crop" alt="Comercial Batel — mínimo e funcional">
           </div>
-          <div class="cap"><div><h3>Comercial Batel</h3><p>mínimo, funcional, elegante</p></div></div>
+          <div class="chip glass-soft" role="note" aria-label="Comercial Batel: mínimo, funcional, elegante">
+            <strong>Comercial Batel</strong><span>mínimo, funcional, elegante</span>
+          </div>
         </article>
       </div>
     </section>
 
     <!-- SOBRE -->
-    <section id="sobre" class="section wrap reveal" aria-labelledby="ttl-sobre">
+    <section id="sobre" class="section reveal" aria-labelledby="ttl-sobre">
       <h2 id="ttl-sobre"><span class="dot" aria-hidden="true"></span> Sobre</h2>
       <div class="about">
-        <div class="panel">
+        <div class="panel glass-soft">
           <p>Somos o <strong>Moreno Arquitetura</strong>, estúdio curitibano com essência brasileira. Projetamos residências e interiores com linguagem contemporânea e identidade local, priorizando luz natural, conforto e materiais honestos.</p>
           <p>Manifesto: “Arquitetura acolhedora, sustentável e em harmonia com o clima e a cultura. Cada projeto oferece conforto, identidade e conexão com a natureza.”</p>
         </div>
-        <div class="panel logo-box" aria-label="Monograma">
+        <div class="panel logo-box glass-soft" aria-label="Monograma">
           <svg width="160" height="160" viewBox="0 0 100 100" role="img" aria-label="Monograma Moreno">
             <rect x="18" y="22" width="12" height="56" fill="#111"/>
             <rect x="44" y="30" width="12" height="48" fill="#111"/>
             <rect x="70" y="22" width="12" height="56" fill="#111"/>
             <circle cx="82" cy="74" r="4" fill="#4E6A4E"/>
-            <rect x="5" y="5" width="90" height="90" fill="none" stroke="#EAEAEA"/>
+            <rect x="5" y="5" width="90" height="90" fill="none" stroke="rgba(17,17,17,.15)"/>
           </svg>
         </div>
       </div>
     </section>
 
     <!-- CONTATO -->
-    <section id="contato" class="section wrap reveal" aria-labelledby="ttl-contato">
+    <section id="contato" class="section reveal" aria-labelledby="ttl-contato">
       <h2 id="ttl-contato"><span class="dot" aria-hidden="true"></span> Contato</h2>
-      <div class="contact" role="contentinfo">
+      <div class="contact glass">
         <div>
           <strong>Vamos conversar sobre o seu projeto?</strong><br/>
           <small>Curitiba • Brasil</small>
         </div>
         <div class="cta-wrap">
-          <a class="btn" href="mailto:leonardo@moreno.arq.br">leonardo@moreno.arq.br</a>
-          <a class="btn" href="https://www.instagram.com/moreno.arquitetura_/" target="_blank" rel="noopener">instagram</a>
+          <a class="btn glass-strong" href="mailto:leonardo@moreno.arq.br">leonardo@moreno.arq.br</a>
+          <a class="btn glass-strong" href="https://www.instagram.com/moreno.arquitetura_/" target="_blank" rel="noopener">instagram</a>
         </div>
       </div>
     </section>
   </main>
 
-  <footer class="ftr">© 2025 Moreno Arquitetura</footer>
+  <footer class="ftr glass-soft">© 2025 Moreno Arquitetura</footer>
 
-  <script src="script.js"></script>
+  <script src="script_glass.js"></script>
 </body>
 </html>
