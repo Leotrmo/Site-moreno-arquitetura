@@ -153,7 +153,7 @@ if (map) {
     btn.className = "btn ghost";
     btn.setAttribute("data-theme-toggle","");
     btn.setAttribute("aria-pressed", initialDark ? "true" : "false");
-    btn.textContent = initialDark ? "light" : "dark";
+    btn.textContent = initialDark ? "☀︎":"☾";
     btn.style.marginLeft = "12px";
     nav.appendChild(btn);
   }
