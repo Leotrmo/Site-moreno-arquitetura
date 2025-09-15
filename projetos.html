@@ -5,47 +5,27 @@
   <meta name="viewport" content="width=device-width,initial-scale=1" />
   <title>Projetos — moreno</title>
 
-  <!-- Performance -->
   <link rel="preload" as="image" href="/assets/img/casa-no-ahu/hero.jpg" />
-
-  <!-- SEO -->
-  <meta name="description" content="Seleção de projetos do estúdio moreno: residenciais e interiores em Curitiba e Brasil." />
+  <meta name="description" content="Seleção de projetos do estúdio moreno: residenciais, comerciais e interiores em Curitiba e Brasil." />
   <link rel="canonical" href="https://moreno.arq.br/projetos.html" />
 
-  <!-- Open Graph -->
   <meta property="og:title" content="Projetos — moreno">
   <meta property="og:description" content="Seleção de projetos do estúdio moreno.">
   <meta property="og:type" content="website">
   <meta property="og:url" content="https://moreno.arq.br/projetos.html">
 
   <link rel="stylesheet" href="/assets/css/style.css" />
+  <script src="/assets/js/script.js" defer></script>
+
   <link rel="apple-touch-icon" href="/icons/apple-touch-icon.png">
   <meta name="theme-color" content="#f7f8f7">
-
-  <!-- ItemList (Schema.org) -->
-  <script type="application/ld+json">
-  {
-    "@context":"https://schema.org",
-    "@type":"ItemList",
-    "name":"Portfólio de projetos — moreno",
-    "itemListElement":[
-      {
-        "@type":"ListItem","position":1,
-        "url":"https://moreno.arq.br/projetos/casa-no-ahu.html",
-        "name":"Casa no Ahú"
-      }
-      /* ,{ "@type":"ListItem","position":2,"url":"https://moreno.arq.br/projetos/interiores-juveve.html","name":"Interiores Juvevê"} */
-    ]
-  }
-  </script>
 </head>
 
 <body class="page projetos">
-  <!-- usamos o mesmo header visual (classes da nossa base) para não quebrar o CSS -->
   <header class="hdr">
     <div class="wrap bar">
       <a class="brand" href="/">moreno</a>
-      <nav class="nav" aria-label="Principal">
+      <nav aria-label="Principal">
         <a href="/projetos.html" class="is-active" aria-current="page">Projetos</a>
         <a href="/sobre.html">Sobre</a>
         <a href="/contato.html">Contato</a>
@@ -53,14 +33,49 @@
     </div>
   </header>
 
+  <!-- Breadcrumb simples -->
+  <nav class="breadcrumb" aria-label="você está aqui">
+    <a href="/">Início</a> · <span>Projetos</span>
+  </nav>
+
   <main class="wrap section">
     <h1 class="h1">Projetos</h1>
 
-    <!-- GRID baseado no seu padrão .grid-cards -->
-    <section class="grid-cards">
+    <!-- Barra de filtros -->
+    <section class="filters" aria-label="Filtrar projetos">
+      <div class="filters-row">
+        <label class="sr-only" for="f-q">Buscar</label>
+        <input id="f-q" class="filters-input" type="search" placeholder="buscar por nome, cidade, material…">
 
-      <!-- CARD 1: Casa no Ahú -->
-      <article class="card">
+        <label class="sr-only" for="f-tipo">Tipologia</label>
+        <select id="f-tipo" class="filters-select">
+          <option value="">Tipologia</option>
+          <option>Residencial</option>
+          <option>Interiores</option>
+          <option>Comercial</option>
+        </select>
+
+        <label class="sr-only" for="f-ano">Ano</label>
+        <select id="f-ano" class="filters-select">
+          <option value="">Ano</option>
+          <option>2025</option>
+          <option>2024</option>
+        </select>
+
+        <button id="f-clear" class="btn ghost filters-clear" type="button">limpar</button>
+      </div>
+      <div class="filters-meta">
+        <span id="f-count" aria-live="polite">3 projetos</span>
+      </div>
+    </section>
+
+    <!-- GRID baseado no .grid-cards -->
+    <section class="grid-cards" id="grid-projetos">
+      <!-- Casa no Ahú -->
+      <article class="card"
+               data-tipo="Residencial"
+               data-ano="2025"
+               data-tags="casa,curitiba,ahú,madeira,pedra,luz">
         <a class="card-link" href="/projetos/casa-no-ahu.html">
           <figure class="card-figure">
             <img src="/assets/img/casa-no-ahu/hero.jpg" alt="Fachada da Casa no Ahú" loading="lazy" />
@@ -73,11 +88,14 @@
         </a>
       </article>
 
-      
-      <article class="card">
+      <!-- Interiores Juvevê -->
+      <article class="card"
+               data-tipo="Interiores"
+               data-ano="2025"
+               data-tags="interiores,curitiba,juvevê,madeira,linho,serralheria">
         <a class="card-link" href="/projetos/interiores-juveve.html">
           <figure class="card-figure">
-            <img src="/assets/img/interiores-juveve/hero.jpg" alt="Interiores Juvevê — madeira e tons neutros" loading="lazy" />
+            <img src="/assets/img/interiores-juveve/hero.jpg" alt="Interiores Juvevê — madeira, tons neutros e luz suave" loading="lazy" />
           </figure>
           <div class="card-body">
             <h2 class="card-title">Interiores Juvevê</h2>
@@ -87,7 +105,11 @@
         </a>
       </article>
 
-      <article class="card">
+      <!-- Comercial Batel -->
+      <article class="card"
+               data-tipo="Comercial"
+               data-ano="2024"
+               data-tags="comercial,curitiba,batel,concreto,vidro">
         <a class="card-link" href="/projetos/comercial-batel.html">
           <figure class="card-figure">
             <img src="/assets/img/comercial-batel/hero.jpg" alt="Comercial Batel — linguagem mínima e funcional" loading="lazy" />
@@ -99,12 +121,9 @@
           </div>
         </a>
       </article>
-
     </section>
   </main>
 
-  <footer class="ftr">© moreno</footer>
-
-  <script src="/assets/js/script.js" defer></script>
+  <footer class="ftr">© 2025 moreno</footer>
 </body>
 </html>
