@@ -15,7 +15,7 @@
   <meta property="og:url" content="https://moreno.arq.br/projetos.html">
 
   <link rel="stylesheet" href="/assets/css/style.css" />
-  <script src="/assets/js/script.js" defer></script>
+  <script defer src="/assets/js/script.js"></script>
 
   <link rel="apple-touch-icon" href="/icons/apple-touch-icon.png">
   <meta name="theme-color" content="#f7f8f7">
@@ -33,7 +33,6 @@
     </div>
   </header>
 
-  <!-- Breadcrumb simples -->
   <nav class="breadcrumb" aria-label="você está aqui">
     <a href="/">Início</a> · <span>Projetos</span>
   </nav>
@@ -41,7 +40,7 @@
   <main class="wrap section">
     <h1 class="h1">Projetos</h1>
 
-    <!-- Barra de filtros -->
+    <!-- Filtros -->
     <section class="filters" aria-label="Filtrar projetos">
       <div class="filters-row">
         <label class="sr-only" for="f-q">Buscar</label>
@@ -64,49 +63,16 @@
 
         <button id="f-clear" class="btn ghost filters-clear" type="button">limpar</button>
       </div>
-      <div class="filters-meta">
-            <!-- Barra de filtros -->
-    <section class="filters" aria-label="Filtrar projetos">
-      <div class="filters-row">
-        <label class="sr-only" for="f-q">Buscar</label>
-        <input id="f-q" class="filters-input" type="search" placeholder="buscar por nome, cidade, material…">
-
-        <label class="sr-only" for="f-tipo">Tipologia</label>
-        <select id="f-tipo" class="filters-select">
-          <option value="">Tipologia</option>
-          <option>Residencial</option>
-          <option>Interiores</option>
-          <option>Comercial</option>
-        </select>
-
-        <label class="sr-only" for="f-ano">Ano</label>
-        <select id="f-ano" class="filters-select">
-          <option value="">Ano</option>
-          <option>2025</option>
-          <option>2024</option>
-        </select>
-
-        <button id="f-clear" class="btn ghost filters-clear" type="button">limpar</button>
-      </div>
-
       <div class="filters-meta">
         <span id="f-count" aria-live="polite">3 projetos</span>
       </div>
-
-      <!-- NOVO: badges dos filtros ativos -->
       <div class="filters-badges" id="f-badges" aria-live="polite"></div>
     </section>
-        <span id="f-count" aria-live="polite">3 projetos</span>
-      </div>
-    </section>
 
-    <!-- GRID baseado no .grid-cards -->
+    <!-- Grid -->
     <section class="grid-cards" id="grid-projetos">
       <!-- Casa no Ahú -->
-      <article class="card"
-               data-tipo="Residencial"
-               data-ano="2025"
-               data-tags="casa,curitiba,ahú,madeira,pedra,luz">
+      <article class="card" data-tipo="Residencial" data-ano="2025" data-tags="casa,curitiba,ahú,madeira,pedra,luz">
         <a class="card-link" href="/projetos/casa-no-ahu.html">
           <figure class="card-figure">
             <img src="/assets/img/casa-no-ahu/hero.jpg" alt="Fachada da Casa no Ahú" loading="lazy" />
@@ -120,10 +86,7 @@
       </article>
 
       <!-- Interiores Juvevê -->
-      <article class="card"
-               data-tipo="Interiores"
-               data-ano="2025"
-               data-tags="interiores,curitiba,juvevê,madeira,linho,serralheria">
+      <article class="card" data-tipo="Interiores" data-ano="2025" data-tags="interiores,curitiba,juvevê,madeira,linho,serralheria">
         <a class="card-link" href="/projetos/interiores-juveve.html">
           <figure class="card-figure">
             <img src="/assets/img/interiores-juveve/hero.jpg" alt="Interiores Juvevê — madeira, tons neutros e luz suave" loading="lazy" />
@@ -137,10 +100,7 @@
       </article>
 
       <!-- Comercial Batel -->
-      <article class="card"
-               data-tipo="Comercial"
-               data-ano="2024"
-               data-tags="comercial,curitiba,batel,concreto,vidro">
+      <article class="card" data-tipo="Comercial" data-ano="2024" data-tags="comercial,curitiba,batel,concreto,vidro">
         <a class="card-link" href="/projetos/comercial-batel.html">
           <figure class="card-figure">
             <img src="/assets/img/comercial-batel/hero.jpg" alt="Comercial Batel — linguagem mínima e funcional" loading="lazy" />
