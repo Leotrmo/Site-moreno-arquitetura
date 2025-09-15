@@ -358,6 +358,34 @@ body.dark .preloader{
 .filters-clear{padding:9px 14px}
 .filters-meta{margin-top:6px; color:var(--muted); font-size:.95rem}
 .card[hidden]{display:none !important}
+
+/* ====== ANIMAÇÃO DE CARDS ====== */
+.grid-cards .card{
+  opacity:1;
+  transform:scale(1) translateY(0);
+  transition:opacity .28s ease, transform .28s ease;
+  will-change:opacity, transform;
+}
+
+/* estado de saída (fade-out) */
+.grid-cards .card.is-hiding{
+  opacity:0;
+  transform:scale(.98) translateY(6px);
+}
+
+/* estado inicial de entrada (pré-fade-in) */
+.grid-cards .card.is-enter{
+  opacity:0;
+  transform:scale(.98) translateY(6px);
+}
+
+/* acessibilidade: sem animações */
+@media (prefers-reduced-motion: reduce){
+  .grid-cards .card{
+    transition:none !important;
+  }
+}
+
 /* ====== BADGES DE FILTROS ATIVOS ====== */
 .filters-badges{
   display:flex; flex-wrap:wrap; gap:8px;
