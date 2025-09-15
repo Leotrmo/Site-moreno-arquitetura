@@ -21,9 +21,11 @@
 /* ========= BASE ========= */
 *{box-sizing:border-box}
 html,body{height:100%}
-body{background:var(--bg); color:var(--text);
+body{
+  background:var(--bg); color:var(--text);
   font-family:'Inter',system-ui,-apple-system,Segoe UI,Roboto,sans-serif;
-  line-height:1.6; -webkit-font-smoothing:antialiased}
+  line-height:1.6; -webkit-font-smoothing:antialiased
+}
 img{max-width:100%; display:block}
 a{color:inherit; text-decoration:none}
 .wrap{max-width:var(--maxw); margin:0 auto; padding:0 var(--pad)}
@@ -39,7 +41,8 @@ a{color:inherit; text-decoration:none}
 .hdr{position:sticky; top:0; z-index:20;
   background:rgba(255,255,255,.78);
   backdrop-filter:saturate(120%) blur(8px);
-  border-bottom:1px solid var(--line)}
+  border-bottom:1px solid var(--line)
+}
 .bar{display:flex; justify-content:space-between; align-items:center; padding:14px 0}
 .brand{font-family:'Space Grotesk',sans-serif; font-weight:700;
   letter-spacing:.12em; text-transform:uppercase}
@@ -50,7 +53,7 @@ nav a::after{content:""; position:absolute; left:0; right:0; bottom:-6px; height
 nav a:hover::after, nav a:focus-visible::after{transform:scaleX(1)}
 nav a.is-active{color:var(--accent)}
 
-/* ========= HERO ========= */
+/* ========= HERO (manifesto) ========= */
 .hero{min-height:68svh; display:grid; place-items:center; text-align:center;
   padding:32px 0; position:relative; overflow:hidden}
 .hero::before{
@@ -72,31 +75,27 @@ nav a.is-active{color:var(--accent)}
   color:var(--forest)
 }
 .headline b{color:var(--accent)}
-.lead{color:var(--muted); font-size:clamp(16px,2.6vw,20px);
-  margin:.4rem 0 1.2rem}
+.lead{color:var(--muted); font-size:clamp(16px,2.6vw,20px); margin:.4rem 0 1.2rem}
 
 /* ========= PILARES ========= */
 .trio{display:grid; gap:16px; grid-template-columns:repeat(3,1fr); margin:34px 0 46px}
 @media (max-width:900px){.trio{grid-template-columns:1fr}}
 .pill{border:1px solid var(--line); background:var(--paper);
   border-radius:var(--radius); padding:18px; position:relative; overflow:hidden}
-.pill::after{content:""; position:absolute; inset:auto 0 0 0; height:6px;
-  background:var(--accent)}
+.pill::after{content:""; position:absolute; inset:auto 0 0 0; height:6px; background:var(--accent)}
 .pill h3{font-family:'Space Grotesk',sans-serif; margin:.2rem 0 .4rem}
 
-/* ========= SEÇÕES ========= */
+/* ========= SEÇÕES / TÍTULOS ========= */
 .section{padding:44px 0}
-.h1{font-family:'Space Grotesk',sans-serif;
-  font-size:clamp(26px,4.6vw,40px); margin:0 0 14px}
-.h2{font-family:'Space Grotesk',sans-serif;
-  font-size:clamp(22px,3.4vw,28px); margin:18px 0 8px}
+.h1{font-family:'Space Grotesk',sans-serif; font-size:clamp(26px,4.6vw,40px); margin:0 0 14px}
+.h2{font-family:'Space Grotesk',sans-serif; font-size:clamp(22px,3.4vw,28px); margin:18px 0 8px}
 
 /* ========= LISTAS, LINKS ========= */
 .list{padding-left:18px}
 .list li{margin:.3rem 0}
 .link{border-bottom:1px solid var(--accent)}
 
-/* ========= GRID PROJETOS ========= */
+/* ========= GRID PROJETOS (listagem padrão) ========= */
 .grid{display:grid; gap:16px; grid-template-columns:repeat(3,1fr)}
 @media (max-width:960px){.grid{grid-template-columns:1fr 1fr}}
 @media (max-width:560px){.grid{grid-template-columns:1fr}}
@@ -133,8 +132,7 @@ nav a.is-active{color:var(--accent)}
   border-radius:var(--radius); padding:16px; background:#fff}
 .field{display:grid; gap:6px}
 .field input,.field textarea{
-  border:1px solid var(--line); border-radius:10px; padding:10px 12px; font:inherit;
-  background:#fff}
+  border:1px solid var(--line); border-radius:10px; padding:10px 12px; font:inherit; background:#fff}
 .field input:focus,.field textarea:focus{
   outline:2px solid color-mix(in oklab, var(--accent) 40%, white)}
 
@@ -168,7 +166,69 @@ body.is-loaded{opacity:1}
   *{transition:none !important; animation:none !important}
   .reveal{opacity:1 !important; transform:none !important}
 }
-/* ========= DARK THEME ========= */
+
+/* =========================================================
+   B L O C O   N O V O — P Á G I N A S   D E   P R O J E T O
+   (integrado a paleta/variáveis e sem conflitos)
+   ========================================================= */
+
+/* Cards de projetos — layout alternativo */
+.grid-cards{
+  display:grid; gap:1.5rem;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+}
+.grid-cards .card{
+  border:1px solid rgba(0,0,0,.08);
+  border-radius:12px; overflow:hidden;
+  background:var(--paper);
+  backdrop-filter:saturate(140%) blur(6px);
+}
+.card-figure img{ width:100%; display:block; aspect-ratio:4/3; object-fit:cover }
+.card-body{ padding:1rem 1.1rem }
+.card-title{ font-size:1.1rem; line-height:1.2; margin:0 0 .25rem; font-family:'Space Grotesk',sans-serif }
+
+/* Página de projeto */
+.breadcrumb{
+  max-width:1100px; margin:1rem auto; padding:0 1rem;
+  opacity:.8; font-size:.9rem;
+}
+.breadcrumb a{ color:inherit }
+.breadcrumb a:hover{ color:var(--accent) }
+
+.hero-projeto{ position:relative; max-width:1200px; margin:0 auto }
+.hero-projeto img{ width:100%; height:auto; display:block; border-radius:18px }
+.hero-caption{ position:relative; margin:.8rem 0 0; color:var(--muted) }
+
+.bloco{ max-width:1100px; margin:2rem auto; padding:0 1rem }
+.bloco p{ margin:0 0 1rem }
+
+.ficha-grid{
+  display:grid; grid-template-columns:repeat(auto-fit, minmax(220px,1fr));
+  gap:.75rem 1rem;
+}
+.ficha-grid dt{ font-weight:600; opacity:.8 }
+.ficha-grid dd{ margin:0 }
+
+.grid-galeria{
+  display:grid; gap:1rem; grid-template-columns:repeat(12, 1fr);
+}
+.grid-galeria figure{ grid-column: span 6 }
+.grid-galeria img{ width:100%; border-radius:12px; display:block }
+
+@media (max-width:700px){
+  .grid-galeria figure{ grid-column: span 12 }
+}
+
+/* Botões “alternativos” compatíveis */
+.btn-ghost{ display:inline-block; padding:.7rem 1rem; border-radius:10px; text-decoration:none; opacity:.9 }
+.btn-ghost:hover,.btn-ghost:focus-visible{ opacity:1 }
+
+/* Harmonização de cores dos novos componentes */
+.grid-cards .card{ border-color: color-mix(in oklab, var(--accent) 22%, var(--line)) }
+.hero-caption a{ border-bottom:1px solid var(--accent) }
+.btn{ border:1px solid currentColor } /* mantém compatibilidade */
+
+/* ========= DARK THEME (overrides) ========= */
 body.dark{
   --bg:#0F1211;
   --paper:#121715;
@@ -176,23 +236,22 @@ body.dark{
   --muted:#A7B1AB;
   --line:#26302B;
 
-  /* Paleta reinterpretada no escuro */
-  --green:#78A081;     /* araucária suavizado p/ dark */
-  --terra:#D07C57;     /* terracota mais luminosa */
-  --sky:#78B2FF;       /* azul com mais brilho */
-  --forest:#DCE6E1;    /* para bordas/contraste de botões no dark */
+  --green:#78A081;
+  --terra:#D07C57;
+  --sky:#78B2FF;
+  --forest:#DCE6E1;
 
   --accent:var(--terra);
 }
 
-/* ajustar header no dark */
+/* Header no dark */
 body.dark .hdr{
   background:rgba(18,23,21,.72);
   backdrop-filter:saturate(120%) blur(8px);
   border-bottom:1px solid var(--line);
 }
 
-/* hero no dark: neblina mais contida */
+/* Hero dark */
 body.dark .hero::before{
   background:
     radial-gradient(1100px 620px at 12% 16%, rgba(120,178,255,.12), transparent 60%),
@@ -200,23 +259,29 @@ body.dark .hero::before{
     linear-gradient(180deg,#0F1211, #141816);
 }
 body.dark .hero::after{ opacity:.18 }
-
-/* headline e destaques */
 body.dark .headline{ color:#E7EFEC }
 body.dark .headline b{ color:var(--accent) }
 
-/* cards / listas / forms / contato */
+/* Cards/listas/forms/contato dark */
 body.dark .card,
 body.dark .pill,
 body.dark .form,
-body.dark .contact{ background:var(--paper); border-color:var(--line) }
+body.dark .contact{
+  background:var(--paper); border-color:var(--line);
+}
 
+/* Página de projeto — dark */
+body.dark .grid-cards .card{ border-color: color-mix(in oklab, var(--accent) 25%, var(--line)) }
+body.dark .hero-projeto img{ box-shadow: 0 8px 24px rgba(0,0,0,.35) }
+body.dark .grid-galeria img{ box-shadow: 0 6px 18px rgba(0,0,0,.28) }
+
+/* Map placeholder dark */
 body.dark .map-placeholder{
   background:linear-gradient(180deg,#161A18,#0F1211);
   border-color:var(--line); color:var(--muted);
 }
 
-/* botões */
+/* Botões dark */
 body.dark .btn{
   border-color:var(--forest);
   color:var(--text);
@@ -224,8 +289,7 @@ body.dark .btn{
 }
 body.dark .btn:hover,
 body.dark .btn:focus-visible{
-  background:var(--text);
-  color:#0F1211;
+  background:var(--text); color:#0F1211;
 }
 body.dark .btn.ghost{
   border-color:var(--accent); color:var(--accent);
@@ -242,7 +306,7 @@ body.dark .btn.sky:focus-visible{
   background:var(--sky); color:#0F1211;
 }
 
-/* preloader no dark */
+/* Preloader dark */
 body.dark .preloader{
   background:
     radial-gradient(1000px 600px at 20% 20%, rgba(120,178,255,.12), transparent 60%),
