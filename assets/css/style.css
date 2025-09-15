@@ -168,3 +168,84 @@ body.is-loaded{opacity:1}
   *{transition:none !important; animation:none !important}
   .reveal{opacity:1 !important; transform:none !important}
 }
+/* ========= DARK THEME ========= */
+body.dark{
+  --bg:#0F1211;
+  --paper:#121715;
+  --text:#EEF1EF;
+  --muted:#A7B1AB;
+  --line:#26302B;
+
+  /* Paleta reinterpretada no escuro */
+  --green:#78A081;     /* araucária suavizado p/ dark */
+  --terra:#D07C57;     /* terracota mais luminosa */
+  --sky:#78B2FF;       /* azul com mais brilho */
+  --forest:#DCE6E1;    /* para bordas/contraste de botões no dark */
+
+  --accent:var(--terra);
+}
+
+/* ajustar header no dark */
+body.dark .hdr{
+  background:rgba(18,23,21,.72);
+  backdrop-filter:saturate(120%) blur(8px);
+  border-bottom:1px solid var(--line);
+}
+
+/* hero no dark: neblina mais contida */
+body.dark .hero::before{
+  background:
+    radial-gradient(1100px 620px at 12% 16%, rgba(120,178,255,.12), transparent 60%),
+    radial-gradient(1000px 620px at 88% 34%, rgba(208,124,87,.10), transparent 62%),
+    linear-gradient(180deg,#0F1211, #141816);
+}
+body.dark .hero::after{ opacity:.18 }
+
+/* headline e destaques */
+body.dark .headline{ color:#E7EFEC }
+body.dark .headline b{ color:var(--accent) }
+
+/* cards / listas / forms / contato */
+body.dark .card,
+body.dark .pill,
+body.dark .form,
+body.dark .contact{ background:var(--paper); border-color:var(--line) }
+
+body.dark .map-placeholder{
+  background:linear-gradient(180deg,#161A18,#0F1211);
+  border-color:var(--line); color:var(--muted);
+}
+
+/* botões */
+body.dark .btn{
+  border-color:var(--forest);
+  color:var(--text);
+  background:transparent;
+}
+body.dark .btn:hover,
+body.dark .btn:focus-visible{
+  background:var(--text);
+  color:#0F1211;
+}
+body.dark .btn.ghost{
+  border-color:var(--accent); color:var(--accent);
+}
+body.dark .btn.ghost:hover,
+body.dark .btn.ghost:focus-visible{
+  background:var(--accent); color:#0F1211;
+}
+body.dark .btn.sky{
+  border-color:var(--sky); color:var(--sky);
+}
+body.dark .btn.sky:hover,
+body.dark .btn.sky:focus-visible{
+  background:var(--sky); color:#0F1211;
+}
+
+/* preloader no dark */
+body.dark .preloader{
+  background:
+    radial-gradient(1000px 600px at 20% 20%, rgba(120,178,255,.12), transparent 60%),
+    radial-gradient(900px 540px at 80% 30%, rgba(208,124,87,.10), transparent 60%),
+    #0F1211;
+}
