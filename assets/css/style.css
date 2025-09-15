@@ -358,3 +358,24 @@ body.dark .preloader{
 .filters-clear{padding:9px 14px}
 .filters-meta{margin-top:6px; color:var(--muted); font-size:.95rem}
 .card[hidden]{display:none !important}
+/* ====== BADGES DE FILTROS ATIVOS ====== */
+.filters-badges{
+  display:flex; flex-wrap:wrap; gap:8px;
+  margin-top:8px;
+}
+.badge{
+  display:inline-flex; align-items:center; gap:8px;
+  padding:6px 10px; border-radius:999px;
+  border:1px solid var(--line); background:#fff; color:var(--text);
+  font-size:.95rem;
+}
+.badge .k{opacity:.7}          /* chave (q, tipo, ano) */
+.badge .v{font-weight:600}     /* valor */
+.badge button{
+  appearance:none; border:0; background:transparent; cursor:pointer;
+  padding:0 2px; line-height:1; font-size:1.05em;
+  color:var(--accent);
+}
+.badge button:hover,
+.badge button:focus-visible{ text-decoration:underline }
+body.dark .badge{ background:var(--paper); border-color:var(--line); color:var(--text) }
