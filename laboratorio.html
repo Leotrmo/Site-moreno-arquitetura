@@ -1,0 +1,118 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Laboratório — moreno</title>
+
+  <meta name="description" content="Espaço de experimentação criativa do estúdio moreno: design, fotografia, escrita e negócios." />
+  <link rel="canonical" href="https://moreno.arq.br/laboratorio.html" />
+
+  <meta property="og:title" content="Laboratório — moreno">
+  <meta property="og:description" content="Explorações em design, fotografia, escrita e negócios.">
+  <meta property="og:type" content="website">
+  <meta property="og:url" content="https://moreno.arq.br/laboratorio.html">
+
+  <link rel="stylesheet" href="/assets/css/style.css" />
+  <script defer src="/assets/js/script.js"></script>
+</head>
+<body class="page laboratorio">
+  <header class="hdr">
+    <div class="wrap bar">
+      <a class="brand" href="/">moreno</a>
+      <nav aria-label="Principal">
+        <a href="/projetos.html">Projetos</a>
+        <a href="/laboratorio.html" class="is-active" aria-current="page">Laboratório</a>
+        <a href="/sobre.html">Sobre</a>
+        <a href="/contato.html">Contato</a>
+      </nav>
+    </div>
+  </header>
+
+  <nav class="breadcrumb" aria-label="você está aqui">
+    <a href="/">Início</a> · <span>Laboratório</span>
+  </nav>
+
+  <main class="wrap section">
+    <h1 class="h1">Laboratório</h1>
+    <p class="lead muted">
+      Espaço de experimentação do estúdio. Desdobramentos da prática: <strong>design</strong>, 
+      <strong>fotografia</strong>, <strong>escrita</strong> e <strong>negócios</strong>.
+    </p>
+
+    <section class="grid-cards" id="grid-lab">
+      <!-- DESIGN -->
+      <article class="card">
+        <a class="card-link" href="#" aria-label="Design — em breve">
+          <figure class="card-figure">
+            <img src="/assets/img/laboratorio/design.jpg" alt="Estudos de identidade e objetos — design" loading="lazy">
+          </figure>
+          <div class="card-body">
+            <h2 class="card-title">Design</h2>
+            <p class="card-meta">Identidades, impressos e objetos</p>
+            <p class="card-desc">Sistemas visuais e produtos com a mesma precisão calma que orienta a arquitetura.</p>
+          </div>
+        </a>
+      </article>
+
+      <!-- FOTOGRAFIA -->
+      <article class="card">
+        <a class="card-link" href="#" aria-label="Fotografia — em breve">
+          <figure class="card-figure">
+            <img src="/assets/img/laboratorio/fotografia.jpg" alt="Luz natural e textura — fotografia" loading="lazy">
+          </figure>
+          <div class="card-body">
+            <h2 class="card-title">Fotografia</h2>
+            <p class="card-meta">Luz, matéria e silêncio</p>
+            <p class="card-desc">Séries que exploram materialidade, vegetação e tempo nos espaços que habitamos.</p>
+          </div>
+        </a>
+      </article>
+
+      <!-- ESCRITA -->
+      <article class="card">
+        <a class="card-link" href="#" aria-label="Escrita — em breve">
+          <figure class="card-figure">
+            <img src="/assets/img/laboratorio/escrita.jpg" alt="Caderno e lápis — escrita" loading="lazy">
+          </figure>
+          <div class="card-body">
+            <h2 class="card-title">Escrita</h2>
+            <p class="card-meta">Ensaios e notas de processo</p>
+            <p class="card-desc">Textos curtos sobre prática, referências locais e conforto ambiental.</p>
+          </div>
+        </a>
+      </article>
+
+      <!-- NEGÓCIOS -->
+      <article class="card">
+        <a class="card-link" href="#" aria-label="Negócios — em breve">
+          <figure class="card-figure">
+            <img src="/assets/img/laboratorio/negocios.jpg" alt="Caderno de planejamento — negócios" loading="lazy">
+          </figure>
+          <div class="card-body">
+            <h2 class="card-title">Negócios</h2>
+            <p class="card-meta">Produtos e serviços</p>
+            <p class="card-desc">Modelos enxutos para tornar a boa arquitetura mais acessível e replicável.</p>
+          </div>
+        </a>
+      </article>
+    </section>
+  </main>
+
+  <footer class="ftr">© 2025 moreno</footer>
+
+  <script>
+    // Prefetch simples (reaproveitando padrão dos projetos)
+    document.addEventListener('mouseover', (e) => {
+      const a = e.target.closest('#grid-lab a.card-link[href^="/"]');
+      if (a && !a.dataset.prefetched) {
+        const link = document.createElement('link');
+        link.rel = 'prefetch';
+        link.href = a.getAttribute('href');
+        document.head.appendChild(link);
+        a.dataset.prefetched = '1';
+      }
+    });
+  </script>
+</body>
+</html>
