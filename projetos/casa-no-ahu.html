@@ -1,111 +1,41 @@
 <!DOCTYPE html>
 <html lang="pt-br">
 <head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>Casa no Ahú — moreno</title>
-  <link rel="stylesheet" href="/assets/css/style.css" />
-  <link rel="canonical" href="https://moreno.arq.br/projetos/casa-no-ahu.html" />
-
-  <meta name="description" content="Casa térrea no bairro Ahú, Curitiba-PR. Pátio interno, luz filtrada e materialidade quente.">
-  <meta property="og:title" content="Casa no Ahú — moreno">
-  <meta property="og:description" content="Casa térrea com pátio interno e luz filtrada.">
-  <meta property="og:type" content="article">
-  <meta property="og:url" content="https://moreno.arq.br/projetos/casa-no-ahu.html">
-  <meta property="og:image" content="https://moreno.arq.br/assets/img/casa-no-ahu/hero.jpg">
-
-  <!-- Dados estruturados (Schema.org) -->
-  <script type="application/ld+json">
-  {
-    "@context":"https://schema.org",
-    "@type":"Project",
-    "name":"Casa no Ahú",
-    "locationCreated":{"@type":"Place","name":"Curitiba, PR"},
-    "keywords":["residencial","casa térrea","pátio interno"],
-    "image":["https://moreno.arq.br/assets/img/casa-no-ahu/hero.jpg"],
-    "creator":{"@type":"Organization","name":"moreno"},
-    "dateCreated":"2025-01-01"
-  }
-  </script>
+  <link rel="stylesheet" href="../assets/css/style.css">
+  <script src="../assets/js/script.js" defer></script>
 </head>
-<body class="page projeto">
-  <header class="topbar">
-    <a class="logo" href="/">moreno</a>
-    <nav class="nav">
-      <a href="/projetos.html" aria-current="page">Projetos</a>
-      <a href="/sobre.html">Sobre</a>
-      <a href="/contato.html">Contato</a>
-    </nav>
+<body>
+  <header class="hdr">
+    <div class="wrap bar">
+      <a href="../index.html" class="brand">moreno</a>
+      <nav>
+        <a href="../projetos.html" class="is-active">Projetos</a>
+        <a href="../sobre.html">Sobre</a>
+        <a href="../contato.html">Contato</a>
+      </nav>
+    </div>
   </header>
 
-  <main>
-    <!-- Breadcrumb -->
-    <nav class="breadcrumb" aria-label="breadcrumb">
-      <a href="/projetos.html">Projetos</a>
-      <span aria-hidden="true">/</span>
-      <span>Casa no Ahú</span>
-    </nav>
-
-    <!-- Hero -->
-    <section class="hero-projeto">
-      <img src="/assets/img/casa-no-ahu/hero.jpg" alt="Fachada da Casa no Ahú" decoding="async" />
-      <div class="hero-caption">
-        <h1>Casa no Ahú</h1>
-        <p>Residencial • Curitiba-PR • 2025</p>
-      </div>
-    </section>
-
-    <!-- Bloco: Conceito -->
-    <section class="bloco texto">
-      <h2>Conceito</h2>
-      <p>
-        Uma casa térrea organizada ao redor de um pátio que filtra luz e ventilação.
-        Materiais naturais em tons quentes dialogam com a vegetação, enquanto aberturas
-        altas garantem privacidade sem perder permeabilidade visual.
-      </p>
-    </section>
-
-    <!-- Bloco: Ficha técnica -->
-    <section class="bloco ficha">
-      <h2>Ficha técnica</h2>
-      <dl class="ficha-grid">
-        <div><dt>Tipologia</dt><dd>Residencial unifamiliar</dd></div>
-        <div><dt>Local</dt><dd>Ahú, Curitiba — PR</dd></div>
-        <div><dt>Área</dt><dd>160 m²</dd></div>
-        <div><dt>Fase</dt><dd>Estudo preliminar</dd></div>
-        <div><dt>Equipe</dt><dd>moreno</dd></div>
-        <div><dt>Fotografia</dt><dd>—</dd></div>
-      </dl>
-      <p class="downloads">
-        <a class="btn" href="/assets/img/casa-no-ahu/plantas.pdf" target="_blank" rel="noopener">Plantas (PDF)</a>
-      </p>
-    </section>
-
-    <!-- Galeria -->
-    <section class="bloco galeria">
-      <h2>Galeria</h2>
-      <div class="grid-galeria">
-        <figure>
-          <img src="/assets/img/casa-no-ahu/01.jpg" alt="Pátio interno com brises" loading="lazy">
-        </figure>
-        <figure>
-          <img src="/assets/img/casa-no-ahu/02.jpg" alt="Estar integrado ao pátio" loading="lazy">
-        </figure>
-        <!-- Adicione mais figures conforme necessário -->
-      </div>
-    </section>
-
-    <!-- Navegação entre projetos (opcional, aponta para próximos quando existirem) -->
-    <nav class="nav-projeto">
-      <a class="btn-ghost" href="/projetos.html">← Voltar para projetos</a>
-      <!-- <a class="btn" href="/projetos/proximo-projeto.html">Próximo projeto →</a> -->
-    </nav>
+  <main class="wrap section">
+    <h1 class="h1">Casa no Ahú</h1>
+    <div class="hero-img">
+      <img src="../assets/img/casa-no-ahu/hero.jpg" alt="Casa no Ahú">
+    </div>
+    <p>
+      Residência térrea em Curitiba, com acesso independente à rua e materiais honestos. Projeto que valoriza luz natural, ventilação cruzada e essência local.
+    </p>
+    <div class="gallery grid">
+      <img src="../assets/img/casa-no-ahu/01.jpg" alt="Interior da Casa no Ahú">
+      <img src="../assets/img/casa-no-ahu/02.jpg" alt="Detalhes construtivos Casa no Ahú">
+    </div>
+    <p>
+      <a class="btn" href="../assets/img/casa-no-ahu/plantas.pdf" target="_blank">Ver plantas em PDF</a>
+    </p>
   </main>
 
-  <footer class="footer">
-    <p>© moreno</p>
-  </footer>
-
-  <script src="/assets/js/script.js" defer></script>
+  <footer class="ftr">© 2025 moreno</footer>
 </body>
 </html>
