@@ -1,0 +1,37 @@
+<!-- moreno · favicon.svg · 512x512 viewBox para boa renderização em qualquer tamanho -->
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" role="img" aria-label="moreno favicon">
+  <defs>
+    <!-- fundo “vidro” leve -->
+    <radialGradient id="g1" cx="22%" cy="18%" r="70%">
+      <stop offset="0" stop-color="#E6EEF9" stop-opacity=".35"/>
+      <stop offset="1" stop-color="#FFFFFF" stop-opacity="1"/>
+    </radialGradient>
+    <!-- brilho diagonal bem sutil -->
+    <linearGradient id="gloss" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#FFFFFF" stop-opacity=".6"/>
+      <stop offset=".35" stop-color="#FFFFFF" stop-opacity=".18"/>
+      <stop offset=".9" stop-color="#FFFFFF" stop-opacity="0"/>
+    </linearGradient>
+  </defs>
+
+  <!-- disco de base (off-white) -->
+  <circle cx="256" cy="256" r="244" fill="url(#g1)" />
+  <circle cx="256" cy="256" r="244" fill="none" stroke="#DDE3DF" stroke-width="8"/>
+
+  <!-- marca “M” em barras (verde escuro) -->
+  <!-- proporção pensada para legibilidade em 16–32px -->
+  <g fill="#2F4F43">
+    <!-- barra esquerda -->
+    <rect x="138" y="150" width="58" height="212" rx="8"/>
+    <!-- barra central com topo chanfrado (formando o “M”) -->
+    <path d="M226 362V150h58v212zM226 150l29 34 29-34h-58z"/>
+    <!-- barra direita -->
+    <rect x="314" y="150" width="58" height="212" rx="8"/>
+    <!-- ponto (opcional; mantém identidade “M.”). Fica grande o suficiente para 16px -->
+    <circle cx="390" cy="380" r="16"/>
+  </g>
+
+  <!-- brilho/vidro por cima, sutil -->
+  <path d="M40 120c120-60 312-72 432 36v120C412 144 220 118 40 200z" fill="url(#gloss)"/>
+
+</svg>
