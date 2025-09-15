@@ -188,3 +188,55 @@ document.addEventListener('mouseover', (e) => {
     a.dataset.prefetched = '1';
   }
 });
+/* =======================
+   FILTRO DE PROJETOS (client-side)
+   ======================= */
+(function(){
+  const grid = document.getElementById("grid-projetos");
+  if (!grid) return;
+
+  const q = document.getElementById("f-q");
+  const tipo = document.getElementById("f-tipo");
+  const ano = document.getElementById("f-ano");
+  const clear = document.getElementById("f-clear");
+  const count = document.getElementById("f-count");
+  const cards = Array.from(grid.querySelectorAll(".card"));
+
+  function normalize(s){ return (s||"").toString().toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g,""); }
+
+  function apply(){
+    const qv = normalize(q.value);
+    const tv = (tipo.value||"").toLowerCase();
+    const av = (ano.value||"").toLowerCase();
+    let shown = 0;
+
+    cards.forEach(card=>{
+      const ct = normalize(card.querySelector(".card-title")?.textContent);
+      const cm = normalize(card.querySelector(".card-meta")?.textContent);
+      const cd = normalize(card.querySelector(".card-desc")?.textContent);
+      const tags = normalize(card.getAttribute("data-tags"));
+      const tip = (card.getAttribute("data-tipo")||"").toLowerCase();
+      const yr  = (card.getAttribute("data-ano")||"").toLowerCase();
+
+      const matchText = !qv || [ct,cm,cd,tags].some(v=>v.includes(qv));
+      const matchTipo = !tv || tip === tv;
+      const matchAno  = !av || yr === av;
+
+      const ok = matchText && matchTipo && matchAno;
+      card.hidden = !ok;
+      if (ok) shown++;
+    });
+
+    count.textContent = `${shown} projeto${shown===1?"":"s"}`;
+  }
+
+  q?.addEventListener("input", apply);
+  tipo?.addEventListener("change", apply);
+  ano?.addEventListener("change", apply);
+  clear?.addEventListener("click", ()=>{
+    q.value = ""; tipo.value = ""; ano.value = ""; apply();
+  });
+
+  // inicial
+  apply();
+})();
