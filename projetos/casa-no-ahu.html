@@ -1,39 +1,116 @@
 <!DOCTYPE html>
 <html lang="pt-br">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>Casa no Ahú — moreno</title>
-  <link rel="stylesheet" href="../assets/css/style.css">
+  <meta name="description" content="Residência em Curitiba com materiais honestos, luz natural e conforto ambiental. Projeto Moreno.">
+  <link rel="stylesheet" href="../assets/css/style.css" />
   <script src="../assets/js/script.js" defer></script>
+  <link rel="apple-touch-icon" href="../icons/apple-touch-icon.png">
+  <meta name="theme-color" content="#f7f8f7">
 </head>
 <body>
   <header class="hdr">
     <div class="wrap bar">
       <a href="../index.html" class="brand">moreno</a>
-      <nav>
-        <a href="../projetos.html" class="is-active">Projetos</a>
+      <nav aria-label="Principal">
+        <a href="../projetos.html" class="is-active" aria-current="page">Projetos</a>
         <a href="../sobre.html">Sobre</a>
         <a href="../contato.html">Contato</a>
       </nav>
     </div>
   </header>
 
-  <main class="wrap section">
-    <h1 class="h1">Casa no Ahú</h1>
-    <div class="hero-img">
-      <img src="../assets/img/casa-no-ahu/hero.jpg" alt="Casa no Ahú">
-    </div>
-    <p>
-      Residência térrea em Curitiba, com acesso independente à rua e materiais honestos. Projeto que valoriza luz natural, ventilação cruzada e essência local.
-    </p>
-    <div class="gallery grid">
-      <img src="../assets/img/casa-no-ahu/01.jpg" alt="Interior da Casa no Ahú">
-      <img src="../assets/img/casa-no-ahu/02.jpg" alt="Detalhes construtivos Casa no Ahú">
-    </div>
-    <p>
-      <a class="btn" href="../assets/img/casa-no-ahu/plantas.pdf" target="_blank">Ver plantas em PDF</a>
-    </p>
+  <!-- Breadcrumb -->
+  <nav class="breadcrumb" aria-label="Você está aqui">
+    <a href="../index.html">Início</a> ·
+    <a href="../projetos.html">Projetos</a> ·
+    <span>Casa no Ahú</span>
+  </nav>
+
+  <main>
+    <!-- HERO do projeto -->
+    <section class="hero-projeto">
+      <img src="../assets/img/casa-no-ahu/hero.jpg" alt="Fachada da Casa no Ahú com luz e sombra" loading="eager">
+      <p class="hero-caption">
+        Casa no Ahú — Curitiba, PR. Materiais honestos, luz natural e integração com o bairro.
+      </p>
+    </section>
+
+    <!-- Resumo e ficha -->
+    <section class="bloco">
+      <h1 class="h1">Casa no Ahú</h1>
+      <p>
+        Residência térrea que equilibra técnica e afeto: implantação para sol e ventilação, varandas
+        como transição entre rua e casa, e uma paleta de materiais que aceita o tempo — madeira, pedra
+        e alvenaria aparente. O desenho privilegia a luz difusa curitibana e a rotina dos moradores.
+      </p>
+
+      <dl class="ficha-grid" aria-label="Ficha técnica">
+        <div>
+          <dt>Local</dt>
+          <dd>Ahú, Curitiba — Brasil</dd>
+        </div>
+        <div>
+          <dt>Ano</dt>
+          <dd>2025</dd>
+        </div>
+        <div>
+          <dt>Programa</dt>
+          <dd>Residência unifamiliar</dd>
+        </div>
+        <div>
+          <dt>Área</dt>
+          <dd>—</dd>
+        </div>
+        <div>
+          <dt>Autores</dt>
+          <dd>moreno</dd>
+        </div>
+        <div>
+          <dt>Materiais</dt>
+          <dd>Madeira, pedra, alvenaria, concreto</dd>
+        </div>
+      </dl>
+
+      <p style="margin-top:1rem">
+        <a class="btn" href="../assets/img/casa-no-ahu/plantas.pdf" target="_blank" rel="noopener">Ver plantas (PDF)</a>
+        <a class="btn-ghost" href="../projetos.html">voltar para projetos</a>
+      </p>
+    </section>
+
+    <!-- Galeria -->
+    <section class="bloco" aria-labelledby="galeria-titulo">
+      <h2 id="galeria-titulo" class="h2">Galeria</h2>
+      <div class="grid-galeria">
+        <figure>
+          <img src="../assets/img/casa-no-ahu/01.jpg" alt="Estar integrado com varanda e iluminação natural" loading="lazy">
+        </figure>
+        <figure>
+          <img src="../assets/img/casa-no-ahu/02.jpg" alt="Detalhe de materiais honestos: madeira e pedra" loading="lazy">
+        </figure>
+        <!-- exemplo de repetição futura
+        <figure>
+          <img src="../assets/img/casa-no-ahu/03.jpg" alt="Cozinha com luz difusa" loading="lazy">
+        </figure>
+        <figure>
+          <img src="../assets/img/casa-no-ahu/04.jpg" alt="Varanda e jardim" loading="lazy">
+        </figure>
+        -->
+      </div>
+    </section>
+
+    <!-- Texto corrido (opcional) -->
+    <section class="bloco narrow">
+      <h2 class="h2">Conceito</h2>
+      <p>
+        O partido nasce do clima curitibano: beirais generosos, aberturas bem orientadas e proteção
+        para a chuva fina. O térreo contínuo favorece o encontro cotidiano, enquanto os materiais
+        aparentes mantêm a sinceridade construtiva. A casa se abre para o pátio e filtra a rua, numa
+        relação franca com o bairro do Ahú.
+      </p>
+    </section>
   </main>
 
   <footer class="ftr">© 2025 moreno</footer>
