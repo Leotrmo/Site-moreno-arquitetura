@@ -379,3 +379,9 @@ body.dark .preloader{
 .badge button:hover,
 .badge button:focus-visible{ text-decoration:underline }
 body.dark .badge{ background:var(--paper); border-color:var(--line); color:var(--text) }
+
+/* ===== opções desabilitadas nos selects ===== */
+.filters-select option:disabled {
+  color: var(--muted);
+  opacity: .6;
+}
