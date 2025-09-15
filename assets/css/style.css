@@ -344,3 +344,17 @@ body.dark .preloader{
     radial-gradient(900px 540px at 80% 30%, rgba(208,124,87,.10), transparent 60%),
     #0F1211;
 }
+/* ====== FILTROS DE PROJETOS ====== */
+.sr-only{position:absolute;left:-9999px;width:1px;height:1px;overflow:hidden}
+.filters{margin:10px 0 18px}
+.filters-row{display:flex; gap:10px; flex-wrap:wrap; align-items:center}
+.filters-input{
+  flex:1 1 220px; min-width:200px;
+  border:1px solid var(--line); border-radius:999px; padding:10px 14px; background:#fff;
+}
+.filters-select{
+  border:1px solid var(--line); border-radius:999px; padding:10px 12px; background:#fff;
+}
+.filters-clear{padding:9px 14px}
+.filters-meta{margin-top:6px; color:var(--muted); font-size:.95rem}
+.card[hidden]{display:none !important}
