@@ -1,21 +1,18 @@
 /* ========= TOKENS ========= */
 :root{
-  /* Base clara */
   --bg:#f7f8f7;
   --paper:#FFFFFF;
   --text:#101110;
   --muted:#5f6761;
   --line:#E5E7E6;
 
-  /* Paleta moreno+cor */
+  /* Paleta */
   --green:#4E6A4E;      /* Araucária */
-  --terra:#C46B41;      /* Terracota quente */
-  --sky:#5DA6FF;        /* Céu curitibano após chuva */
-  --sand:#E8D9B0;       /* Areia/textura natural */
-  --forest:#2F4F43;     /* Verde profundo p/ contrastes */
+  --terra:#C46B41;      /* Terracota (acento único) */
+  --sky:#5DA6FF;        /* opcional p/ CTA secundário */
+  --forest:#2F4F43;
 
-  /* Derivados */
-  --accent:var(--green);
+  --accent:var(--terra);   /* acento principal agora é terracota */
   --radius:14px;
   --maxw:1180px;
   --pad:clamp(16px,4vw,32px);
@@ -44,44 +41,46 @@ a{color:inherit; text-decoration:none}
 .brand{font-family:'Space Grotesk',sans-serif; font-weight:700; letter-spacing:.12em; text-transform:uppercase}
 nav a{margin-left:24px; position:relative; font-weight:600}
 nav a::after{content:""; position:absolute; left:0; right:0; bottom:-6px; height:2px;
-  background:linear-gradient(90deg,var(--terra),var(--sky));
+  background:var(--accent);
   transform:scaleX(0); transform-origin:left; transition:transform .25s ease}
 nav a:hover::after, nav a:focus-visible::after{transform:scaleX(1)}
 nav a.is-active{color:var(--accent)}
 
-/* ========= HERO (gradiente + textura leve) ========= */
+/* ========= HERO (gradiente + textura MAIS SUAVE) ========= */
 .hero{min-height:68svh; display:grid; place-items:center; text-align:center; padding:32px 0; position:relative; overflow:hidden}
 .hero::before{
   content:""; position:absolute; inset:0; z-index:-1;
   background:
-    radial-gradient(1200px 700px at 10% 10%, rgba(93,166,255,.22), transparent 60%),
-    radial-gradient(1000px 600px at 90% 30%, rgba(196,107,65,.18), transparent 60%),
-    linear-gradient(180deg,#fff, #f3f5f3);
+    radial-gradient(1100px 620px at 12% 16%, rgba(93,166,255,.12), transparent 60%),
+    radial-gradient(1000px 620px at 88% 34%, rgba(196,107,65,.10), transparent 62%),
+    linear-gradient(180deg,#fff, #f4f6f4);
 }
 .hero::after{
   content:""; position:absolute; inset:0; z-index:-1;
-  background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='220' height='220' viewBox='0 0 220 220'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.8' numOctaves='2'/%3E%3CfeColorMatrix type='saturate' values='0'/%3E%3CfeComponentTransfer%3E%3CfeFuncA type='table' tableValues='0 0 .05 0'/%3E%3C/feComponentTransfer%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
-  mix-blend-mode:multiply; opacity:.35;
+  background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='220' height='220' viewBox='0 0 220 220'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.8' numOctaves='2'/%3E%3CfeColorMatrix type='saturate' values='0'/%3E%3CfeComponentTransfer%3E%3CfeFuncA type='table' tableValues='0 0 .04 0'/%3E%3C/feComponentTransfer%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+  mix-blend-mode:multiply; opacity:.25;
 }
 .headline{
-  font-family:'Space Grotesk',sans-serif; font-weight:800; line-height:.92; letter-spacing:-.02em;
-  font-size:clamp(32px,7.8vw,88px); margin:0 0 10px;
-  background:linear-gradient(90deg, var(--forest), var(--green));
-  -webkit-background-clip:text; background-clip:text; color:transparent;
+  font-family:'Space Grotesk',sans-serif; 
+  font-weight:600;               /* ↓ mais leve */
+  line-height:1.04;              /* ↑ mais respirado */
+  letter-spacing:-.01em;
+  font-size:clamp(30px,7.2vw,82px);
+  margin:0 0 12px;
+  color:var(--forest);           /* base em verde profundo */
 }
 .headline b{
-  background:linear-gradient(90deg, var(--terra), var(--sky));
-  -webkit-background-clip:text; background-clip:text; color:transparent;
+  color:var(--accent);           /* palavra LUZ em terracota única */
 }
 .lead{color:var(--muted); font-size:clamp(16px,2.6vw,20px); margin:.4rem 0 1.2rem}
 
-/* ========= PILARES (cards coloridos) ========= */
+/* ========= PILARES (um único acento) ========= */
 .trio{display:grid; gap:16px; grid-template-columns:repeat(3,1fr); margin:34px 0 46px}
 @media (max-width:900px){.trio{grid-template-columns:1fr}}
 .pill{border:1px solid var(--line); background:var(--paper); border-radius:var(--radius); padding:18px; position:relative; overflow:hidden}
 .pill::after{
-  content:""; position:absolute; inset:auto auto 0 0; width:60%; height:6px; border-radius:0 6px 0 0;
-  background:linear-gradient(90deg,var(--terra),var(--sky));
+  content:""; position:absolute; inset:auto 0 0 0; height:6px;
+  background:var(--accent);      /* só terracota */
 }
 .pill h3{font-family:'Space Grotesk',sans-serif; margin:.2rem 0 .4rem}
 
@@ -89,14 +88,11 @@ nav a.is-active{color:var(--accent)}
 .section{padding:44px 0}
 .h1{font-family:'Space Grotesk',sans-serif; font-size:clamp(26px,4.6vw,40px); margin:0 0 14px}
 
-/* ========= GRID PROJETOS (borda colorida alternada) ========= */
+/* ========= GRID PROJETOS (borda única) ========= */
 .grid{display:grid; gap:16px; grid-template-columns:repeat(3,1fr)}
 @media (max-width:960px){.grid{grid-template-columns:1fr 1fr}}
 @media (max-width:560px){.grid{grid-template-columns:1fr}}
-.card{background:var(--paper); border:1px solid var(--line); border-radius:var(--radius); overflow:hidden; position:relative}
-.card:nth-child(3n+1){border-color: color-mix(in oklab, var(--terra) 40%, var(--line))}
-.card:nth-child(3n+2){border-color: color-mix(in oklab, var(--sky) 40%, var(--line))}
-.card:nth-child(3n+3){border-color: color-mix(in oklab, var(--green) 40%, var(--line))}
+.card{background:var(--paper); border:1px solid color-mix(in oklab, var(--accent) 35%, var(--line)); border-radius:var(--radius); overflow:hidden; position:relative}
 .media{aspect-ratio:4/3; overflow:hidden}
 .media img{width:100%; height:100%; object-fit:cover; transform:scale(1.02); transition:transform .6s cubic-bezier(.2,.6,.2,1)}
 .card:hover .media img{transform:scale(1.06)}
@@ -109,8 +105,8 @@ nav a.is-active{color:var(--accent)}
 .btn:hover,.btn:focus-visible{transform:translateY(-2px); outline:none}
 .btn{border:1px solid var(--forest); color:var(--forest); background:#fff}
 .btn:hover,.btn:focus-visible{background:var(--forest); color:#fff}
-.btn.ghost{border-color:var(--terra); color:var(--terra)}
-.btn.ghost:hover,.btn.ghost:focus-visible{background:var(--terra); color:#fff}
+.btn.ghost{border-color:var(--accent); color:var(--accent)}
+.btn.ghost:hover,.btn.ghost:focus-visible{background:var(--accent); color:#fff}
 .btn.sky{border-color:var(--sky); color:var(--sky)}
 .btn.sky:hover,.btn.sky:focus-visible{background:var(--sky); color:#fff}
 
