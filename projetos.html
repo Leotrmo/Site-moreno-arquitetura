@@ -1,41 +1,112 @@
 <!DOCTYPE html>
 <html lang="pt-br">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
   <title>Projetos — moreno</title>
-  <link rel="stylesheet" href="assets/css/style.css">
-  <script src="assets/js/script.js" defer></script>
+
+  <!-- Performance -->
+  <link rel="preload" as="image" href="/assets/img/casa-no-ahu/hero.jpg" />
+
+  <!-- SEO -->
+  <meta name="description" content="Seleção de projetos do estúdio moreno: residenciais e interiores em Curitiba e Brasil." />
+  <link rel="canonical" href="https://moreno.arq.br/projetos.html" />
+
+  <!-- Open Graph -->
+  <meta property="og:title" content="Projetos — moreno">
+  <meta property="og:description" content="Seleção de projetos do estúdio moreno.">
+  <meta property="og:type" content="website">
+  <meta property="og:url" content="https://moreno.arq.br/projetos.html">
+
+  <link rel="stylesheet" href="/assets/css/style.css" />
+  <link rel="apple-touch-icon" href="/icons/apple-touch-icon.png">
+  <meta name="theme-color" content="#f7f8f7">
+
+  <!-- ItemList (Schema.org) -->
+  <script type="application/ld+json">
+  {
+    "@context":"https://schema.org",
+    "@type":"ItemList",
+    "name":"Portfólio de projetos — moreno",
+    "itemListElement":[
+      {
+        "@type":"ListItem","position":1,
+        "url":"https://moreno.arq.br/projetos/casa-no-ahu.html",
+        "name":"Casa no Ahú"
+      }
+      /* ,{ "@type":"ListItem","position":2,"url":"https://moreno.arq.br/projetos/interiores-juveve.html","name":"Interiores Juvevê"} */
+    ]
+  }
+  </script>
 </head>
-<body>
+
+<body class="page projetos">
+  <!-- usamos o mesmo header visual (classes da nossa base) para não quebrar o CSS -->
   <header class="hdr">
     <div class="wrap bar">
-      <a href="index.html" class="brand">moreno</a>
-      <nav>
-        <a href="projetos.html" class="is-active">Projetos</a>
-        <a href="sobre.html">Sobre</a>
-        <a href="contato.html">Contato</a>
+      <a class="brand" href="/">moreno</a>
+      <nav class="nav" aria-label="Principal">
+        <a href="/projetos.html" class="is-active" aria-current="page">Projetos</a>
+        <a href="/sobre.html">Sobre</a>
+        <a href="/contato.html">Contato</a>
       </nav>
     </div>
   </header>
 
   <main class="wrap section">
     <h1 class="h1">Projetos</h1>
-    <div class="grid">
+
+    <!-- GRID baseado no seu padrão .grid-cards -->
+    <section class="grid-cards">
+
+      <!-- CARD 1: Casa no Ahú -->
       <article class="card">
-        <a href="projetos/casa-no-ahu.html">
-          <div class="media">
-            <img src="assets/img/casa-no-ahu/hero.jpg" alt="Casa no Ahú">
-          </div>
-          <div class="meta">
-            <h3>Casa no Ahú</h3>
-            <p>Residência térrea em Curitiba com foco em materiais honestos e integração com o bairro.</p>
+        <a class="card-link" href="/projetos/casa-no-ahu.html">
+          <figure class="card-figure">
+            <img src="/assets/img/casa-no-ahu/hero.jpg" alt="Fachada da Casa no Ahú" loading="lazy" />
+          </figure>
+          <div class="card-body">
+            <h2 class="card-title">Casa no Ahú</h2>
+            <p class="card-meta">Residencial • Curitiba-PR • 2025</p>
+            <p class="card-desc">Casa térrea com pátio interno, luz filtrada e materialidade quente.</p>
           </div>
         </a>
       </article>
-    </div>
+
+      <!-- EXEMPLOS (descomente quando tiver as pastas/imagens prontas) -->
+      <!--
+      <article class="card">
+        <a class="card-link" href="/projetos/interiores-juveve.html">
+          <figure class="card-figure">
+            <img src="/assets/img/interiores-juveve/hero.jpg" alt="Interiores Juvevê — madeira e tons neutros" loading="lazy" />
+          </figure>
+          <div class="card-body">
+            <h2 class="card-title">Interiores Juvevê</h2>
+            <p class="card-meta">Interiores • Curitiba-PR • 2025</p>
+            <p class="card-desc">Madeira, luz suave e mobiliário essencial para fluidez do cotidiano.</p>
+          </div>
+        </a>
+      </article>
+
+      <article class="card">
+        <a class="card-link" href="/projetos/comercial-batel.html">
+          <figure class="card-figure">
+            <img src="/assets/img/comercial-batel/hero.jpg" alt="Comercial Batel — linguagem mínima e funcional" loading="lazy" />
+          </figure>
+          <div class="card-body">
+            <h2 class="card-title">Comercial Batel</h2>
+            <p class="card-meta">Comercial • Curitiba-PR • 2024</p>
+            <p class="card-desc">Simplicidade formal, conforto e ritmo construtivo como identidade.</p>
+          </div>
+        </a>
+      </article>
+      -->
+
+    </section>
   </main>
 
-  <footer class="ftr">© 2025 moreno</footer>
+  <footer class="ftr">© moreno</footer>
+
+  <script src="/assets/js/script.js" defer></script>
 </body>
 </html>
