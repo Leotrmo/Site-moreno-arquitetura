@@ -177,3 +177,14 @@ if (map) {
     document.body.classList.toggle("dark", m.matches);
   });
 })();
+// Prefetch de páginas internas ao passar o mouse nos cards (fluidez)
+document.addEventListener('mouseover', (e) => {
+  const a = e.target.closest('a[href^="/projetos/"]');
+  if (a && !a.dataset.prefetched) {
+    const link = document.createElement('link');
+    link.rel = 'prefetch';
+    link.href = a.getAttribute('href');
+    document.head.appendChild(link);
+    a.dataset.prefetched = '1';
+  }
+});
