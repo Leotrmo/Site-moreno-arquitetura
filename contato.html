@@ -1,43 +1,71 @@
 <!DOCTYPE html>
 <html lang="pt-br">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>moreno — contato</title>
-  <meta name="description" content="Contato do estúdio Moreno Arquitetura.">
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&family=Space+Grotesk:wght@600;700&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="style.css?v=1">
-  <script src="script.js" defer></script>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Contato — moreno</title>
+  <meta name="description" content="Fale com o estúdio moreno — Curitiba, Brasil.">
+  <link rel="stylesheet" href="assets/css/style.css">
+  <script src="assets/js/script.js" defer></script>
+  <link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
+  <meta name="theme-color" content="#f7f8f7">
 </head>
-<body class="light">
-  <a class="skip" href="#conteudo">Pular para o conteúdo</a>
+<body>
   <header class="hdr">
     <div class="wrap bar">
-      <a class="brand" href="index.html">moreno</a>
-      <nav aria-label="Principal">
+      <a href="index.html" class="brand">moreno</a>
+      <nav>
         <a href="projetos.html">Projetos</a>
         <a href="sobre.html">Sobre</a>
-        <a class="is-active" href="contato.html" aria-current="page">Contato</a>
+        <a href="contato.html" class="is-active" aria-current="page">Contato</a>
       </nav>
     </div>
   </header>
 
-  <main id="conteudo">
-    <section class="wrap section">
-      <h1 class="h1">Contato</h1>
-      <div class="contact">
-        <div>
-          <strong>Vamos conversar sobre o seu projeto?</strong><br>
-          <small>Curitiba • Brasil</small>
+  <main class="wrap section">
+    <h1 class="h1">Contato</h1>
+
+    <div class="contact reveal">
+      <div>
+        <strong>Vamos conversar sobre o seu projeto?</strong><br>
+        <small>Curitiba • Brasil</small>
+      </div>
+      <div class="cta-wrap">
+        <a class="btn" href="mailto:leonardo@moreno.arq.br">leonardo@moreno.arq.br</a>
+        <a class="btn ghost" href="https://www.instagram.com/moreno.arquitetura_/" target="_blank" rel="noopener">instagram</a>
+      </div>
+    </div>
+
+    <!-- formulário simples acessível (não envia para backend; usa mailto) -->
+    <section class="narrow reveal" aria-labelledby="contato-form">
+      <h2 id="contato-form" class="h2">Enviar mensagem</h2>
+      <form class="form" action="mailto:leonardo@moreno.arq.br" method="post" enctype="text/plain">
+        <div class="field">
+          <label for="nome">Nome</label>
+          <input id="nome" name="Nome" type="text" required>
         </div>
-        <div class="cta-wrap">
-          <a class="btn" href="mailto:leonardo@moreno.arq.br">leonardo@moreno.arq.br</a>
-          <a class="btn ghost" href="https://www.instagram.com/moreno.arquitetura_/" target="_blank" rel="noopener">instagram</a>
+        <div class="field">
+          <label for="email">Email</label>
+          <input id="email" name="Email" type="email" required>
         </div>
+        <div class="field">
+          <label for="mensagem">Mensagem</label>
+          <textarea id="mensagem" name="Mensagem" rows="5" required></textarea>
+        </div>
+        <button class="btn" type="submit">enviar</button>
+        <small class="muted">Ao clicar em enviar, seu app de email abrirá com a mensagem preenchida.</small>
+      </form>
+    </section>
+
+    <!-- bloco opcional com mapa (placeholder) -->
+    <section class="narrow reveal" aria-labelledby="onde-estamos">
+      <h2 id="onde-estamos" class="h2">Onde estamos</h2>
+      <div class="map-placeholder" role="img" aria-label="Mapa de Curitiba, Paraná">
+        <span>Curitiba, PR — Brasil</span>
       </div>
     </section>
   </main>
 
-  <footer class="ftr">© 2025 moreno</footer>
+  <footer class="ftr">© 2025 moreno — Curitiba, Brasil</footer>
 </body>
 </html>
