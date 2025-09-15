@@ -65,6 +65,37 @@
         <button id="f-clear" class="btn ghost filters-clear" type="button">limpar</button>
       </div>
       <div class="filters-meta">
+            <!-- Barra de filtros -->
+    <section class="filters" aria-label="Filtrar projetos">
+      <div class="filters-row">
+        <label class="sr-only" for="f-q">Buscar</label>
+        <input id="f-q" class="filters-input" type="search" placeholder="buscar por nome, cidade, material…">
+
+        <label class="sr-only" for="f-tipo">Tipologia</label>
+        <select id="f-tipo" class="filters-select">
+          <option value="">Tipologia</option>
+          <option>Residencial</option>
+          <option>Interiores</option>
+          <option>Comercial</option>
+        </select>
+
+        <label class="sr-only" for="f-ano">Ano</label>
+        <select id="f-ano" class="filters-select">
+          <option value="">Ano</option>
+          <option>2025</option>
+          <option>2024</option>
+        </select>
+
+        <button id="f-clear" class="btn ghost filters-clear" type="button">limpar</button>
+      </div>
+
+      <div class="filters-meta">
+        <span id="f-count" aria-live="polite">3 projetos</span>
+      </div>
+
+      <!-- 🔽 NOVO: badges dos filtros ativos -->
+      <div class="filters-badges" id="f-badges" aria-live="polite"></div>
+    </section>
         <span id="f-count" aria-live="polite">3 projetos</span>
       </div>
     </section>
