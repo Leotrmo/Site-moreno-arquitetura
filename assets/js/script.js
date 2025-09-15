@@ -189,54 +189,122 @@ document.addEventListener('mouseover', (e) => {
   }
 });
 /* =======================
-   FILTRO DE PROJETOS (client-side)
+   FILTRO DE PROJETOS (client-side) + URL sync
    ======================= */
 (function(){
   const grid = document.getElementById("grid-projetos");
   if (!grid) return;
 
-  const q = document.getElementById("f-q");
+  const q    = document.getElementById("f-q");
   const tipo = document.getElementById("f-tipo");
-  const ano = document.getElementById("f-ano");
-  const clear = document.getElementById("f-clear");
-  const count = document.getElementById("f-count");
-  const cards = Array.from(grid.querySelectorAll(".card"));
+  const ano  = document.getElementById("f-ano");
+  const clear= document.getElementById("f-clear");
+  const count= document.getElementById("f-count");
+  const cards= Array.from(grid.querySelectorAll(".card"));
 
-  function normalize(s){ return (s||"").toString().toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g,""); }
+  function normalize(s){
+    return (s||"").toString().toLowerCase()
+      .normalize("NFD").replace(/[\u0300-\u036f]/g,"");
+  }
 
-  function apply(){
+  function updateCount(n){
+    count.textContent = `${n} projeto${n===1?"":"s"}`;
+  }
+
+  function buildQuery(params){
+    const qs = new URLSearchParams();
+    for (const [k,v] of Object.entries(params)){
+      if (v) qs.set(k, v);
+    }
+    const str = qs.toString();
+    return str ? `?${str}` : "";
+  }
+
+  let isInitialApply = true; // evita empilhar histórico no primeiro apply
+
+  function apply(pushState = false){
     const qv = normalize(q.value);
     const tv = (tipo.value||"").toLowerCase();
     const av = (ano.value||"").toLowerCase();
     let shown = 0;
 
     cards.forEach(card=>{
-      const ct = normalize(card.querySelector(".card-title")?.textContent);
-      const cm = normalize(card.querySelector(".card-meta")?.textContent);
-      const cd = normalize(card.querySelector(".card-desc")?.textContent);
+      const ct   = normalize(card.querySelector(".card-title")?.textContent);
+      const cm   = normalize(card.querySelector(".card-meta")?.textContent);
+      const cd   = normalize(card.querySelector(".card-desc")?.textContent);
       const tags = normalize(card.getAttribute("data-tags"));
-      const tip = (card.getAttribute("data-tipo")||"").toLowerCase();
-      const yr  = (card.getAttribute("data-ano")||"").toLowerCase();
+      const tip  = (card.getAttribute("data-tipo")||"").toLowerCase();
+      const yr   = (card.getAttribute("data-ano")||"").toLowerCase();
 
       const matchText = !qv || [ct,cm,cd,tags].some(v=>v.includes(qv));
       const matchTipo = !tv || tip === tv;
-      const matchAno  = !av || yr === av;
+      const matchAno  = !av || yr  === av;
 
       const ok = matchText && matchTipo && matchAno;
       card.hidden = !ok;
       if (ok) shown++;
     });
 
-    count.textContent = `${shown} projeto${shown===1?"":"s"}`;
+    updateCount(shown);
+
+    // Atualiza URL
+    const params = {
+      q: q.value.trim(),
+      tipo: tipo.value || "",
+      ano: ano.value || ""
+    };
+    const newQuery = buildQuery(params);
+    const newUrl = `${location.pathname}${newQuery}${location.hash||""}`;
+
+    if (isInitialApply){
+      history.replaceState(params, "", newUrl); // grava estado inicial
+      isInitialApply = false;
+    } else {
+      if (pushState) history.pushState(params, "", newUrl);
+      else history.replaceState(params, "", newUrl);
+    }
   }
 
-  q?.addEventListener("input", apply);
-  tipo?.addEventListener("change", apply);
-  ano?.addEventListener("change", apply);
+  function setFromURL(){
+    const sp = new URLSearchParams(location.search);
+    const qVal    = sp.get("q")    || "";
+    const tipoVal = sp.get("tipo") || "";
+    const anoVal  = sp.get("ano")  || "";
+
+    q.value = qVal;
+
+    // Seleciona a opção somente se existir
+    if ([...tipo.options].some(o => o.value.toLowerCase() === tipoVal.toLowerCase())){
+      tipo.value = [...tipo.options].find(o => o.value.toLowerCase() === tipoVal.toLowerCase())?.value || "";
+    } else {
+      tipo.value = "";
+    }
+    if ([...ano.options].some(o => o.value.toLowerCase() === anoVal.toLowerCase())){
+      ano.value = [...ano.options].find(o => o.value.toLowerCase() === anoVal.toLowerCase())?.value || "";
+    } else {
+      ano.value = "";
+    }
+  }
+
+  // Eventos
+  q?.addEventListener("input", () => apply(false));          // replaceState para digitação
+  tipo?.addEventListener("change", () => apply(true));       // pushState em mudanças “discretas”
+  ano?.addEventListener("change", () => apply(true));
   clear?.addEventListener("click", ()=>{
-    q.value = ""; tipo.value = ""; ano.value = ""; apply();
+    q.value = ""; tipo.value = ""; ano.value = "";
+    apply(true);
   });
 
-  // inicial
-  apply();
+  // Back/forward: recarrega filtros e aplica
+  window.addEventListener("popstate", (ev)=>{
+    const state = ev.state || {};
+    q.value    = state.q    || "";
+    tipo.value = state.tipo || "";
+    ano.value  = state.ano  || "";
+    apply(false);
+  });
+
+  // Inicial: lê URL, aplica e fixa estado base
+  setFromURL();
+  apply(false);
 })();
