@@ -18,16 +18,19 @@
     if (obs) obs.observe(el); else el.classList.add('in');
   });
 
-  // Toggle de tema (persistente)
+    // Toggle de tema (persistente)
   const nav = document.querySelector('header nav');
   if (nav){
     const btn = document.createElement('button');
     btn.type = 'button';
     btn.setAttribute('aria-label','Alternar tema');
-    btn.style.marginLeft = '16px';
-    btn.className = 'btn ghost';
+    btn.className = 'theme-btn';               // << botão compacto
     const THEMESTORE = 'moreno-theme';
-    const setLabel = () => btn.textContent = document.body.classList.contains('dark') ? '☀︎' : '☾';
+
+    const setLabel = () => {
+      // ícone apenas, sem texto largo
+      btn.textContent = document.body.classList.contains('dark') ? '☀︎' : '☾';
+    };
 
     const saved = localStorage.getItem(THEMESTORE);
     if(saved === 'dark') document.body.classList.add('dark');
@@ -39,9 +42,9 @@
       setLabel();
     });
 
+    // garante que o botão fique na “ponta direita” do nav
     nav.appendChild(btn);
   }
-
   // Prefetch de páginas de projetos ao pairar
   document.addEventListener('mouseover', (e) => {
     const a = e.target.closest('a[href^="/projetos/"]');
