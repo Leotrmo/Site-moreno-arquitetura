@@ -131,3 +131,49 @@ if (map) {
     window.open("https://goo.gl/maps/7KfM2Z2DkHfXo7wU8", "_blank", "noopener,noreferrer");
   });
 }
+/* =======================
+   THEME TOGGLE (light/dark) c/ persistência
+   ======================= */
+(function(){
+  const STORAGE_KEY = "moreno-theme";
+  const prefersDark = window.matchMedia("(prefers-color-scheme: dark)").matches;
+
+  // aplica tema salvo ou preferência do sistema
+  const saved = localStorage.getItem(STORAGE_KEY);
+  const initialDark = saved ? saved === "dark" : prefersDark;
+  document.body.classList.toggle("dark", initialDark);
+
+  // cria toggle se não existir (acessível)
+  function ensureToggle(){
+    if (document.querySelector("[data-theme-toggle]")) return;
+    const nav = document.querySelector("header nav");
+    if (!nav) return;
+    const btn = document.createElement("button");
+    btn.type = "button";
+    btn.className = "btn ghost";
+    btn.setAttribute("data-theme-toggle","");
+    btn.setAttribute("aria-pressed", initialDark ? "true" : "false");
+    btn.textContent = initialDark ? "light" : "dark";
+    btn.style.marginLeft = "12px";
+    nav.appendChild(btn);
+  }
+
+  ensureToggle();
+
+  // escuta cliques
+  document.addEventListener("click", (e)=>{
+    const t = e.target;
+    if (!t || !t.matches("[data-theme-toggle]")) return;
+    const isDark = document.body.classList.toggle("dark");
+    t.setAttribute("aria-pressed", isDark ? "true" : "false");
+    t.textContent = isDark ? "light" : "dark";
+    localStorage.setItem(STORAGE_KEY, isDark ? "dark" : "light");
+  });
+
+  // se sistema mudar, respeita quando usuário não escolheu manualmente
+  window.matchMedia("(prefers-color-scheme: dark)").addEventListener("change", (m)=>{
+    const manual = localStorage.getItem(STORAGE_KEY);
+    if (manual) return; // usuário já escolheu
+    document.body.classList.toggle("dark", m.matches);
+  });
+})();
