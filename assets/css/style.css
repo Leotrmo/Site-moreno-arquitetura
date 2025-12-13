@@ -100,6 +100,10 @@ header nav{display:flex; align-items:center; gap:18px; flex-wrap:wrap; justify-c
   box-shadow:0 28px 80px rgba(16,17,16,.06);
   border:1px solid color-mix(in oklab, var(--accent) 14%, var(--line));
   backdrop-filter:blur(10px);
+  background:rgba(255,255,255,.45);
+  box-shadow:0 28px 80px rgba(16,17,16,.04);
+  border:1px solid color-mix(in oklab, var(--accent) 10%, var(--line));
+  backdrop-filter:blur(8px);
 }
 .eyebrow{
   display:inline-flex; align-items:center; gap:10px;
@@ -343,3 +347,75 @@ body.dark .hdr nav a::after{background:color-mix(in oklab, var(--accent) 80%, va
   .hero{ padding:44px 0 72px; }
   .ftr{ margin-top:36px; }
 }
+
+/* ========= FOCUS A11Y ========= */
+:focus-visible{ outline:2px solid color-mix(in oklab, var(--accent) 75%, white); outline-offset:2px; border-radius:8px }
+
+/* ========= DARK THEME ========= */
+body.dark{
+  --bg:#0F1211; --paper:#121715; --text:#EEF1EF; --muted:#A7B1AB; --line:#26302B;
+  --green:#78A081; --terra:#D07C57; --sky:#78B2FF; --forest:#DCE6E1; --accent:var(--terra);
+}
+body.dark .hdr{ background:rgba(18,23,21,.72); border-bottom:1px solid var(--line) }
+body.dark .hero::before{
+  background: radial-gradient(1100px 620px at 12% 16%, rgba(120,178,255,.12), transparent 60%), radial-gradient(1000px 620px at 88% 34%, rgba(208,124,87,.10), transparent 62%), linear-gradient(180deg,#0F1211, #141816);
+}
+body.dark .hero::after{ opacity:.18 }
+body.dark .headline{ color:#E7EFEC }
+body.dark .headline b{ color:var(--accent) }
+body.dark .hero-body{ background:rgba(15,18,17,.78); border-color:color-mix(in oklab, var(--accent) 18%, var(--line)); box-shadow:0 28px 80px rgba(0,0,0,.35) }
+body.dark .eyebrow{ color:var(--text); background:linear-gradient(135deg, rgba(120,178,255,.14), rgba(208,124,87,.18)); border-color:color-mix(in oklab, var(--accent) 30%, var(--line)) }
+body.dark .fact{ background:color-mix(in oklab, var(--paper) 90%, #0F1211); border-color:var(--line); box-shadow:0 14px 28px rgba(0,0,0,.32) }
+body.dark .card, body.dark .pill, body.dark .form, body.dark .contact{ background:var(--paper); border-color:var(--line) }
+body.dark .grid-cards .card{ border-color: color-mix(in oklab, var(--accent) 25%, var(--line)) }
+body.dark .hero-projeto img{ box-shadow: 0 8px 24px rgba(0,0,0,.35) }
+body.dark .grid-galeria img{ box-shadow: 0 6px 18px rgba(0,0,0,.28) }
+body.dark .map-placeholder{ background:linear-gradient(180deg,#161A18,#0F1211); border-color:var(--line); color:var(--muted) }
+body.dark .btn{ border-color:var(--forest); color:var(--text); background:transparent }
+body.dark .btn:hover, body.dark .btn:focus-visible{ background:var(--text); color:#0F1211 }
+body.dark .btn.ghost{ border-color:var(--accent); color:var(--accent) }
+body.dark .btn.ghost:hover, body.dark .btn.ghost:focus-visible{ background:var(--accent); color:#0F1211 }
+body.dark .btn.sky{ border-color:var(--sky); color:var(--sky) }
+body.dark .btn.sky:hover, body.dark .btn.sky:focus-visible{ background:var(--sky); color:#0F1211 }
+body.dark .preloader{ background: radial-gradient(1000px 600px at 20% 20%, rgba(120,178,255,.12), transparent 60%), radial-gradient(900px 540px at 80% 30%, rgba(208,124,87,.10), transparent 60%), #0F1211 }
+
+/* ===== HEADER FIX ===== */
+.hdr .bar{ gap:12px }
+.hdr .bar nav{
+  display:flex; align-items:center; gap:18px;
+  flex:1 1 auto; justify-content:center; min-width:0;
+}
+
+/* links mais “compactos” */
+.hdr nav a{ margin-left:0; padding:8px 2px; white-space:nowrap }
+
+/* botão de tema compacto */
+.theme-btn{
+  margin-left:auto;
+  width:36px; height:36px; border-radius:999px;
+  display:inline-grid; place-items:center;
+  border:1px solid var(--accent); background:transparent; color:var(--accent);
+  line-height:1; font-size:18px; padding:0; cursor:pointer;
+  transition:transform .16s ease, background .16s ease, color .16s ease, border-color .16s ease;
+}
+.theme-btn:hover,.theme-btn:focus-visible{
+  transform:translateY(-2px); background:var(--accent); color:#fff; outline:none;
+}
+body.dark .theme-btn{ border-color:var(--accent); color:var(--accent) }
+
+/* ——— mobile pequeno: evita corte dos links */
+@media (max-width: 430px){
+  .brand{ letter-spacing:.04em }
+  .hdr .bar nav{
+    justify-content:flex-start;
+    overflow-x:auto; -webkit-overflow-scrolling:touch;
+    gap:16px; padding-bottom:4px;
+    /* fade nas bordas para indicar scroll */
+    mask-image: linear-gradient(90deg, transparent, #000 10%, #000 90%, transparent);
+  }
+  .hdr nav a{ font-size:15px; }
+  .theme-btn{ width:32px; height:32px; font-size:16px; margin-left:12px; }
+}
+
+/* estado ativo continua com sublinhado animado */
+.hdr nav a.is-active{ color:var(--accent) }
