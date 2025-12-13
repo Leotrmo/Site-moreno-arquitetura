@@ -26,7 +26,7 @@
     <div class="wrap bar">
       <a class="brand" href="/">moreno</a>
       <nav aria-label="Principal">
-        <a href="/projetos.html">Projetos</a>
+        <a href="/projetos.html" class="is-active" aria-current="page">Projetos</a>
         <a href="/laboratorio.html">Laboratório</a>
         <a href="/sobre.html">Sobre</a>
         <a href="/contato.html">Contato</a>
@@ -34,15 +34,26 @@
     </div>
   </header>
 
-  <nav class="breadcrumb" aria-label="você está aqui">
+  <nav class="crumb" aria-label="você está aqui">
     <a href="/">Início</a> · <span>Projetos</span>
   </nav>
 
   <main class="wrap section">
-    <h1 class="h1">Projetos</h1>
+    <section class="page-hero reveal" aria-label="Portfólio">
+      <div>
+        <p class="kicker">Seleção curada</p>
+        <h1 class="h1">Casas, interiores e comercial com a mesma calma.</h1>
+        <p class="lead muted">Luz natural, conforto ambiental e materialidade honesta orientam nossas soluções em Curitiba e em outros pontos do Brasil.</p>
+      </div>
+      <div class="meta-grid">
+        <div class="mini-pill">Residenciais<span>Casas térreas, sobrados e reformas com pátios e ventilação cruzada.</span></div>
+        <div class="mini-pill">Interiores<span>Mobiliário enxuto, iluminação pensada e texturas reais.</span></div>
+        <div class="mini-pill">Comercial<span>Programas claros, circulação fluida e identidade alinhada ao negócio.</span></div>
+      </div>
+    </section>
 
     <!-- Filtros -->
-    <section class="filters" aria-label="Filtrar projetos">
+    <section class="filters reveal" aria-label="Filtrar projetos">
       <div class="filters-row">
         <label class="sr-only" for="f-q">Buscar</label>
         <input id="f-q" class="filters-input" type="search" placeholder="buscar por nome, cidade, material…">
@@ -71,7 +82,7 @@
     </section>
 
     <!-- Grid -->
-    <section class="grid-cards" id="grid-projetos">
+    <section class="grid-cards reveal" id="grid-projetos">
       <!-- Casa no Ahú -->
       <article class="card" data-tipo="Residencial" data-ano="2025" data-tags="casa,curitiba,ahú,madeira,pedra,luz">
         <a class="card-link" href="/projetos/casa-no-ahu.html">
@@ -116,6 +127,6 @@
     </section>
   </main>
 
-  <footer class="ftr">© 2025 moreno</footer>
+  <footer class="ftr">© 2025 moreno — Curitiba, Brasil</footer>
 </body>
 </html>
