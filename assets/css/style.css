@@ -195,6 +195,39 @@ header nav{display:flex; align-items:center; gap:18px; flex-wrap:wrap; justify-c
 @media (max-width:780px){
   .quad-grid{grid-template-columns:1fr}
 }
+.manifesto{margin:18px 0 34px}
+.manifesto-body{
+  border-radius:18px; padding:20px; background:var(--paper);
+  border:1px solid color-mix(in oklab, var(--accent) 14%, var(--line));
+  box-shadow:0 16px 44px rgba(16,17,16,.05);
+  display:grid; gap:10px;
+}
+.manifesto-list{
+  list-style:none; padding:0; margin:0; display:grid; gap:8px;
+  grid-template-columns:repeat(auto-fit, minmax(200px, 1fr));
+  color:var(--muted); font-weight:600;
+}
+.manifesto-list li{
+  padding-left:18px; position:relative;
+}
+.manifesto-list li::before{
+  content:""; width:8px; height:8px; border-radius:50%;
+  background:color-mix(in oklab, var(--accent) 60%, var(--sky));
+  position:absolute; left:0; top:0.5rem;
+}
+.quaterno{margin:8px 0 40px}
+.quaterno-head{display:grid; gap:8px; margin-bottom:16px}
+.quad-grid{display:grid; gap:16px; grid-template-columns:repeat(2, minmax(0, 1fr))}
+.quad-card{
+  border:1px solid color-mix(in oklab, var(--accent) 18%, var(--line));
+  background:var(--paper);
+  border-radius:16px; padding:18px;
+  box-shadow:0 14px 32px rgba(16,17,16,.05);
+}
+.quad-card h3{font-family:'Space Grotesk',sans-serif; margin:.2rem 0 .6rem}
+@media (max-width:780px){
+  .quad-grid{grid-template-columns:1fr}
+}
 .page-hero::after{content:""; position:absolute; inset:-80% -30% 0 auto; background:radial-gradient(460px 320px at 40% 0%, color-mix(in oklab, var(--sky) 12%, transparent), transparent 60%); opacity:.7; pointer-events:none;}
 .kicker{display:inline-flex; align-items:center; gap:10px; font-size:12px; letter-spacing:.08em; text-transform:uppercase; color:var(--muted); font-weight:700;}
 .kicker::before{content:""; width:32px; height:2px; background:color-mix(in oklab, var(--accent) 70%, var(--forest)); border-radius:999px; opacity:.9;}
