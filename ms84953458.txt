@@ -1,0 +1,5 @@
+﻿{
+  "Description": "Ficheiro de verificação de propriedade do domínio para o Microsoft 365 – colocar na raiz do site",
+  "Domain": "moreno.arq.br",
+  "Id": "30e0939d-c633-4f61-8f6c-b44248f8b490"
+}
