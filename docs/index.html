@@ -1,338 +1,361 @@
 <!DOCTYPE html>
-<html lang="pt-BR">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Relógio - ser</title>
-    <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
+<html>
+    <head>
+        <link rel="icon" type="image/png" href="/favicon_new/favicon-96x96.png" sizes="96x96"/>
+        <link rel="icon" type="image/svg+xml" href="/favicon_new/favicon.svg"/>
+        <link rel="shortcut icon" href="/favicon_new/favicon.ico"/>
+        <link rel="apple-touch-icon" sizes="180x180" href="/favicon_new/apple-touch-icon.png"/>
+        <meta name="apple-mobile-web-app-title" content="indify.co"/>
+        <link rel="manifest" href="/favicon_new/site.webmanifest"/>
+        <meta charSet="utf-8"/>
+        <meta name="viewport" content="width=device-width"/>
+        <meta name="next-head-count" content="2"/>
+        <link rel="preload" href="/_next/static/css/cdc2a0a7c4496d855b60.css" as="style"/>
+        <link rel="stylesheet" href="/_next/static/css/cdc2a0a7c4496d855b60.css" data-n-g=""/>
+        <link rel="preload" href="/_next/static/css/3e52928331fcea181d7e.css" as="style"/>
+        <link rel="stylesheet" href="/_next/static/css/3e52928331fcea181d7e.css" data-n-p=""/>
+        <noscript data-n-css=""></noscript>
+        <script defer="" nomodule="" src="/_next/static/chunks/polyfills-a40ef1678bae11e696dba45124eadd70.js"></script>
+        <script src="/_next/static/chunks/webpack-31dd63300ea343b5aacd.js" defer=""></script>
+        <script src="/_next/static/chunks/framework-1058c8e6b3409ebc730c.js" defer=""></script>
+        <script src="/_next/static/chunks/main-aa84b630cb8cb2e5e475.js" defer=""></script>
+        <script src="/_next/static/chunks/pages/_app-69272a5a2e3b358bcdc9.js" defer=""></script>
+        <script src="/_next/static/chunks/1761-81ea48cb4b35f3f90fe5.js" defer=""></script>
+        <script src="/_next/static/chunks/1867-37e38372ed58cae87d3e.js" defer=""></script>
+        <script src="/_next/static/chunks/7077-9cecaf4ad207d5f4f343.js" defer=""></script>
+        <script src="/_next/static/chunks/6322-43aff73b5c0832bc41ad.js" defer=""></script>
+        <script src="/_next/static/chunks/pages/widgets/live/clock/%5BclockPrefsId%5D-d601ffd0f3ad329d7526.js" defer=""></script>
+        <script src="/_next/static/iHBpYti464SOCgpOd5eut/_buildManifest.js" defer=""></script>
+        <script src="/_next/static/iHBpYti464SOCgpOd5eut/_ssgManifest.js" defer=""></script>
+        <style data-emotion="mantine "></style>
+    </head>
+    <body>
+        <div id="__next">
+            <style data-emotion="css-global 1w883ez">
+                html {
+                    font-family: sans-serif;
+                    line-height: 1.15;
+                    -webkit-text-size-adjust: 100%;
+                    -moz-text-size-adjust: 100%;
+                    -ms-text-size-adjust: 100%;
+                    text-size-adjust: 100%;
+                }
 
-        :root {
-            /* Cores padrão (modo claro) */
-            --bg-primary: #ffffff;
-            --text-primary: #000000;
-            --text-secondary: #666666;
-            --border-color: #000000;
-            --hand-color: #000000;
-            --hand-secondary: #333333;
-            --hand-seconds: #cccccc;
-        }
+                body {
+                    margin: 0;
+                }
 
-        /* Modo escuro */
-        @media (prefers-color-scheme: dark) {
-            :root {
-                --bg-primary: #000000;
-                --text-primary: #ffffff;
-                --text-secondary: #999999;
-                --border-color: #ffffff;
-                --hand-color: #ffffff;
-                --hand-secondary: #cccccc;
-                --hand-seconds: #666666;
-            }
-        }
+                article,aside,footer,header,nav,section,figcaption,figure,main {
+                    display: block;
+                }
 
-        body {
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            min-height: 100vh;
-            background: var(--bg-primary);
-            color: var(--text-primary);
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
-            transition: background-color 0.3s ease, color 0.3s ease;
-        }
+                h1 {
+                    font-size: 2em;
+                }
 
-        .container {
-            width: 100%;
-            max-width: 100vh;
-            padding: 40px;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-        }
+                hr {
+                    box-sizing: content-box;
+                    height: 0;
+                    overflow: visible;
+                }
 
+                pre {
+                    font-family: monospace,monospace;
+                    font-size: 1em;
+                }
 
+                a {
+                    background: transparent;
+                    text-decoration-skip: objects;
+                }
 
-        .clock-section {
-            display: flex;
-            gap: 80px;
-            justify-content: center;
-            align-items: center;
-            flex-wrap: wrap;
-        }
+                a:active,a:hover {
+                    outline-width: 0;
+                }
 
-        .clock-item {
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            gap: 30px;
-        }
+                abbr[title] {
+                    border-bottom: none;
+                    -webkit-text-decoration: underline;
+                    text-decoration: underline;
+                }
 
-        .clock-analog {
-            width: 280px;
-            height: 280px;
-            border: 2px solid var(--border-color);
-            border-radius: 50%;
-            position: relative;
-            background: transparent;
-            transition: border-color 0.3s ease;
-        }
+                b,strong {
+                    font-weight: bolder;
+                }
 
-        .clock-center {
-            width: 10px;
-            height: 10px;
-            background: var(--hand-color);
-            border-radius: 50%;
-            position: absolute;
-            top: 50%;
-            left: 50%;
-            transform: translate(-50%, -50%);
-            z-index: 10;
-            transition: background-color 0.3s ease;
-        }
+                code,kbp,samp {
+                    font-family: monospace,monospace;
+                    font-size: 1em;
+                }
 
-        .hand {
-            position: absolute;
-            bottom: 50%;
-            left: 50%;
-            transform-origin: bottom center;
-            background: var(--hand-color);
-            transition: background-color 0.3s ease;
-        }
+                dfn {
+                    font-style: italic;
+                }
 
-        .hour-hand {
-            width: 2px;
-            height: 80px;
-            margin-left: -1px;
-        }
+                mark {
+                    background-color: #ff0;
+                    color: #000;
+                }
 
-        .minute-hand {
-            width: 1.5px;
-            height: 110px;
-            margin-left: -0.75px;
-            background: var(--hand-secondary);
-        }
+                small {
+                    font-size: 80%;
+                }
 
-        .second-hand {
-            width: 1px;
-            height: 120px;
-            margin-left: -0.5px;
-            background: var(--hand-seconds);
-        }
+                sub,sup {
+                    font-size: 75%;
+                    line-height: 0;
+                    position: relative;
+                    vertical-align: baseline;
+                }
 
-        .clock-markers {
-            position: absolute;
-            width: 100%;
-            height: 100%;
-        }
+                sup {
+                    top: -0.5em;
+                }
 
-        .marker {
-            position: absolute;
-            background: var(--hand-color);
-            left: 50%;
-            top: 0;
-            transform-origin: 50% 140px;
-            transition: background-color 0.3s ease;
-        }
+                sub {
+                    bottom: -0.25em;
+                }
 
-        .marker-hour {
-            width: 2px;
-            height: 20px;
-            margin-left: -1px;
-        }
+                audio,video {
+                    display: inline-block;
+                }
 
-        .marker-minute {
-            width: 1px;
-            height: 10px;
-            margin-left: -0.5px;
-            opacity: 0.5;
-        }
+                audio:not([controls]) {
+                    display: none;
+                    height: 0;
+                }
 
-        .clock-digital {
-            font-size: 64px;
-            font-weight: 300;
-            letter-spacing: 2px;
-            font-family: 'Courier New', monospace;
-            text-align: center;
-            line-height: 1;
-            color: var(--text-primary);
-        }
+                img {
+                    border-style: none;
+                    vertical-align: middle;
+                }
 
-        .clock-date {
-            font-size: 14px;
-            letter-spacing: 2px;
-            text-transform: uppercase;
-            color: var(--text-secondary);
-            margin-top: 15px;
-            transition: color 0.3s ease;
-        }
+                svg:not(:root) {
+                    overflow: hidden;
+                }
 
+                button,input,optgroup,select,textarea {
+                    font-family: sans-serif;
+                    font-size: 100%;
+                    line-height: 1.15;
+                    margin: 0;
+                }
 
+                button,input {
+                    overflow: visible;
+                }
 
-        .theme-indicator {
-            position: fixed;
-            top: 20px;
-            right: 20px;
-            font-size: 12px;
-            letter-spacing: 1px;
-            color: var(--text-secondary);
-            text-transform: uppercase;
-            opacity: 0.6;
-            transition: all 0.3s ease;
-        }
+                button,select {
+                    text-transform: none;
+                }
 
-        @media (max-width: 768px) {
-            .container {
-                padding: 20px;
-            }
+                button,[type=reset],[type=submit] {
+                    -webkit-appearance: button;
+                }
 
-            .header h1 {
-                font-size: 32px;
-            }
+                button::-moz-focus-inner,[type=button]::-moz-focus-inner,[type=reset]::-moz-focus-inner,[type=submit]::-moz-focus-inner {
+                    border-style: none;
+                    padding: 0;
+                }
 
-            .clock-section {
-                gap: 40px;
-            }
+                button:-moz-focusring,[type=button]:-moz-focusring,[type=reset]:-moz-focusring,[type=submit]:-moz-focusring {
+                    outline: 0.0625rem dotted ButtonText;
+                }
 
-            .clock-analog {
-                width: 200px;
-                height: 200px;
-            }
+                legend {
+                    box-sizing: border-box;
+                    color: inherit;
+                    display: table;
+                    max-width: 100%;
+                    padding: 0;
+                    white-space: normal;
+                }
 
-            .hour-hand {
-                height: 60px;
-            }
+                progress {
+                    display: inline-block;
+                    vertical-align: baseline;
+                }
 
-            .minute-hand {
-                height: 80px;
-            }
+                textarea {
+                    overflow: auto;
+                }
 
-            .second-hand {
-                height: 90px;
-            }
+                [type=checkbox],[type=radio] {
+                    box-sizing: border-box;
+                    padding: 0;
+                }
 
-            .clock-digital {
-                font-size: 48px;
-            }
+                [type=number]::-webkit-inner-spin-button,[type=number]::-webkit-outer-spin-button {
+                    height: auto;
+                }
 
+                [type=search] {
+                    -webkit-appearance: none;
+                    -moz-appearance: none;
+                    -ms-appearance: none;
+                    appearance: none;
+                }
 
-        }
+                [type=search]::-webkit-search-cancel-button,[type=search]::-webkit-search-decoration {
+                    -webkit-appearance: none;
+                    -moz-appearance: none;
+                    -ms-appearance: none;
+                    appearance: none;
+                }
 
-        /* Animação suave */
-        .hand {
-            transition: transform 0.05s cubic-bezier(0.4, 0.0, 0.2, 1);
-        }
-    </style>
-</head>
-<body>
-    <div class="theme-indicator" id="theme-indicator">modo claro</div>
+                ::-webkit-file-upload-button {
+                    -webkit-appearance: button;
+                    -moz-appearance: button;
+                    -ms-appearance: button;
+                    appearance: button;
+                    font: inherit;
+                }
 
-    <div class="container">
-        <div class="clock-section">
-            <div class="clock-item">
-                <div class="clock-analog">
-                    <div class="clock-markers" id="markers"></div>
-                    <div class="hand hour-hand" id="hour"></div>
-                    <div class="hand minute-hand" id="minute"></div>
-                    <div class="hand second-hand" id="second"></div>
-                    <div class="clock-center"></div>
-                </div>
-                <div>
-                    <div class="clock-digital" id="digital-time">00:00</div>
-                    <div class="clock-date" id="clock-date">seg 00</div>
-                </div>
-            </div>
+                details,menu {
+                    display: block;
+                }
+
+                summary {
+                    display: -webkit-box;
+                    display: -webkit-list-item;
+                    display: -ms-list-itembox;
+                    display: list-item;
+                }
+
+                canvas {
+                    display: inline-block;
+                }
+
+                template {
+                    display: none;
+                }
+            </style>
+            <style data-emotion="css-global 1kvm0ug">
+                *,*::before,*::after {
+                    box-sizing: border-box;
+                }
+
+                html {
+                    -webkit-print-color-scheme: light;
+                    color-scheme: light;
+                }
+
+                body {
+                    font-family: -apple-system,BlinkMacSystemFont,Segoe UI,Roboto,Helvetica,Arial,sans-serif,Apple Color Emoji,Segoe UI Emoji;
+                    background-color: #fff;
+                    color: #000;
+                    line-height: 1.55;
+                    font-size: 1rem;
+                    -webkit-font-smoothing: antialiased;
+                    -moz-osx-font-smoothing: grayscale;
+                }
+            </style>
+            <span></span>
+            <div class="Toastify"></div>
         </div>
-
-
-    </div>
-
-    <script>
-        const daysPT = [
-            'domingo',
-            'segunda-feira',
-            'terça-feira',
-            'quarta-feira',
-            'quinta-feira',
-            'sexta-feira',
-            'sábado'
-        ];
-
-        const daysShortPT = ['dom', 'seg', 'ter', 'qua', 'qui', 'sex', 'sab'];
-
-        const monthsPT = [
-            'janeiro', 'fevereiro', 'março', 'abril', 'maio', 'junho',
-            'julho', 'agosto', 'setembro', 'outubro', 'novembro', 'dezembro'
-        ];
-
-        // Detectar modo claro/escuro
-        function detectTheme() {
-            if (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches) {
-                document.documentElement.setAttribute('data-theme', 'dark');
-                document.getElementById('theme-indicator').textContent = 'modo escuro';
-            } else {
-                document.documentElement.setAttribute('data-theme', 'light');
-                document.getElementById('theme-indicator').textContent = 'modo claro';
-            }
-        }
-
-        // Escutar mudanças de tema
-        if (window.matchMedia) {
-            window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', (e) => {
-                detectTheme();
-            });
-        }
-
-        // Criar marcadores do relógio
-        function createMarkers() {
-            const markersContainer = document.getElementById('markers');
-            for (let i = 0; i < 60; i++) {
-                const marker = document.createElement('div');
-                const isHour = i % 5 === 0;
-                marker.className = isHour ? 'marker marker-hour' : 'marker marker-minute';
-                marker.style.transform = `rotate(${i * 6}deg)`;
-                markersContainer.appendChild(marker);
-            }
-        }
-
-        function updateClock() {
-            const now = new Date();
-
-            // Relógio analógico
-            const hours = now.getHours() % 12;
-            const minutes = now.getMinutes();
-            const seconds = now.getSeconds();
-            const milliseconds = now.getMilliseconds();
-
-            const secondDegrees = ((seconds + milliseconds / 1000) / 60) * 360;
-            const minuteDegrees = ((minutes + seconds / 60) / 60) * 360;
-            const hourDegrees = ((hours + minutes / 60) / 12) * 360;
-
-            document.getElementById('second').style.transform = `rotate(${secondDegrees}deg)`;
-            document.getElementById('minute').style.transform = `rotate(${minuteDegrees}deg)`;
-            document.getElementById('hour').style.transform = `rotate(${hourDegrees}deg)`;
-
-            // Relógio digital (hora:minuto)
-            const timeString = String(now.getHours()).padStart(2, '0') + ':' +
-                               String(now.getMinutes()).padStart(2, '0');
-            document.getElementById('digital-time').textContent = timeString;
-
-            // Data curta
-            const dayName = daysShortPT[now.getDay()];
-            const day = String(now.getDate()).padStart(2, '0');
-            document.getElementById('clock-date').textContent = `${dayName} ${day}`;
-        }
-
-        // Inicializar
-        detectTheme();
-        createMarkers();
-        updateClock();
-        setInterval(updateClock, 50);
-    </script>
-</body>
+        <script id="__NEXT_DATA__" type="application/json">
+            {
+                "props": {
+                    "pageProps": {
+                        "widgetPrefs": {
+                            "dateCreated": "2026-02-08T13:04:24.557Z",
+                            "title": "relógio",
+                            "timeZone": "",
+                            "darkModeSetting": "system_setting",
+                            "allowDuplication": false,
+                            "showSeconds": true,
+                            "setBackgroundColor": false,
+                            "backgroundColor": "#ffffff",
+                            "uid": "U2v2nz69psXxQulHfIrhQVASORj1",
+                            "dashboardIds": [
+                            ],
+                            "isPremium": false,
+                            "lastViewed": "2026-02-08T13:04:27.094Z",
+                            "selectedView": "analog_smooth",
+                            "location": "Brazil/East",
+                            "tzAbbr": "-03",
+                            "use24h": true,
+                            "showTimezone": false,
+                            "padding": 0,
+                            "textShadowConfig": {
+                                "intensity": 75,
+                                "distance": 14,
+                                "angle": 40,
+                                "blur": 25
+                            },
+                            "textShadows": false,
+                            "livePreviewDarkMode": false,
+                            "darkModeHoverBar": true,
+                            "showCustomizeButton": false,
+                            "showIndicators": true,
+                            "showDateText": false,
+                            "showSecondsDial": true,
+                            "widgetStats": {
+                                "viewCount": 33,
+                                "lastViewed": "2026-02-08T13:16:35.325Z",
+                                "referrers": {
+                                    "notion_so": {
+                                        "count": 1,
+                                        "firstSeen": "2026-02-08T13:06:37.501Z",
+                                        "lastSeen": "2026-02-08T13:06:37.501Z"
+                                    },
+                                    "direct": {
+                                        "count": 1,
+                                        "firstSeen": "2026-02-08T13:07:08.090Z",
+                                        "lastSeen": "2026-02-08T13:07:08.090Z"
+                                    }
+                                },
+                                "countries": {
+                                    "Brazil": {
+                                        "count": 2,
+                                        "firstSeen": "2026-02-08T13:06:37.501Z",
+                                        "lastSeen": "2026-02-08T13:07:08.090Z"
+                                    }
+                                }
+                            },
+                            "storedDimensions": {
+                                "height": 374,
+                                "width": 476
+                            },
+                            "isCreatorPlan": false,
+                            "isEducator": false,
+                            "hasUpgradedWidgetPlan": false
+                        }
+                    },
+                    "urlInfo": {
+                        "protocol": "https:",
+                        "host": "indify.co",
+                        "origin": "https://indify.co"
+                    },
+                    "serverReferrer": null,
+                    "featureFlags": [
+                        "calendar_feature_upgrades",
+                        "flip_clock",
+                        "framer_references",
+                        "increase_canvas_clock_resolution",
+                        "new_landing_page",
+                        "outlook_calendar",
+                        "refresh_on_countdown",
+                        "track_widget_loads",
+                        "transparent_widget_backgrounds",
+                        "typeform_with_premium_features",
+                        "user_dashboards"
+                    ]
+                },
+                "page": "/widgets/live/clock/[clockPrefsId]",
+                "query": {
+                    "clockPrefsId": "gaKdJMldnMGcXE54oQ8e"
+                },
+                "buildId": "iHBpYti464SOCgpOd5eut",
+                "runtimeConfig": {
+                },
+                "isFallback": false,
+                "gip": true,
+                "appGip": true,
+                "scriptLoader": [
+                ]
+            }</script>
+    </body>
 </html>
+<!-- This script is automatically inserted by Netlify for Real User Monitoring (RUM). -->
+<script async id="netlify-rum-container" src="/.netlify/scripts/rum" data-netlify-cwv-token="eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzaXRlX2lkIjoiMjYxNmI3MjUtMmQyNi00MThkLThjZGQtZjQzNTYwNWQ2MjFhIiwiYWNjb3VudF9pZCI6IjYwZmU2MGM5ZDljMzY0YmNlMTljZmZlMSIsImRlcGxveV9pZCI6IjY5ODE3YTFkZjgxMDczMWM0NjdlYzgwYiIsImlzcyI6Im5ldGxpZnkifQ.MCMx3IgeyfZNHslPPEglykGZTC3-QCXuWFSWUzrQc2s"></script>
