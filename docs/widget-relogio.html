@@ -1,0 +1,180 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Relógio Widget</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            background: transparent;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        .clock-widget {
+            background: white;
+            border-radius: 15px;
+            padding: 20px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+            text-align: center;
+            width: 280px;
+        }
+
+        .clock-analog-small {
+            width: 180px;
+            height: 180px;
+            border: 6px solid #333;
+            border-radius: 50%;
+            position: relative;
+            margin: 15px auto;
+            background: white;
+            box-shadow: inset 0 0 15px rgba(0, 0, 0, 0.1);
+        }
+
+        .clock-center {
+            width: 12px;
+            height: 12px;
+            background: #333;
+            border-radius: 50%;
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            z-index: 10;
+        }
+
+        .hand {
+            position: absolute;
+            bottom: 50%;
+            left: 50%;
+            transform-origin: bottom center;
+            background: #333;
+            border-radius: 5px;
+        }
+
+        .hour-hand {
+            width: 4px;
+            height: 50px;
+            margin-left: -2px;
+        }
+
+        .minute-hand {
+            width: 3px;
+            height: 75px;
+            margin-left: -1.5px;
+            background: #555;
+        }
+
+        .second-hand {
+            width: 1px;
+            height: 80px;
+            margin-left: -0.5px;
+            background: #e74c3c;
+        }
+
+        .number-small {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            text-align: center;
+            font-size: 14px;
+            font-weight: bold;
+            color: #333;
+        }
+
+        .number-small span {
+            display: inline-block;
+            position: absolute;
+            left: 50%;
+            transform: translateX(-50%);
+        }
+
+        .clock-digital-small {
+            font-size: 36px;
+            font-weight: bold;
+            color: #333;
+            margin: 15px 0;
+            font-family: 'Courier New', monospace;
+            letter-spacing: 1px;
+        }
+
+        .date-info-small {
+            font-size: 12px;
+            color: #666;
+        }
+
+        .day-name-small {
+            font-weight: 600;
+            color: #333;
+            margin-bottom: 3px;
+        }
+    </style>
+</head>
+<body>
+    <div class="clock-widget">
+        <div class="clock-analog-small">
+            <div class="number-small">
+                <span style="top: 8px;">12</span>
+                <span style="right: 8px; top: 50%; transform: translateY(-50%);">3</span>
+                <span style="bottom: 8px;">6</span>
+                <span style="left: 8px; top: 50%; transform: translateY(-50%);">9</span>
+            </div>
+            <div class="hand hour-hand" id="hour"></div>
+            <div class="hand minute-hand" id="minute"></div>
+            <div class="hand second-hand" id="second"></div>
+            <div class="clock-center"></div>
+        </div>
+
+        <div class="clock-digital-small" id="digital-time">00:00</div>
+
+        <div class="date-info-small">
+            <div class="day-name-small" id="day-name">Segunda</div>
+            <div id="date-text">00/01</div>
+        </div>
+    </div>
+
+    <script>
+        const daysPT = ['Dom', 'Seg', 'Ter', 'Qua', 'Qui', 'Sex', 'Sab'];
+
+        function updateClock() {
+            const now = new Date();
+
+            const hours = now.getHours() % 12;
+            const minutes = now.getMinutes();
+            const seconds = now.getSeconds();
+            const milliseconds = now.getMilliseconds();
+
+            const secondDegrees = ((seconds + milliseconds / 1000) / 60) * 360;
+            const minuteDegrees = ((minutes + seconds / 60) / 60) * 360;
+            const hourDegrees = ((hours + minutes / 60) / 12) * 360;
+
+            document.getElementById('second').style.transform = `rotate(${secondDegrees}deg)`;
+            document.getElementById('minute').style.transform = `rotate(${minuteDegrees}deg)`;
+            document.getElementById('hour').style.transform = `rotate(${hourDegrees}deg)`;
+
+            const timeString = String(now.getHours()).padStart(2, '0') + ':' +
+                               String(now.getMinutes()).padStart(2, '0');
+            document.getElementById('digital-time').textContent = timeString;
+
+            const dayName = daysPT[now.getDay()];
+            const day = String(now.getDate()).padStart(2, '0');
+            const month = String(now.getMonth() + 1).padStart(2, '0');
+
+            document.getElementById('day-name').textContent = dayName;
+            document.getElementById('date-text').textContent = `${day}/${month}`;
+        }
+
+        updateClock();
+        setInterval(updateClock, 50);
+    </script>
+</body>
+</html>
