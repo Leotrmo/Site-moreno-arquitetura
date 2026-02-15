@@ -156,7 +156,7 @@ header nav{display:flex; align-items:center; gap:18px; flex-wrap:wrap; justify-c
 .page-hero{position:relative; padding:var(--gap-4); border-radius:var(--radius); overflow:hidden;
   border:1px solid var(--line);
   background:var(--paper);
-  box-shadow:none; margin:var(--gap-3) 0 var(--gap-5); display:grid; gap:var(--gap-3);
+  box-shadow:none; margin:var(--gap-3) auto var(--gap-5); display:grid; gap:var(--gap-3);
 }
 .page-hero::after{content:none;}
 .kicker{display:inline-flex; align-items:center; gap:12px; font-size:12px; letter-spacing:.14em; text-transform:uppercase; color:var(--muted); font-weight:600;}
