@@ -7,8 +7,7 @@
 <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/exporters/GLTFExporter.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/loaders/GLTFLoader.js"></script>
-<!-- web-ifc 0.0.44 — última versão com build browser-compatível (não ES module) -->
-<script src="https://cdn.jsdelivr.net/npm/web-ifc@0.0.44/web-ifc-api.js"></script>
+<!-- web-ifc carregado via dynamic import() em initWebIFC() -->
 <link href="https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&family=Barlow+Condensed:wght@300;500;700;900&display=swap" rel="stylesheet">
 <style>
 :root {
@@ -737,63 +736,64 @@ function glbToScene(buffer, filename, fmt){
 let ifcAPI=null, wasmReady=false;
 let ifcQueue=null;
 
-// CDN order: v0.0.44 UMD builds (not ES module)
-// The .wasm file should be in the same folder as index.html
-const WASM_CDNS=[
-  './',                                                       // local — put web-ifc.wasm next to index.html ✓
-  'https://cdn.jsdelivr.net/npm/web-ifc@0.0.44/',
-  'https://unpkg.com/web-ifc@0.0.44/',
+// web-ifc é ES Module — deve ser carregado via import() dinâmico, nunca via <script src>
+const IFC_JS_CDNS=[
+  'https://cdn.jsdelivr.net/npm/web-ifc@0.0.57/web-ifc-api.js',
+  'https://unpkg.com/web-ifc@0.0.57/web-ifc-api.js',
 ];
 
 async function initWebIFC(){
   const p=document.getElementById('wasm-pill');
-  let lastErr=null;
+  p.textContent='⏳ IFC WASM...';
+  let mod=null, lastErr=null;
 
-  for(const cdnPath of WASM_CDNS){
+  // import() dinâmico — única forma correta de carregar ES Modules no browser
+  for(const url of IFC_JS_CDNS){
     try{
-      p.textContent='⏳ IFC WASM...'; p.className='';
-      ifcAPI=new WebIFC.IfcAPI();
-      ifcAPI.SetWasmPath(cdnPath);
-      await ifcAPI.Init();
-      wasmReady=true;
-      p.textContent='✓ IFC PRONTO'; p.classList.add('ok');
-      console.log('[web-ifc] loaded from', cdnPath);
-      if(ifcQueue){
-        const {buffer,filename}=ifcQueue; ifcQueue=null;
-        handleIFC(buffer,filename);
-      }
-      return; // success — stop trying
-    }catch(e){
-      lastErr=e;
-      console.warn('[web-ifc] failed from', cdnPath, e.message);
-    }
+      mod=await import(url);
+      console.log('[web-ifc] JS loaded from',url);
+      break;
+    }catch(e){ lastErr=e; console.warn('[web-ifc] JS failed',url,e.message); }
   }
 
-  // All CDNs failed
-  p.textContent='✗ IFC ERRO'; p.classList.add('err');
-  p.title=lastErr?.message||'unknown';
-  console.error('[web-ifc] all CDNs failed:', lastErr);
+  if(!mod){ showIfcError('Não foi possível baixar web-ifc-api.js de nenhum CDN.',lastErr); return; }
+
+  // Pega IfcAPI do módulo — pode ser named export ou dentro de default
+  const IfcAPIClass = mod.IfcAPI ?? mod.default?.IfcAPI ?? mod.WebIFC?.IfcAPI;
+  if(!IfcAPIClass){ showIfcError('IfcAPI não encontrado no módulo carregado.',null); return; }
+
+  // Tabela de constantes IFC (necessária para GetAllItemsOfType)
+  window._WebIFC = mod;
+
+  try{
+    ifcAPI=new IfcAPIClass();
+    ifcAPI.SetWasmPath('./'); // web-ifc.wasm na mesma pasta do index.html
+    await ifcAPI.Init();
+    wasmReady=true;
+    p.textContent='✓ IFC PRONTO'; p.className=''; p.classList.add('ok');
+    if(ifcQueue){ const {buffer,filename}=ifcQueue; ifcQueue=null; handleIFC(buffer,filename); }
+  }catch(e){ showIfcError('Erro ao inicializar WASM: '+e.message, e); }
+}
+
+function showIfcError(msg, err){
+  const p=document.getElementById('wasm-pill');
+  p.textContent='✗ IFC ERRO'; p.className=''; p.classList.add('err');
   ifcQueue=null;
-
-  // Diagnose the likely cause
-  let hint='Verifique sua conexão com a internet.';
-  if(lastErr?.message?.includes('SharedArrayBuffer')||lastErr?.message?.includes('cross-origin'))
-    hint='O servidor precisa enviar os headers:\nCross-Origin-Opener-Policy: same-origin\nCross-Origin-Embedder-Policy: require-corp';
-  else if(lastErr?.message?.includes('fetch')||lastErr?.message?.includes('network')||lastErr?.message?.includes('Failed'))
-    hint='CDN bloqueado ou sem conexão. Coloque o arquivo web-ifc.wasm na mesma pasta do index.html.';
-  else if(lastErr?.message?.includes('fetch')||lastErr?.message?.includes('network')||lastErr?.message?.includes('Failed'))
-    hint='Coloque o arquivo web-ifc.wasm na mesma pasta do index.html para funcionar sem CDN.';
-
-  showToast('⚠ IFC ERRO: '+hint, 12000);
-  const errDiv=document.createElement('div');
-  errDiv.style.cssText='position:fixed;top:52px;right:12px;z-index:9999;background:#1a0a0a;border:1px solid #ef4444;padding:10px 14px;font-size:9px;color:#ef4444;letter-spacing:.5px;max-width:340px;line-height:1.8';
-  errDiv.innerHTML='<b>ERRO IFC:</b> '+p.title+'<br><span style="color:#888">'+hint.replace(/\n/g,'<br>')+'</span><br>'
-    +'<span style="color:#666">Solução: coloque <b style="color:#f59e0b">web-ifc.wasm</b> na mesma pasta do index.html</span>';
-  const closeBtn=document.createElement('button');
-  closeBtn.textContent='×'; closeBtn.style.cssText='position:absolute;top:4px;right:6px;background:none;border:none;color:#ef4444;cursor:pointer;font-size:14px;padding:0';
-  closeBtn.onclick=()=>errDiv.remove();
-  errDiv.appendChild(closeBtn);
-  document.body.appendChild(errDiv);
+  console.error('[web-ifc]',msg,err);
+  document.getElementById('ifc-err-panel')?.remove();
+  const d=document.createElement('div');
+  d.id='ifc-err-panel';
+  d.style.cssText='position:fixed;top:52px;right:12px;z-index:9999;background:#110a0a;border:1px solid #ef4444;padding:12px 16px;font-size:9px;color:#ef4444;letter-spacing:.5px;max-width:360px;line-height:2;font-family:Space Mono,monospace;position:fixed';
+  d.innerHTML=`<b>ERRO IFC</b><br>
+    <span style="color:#ccc">${msg}</span><br>
+    <span style="color:#777">• <b style="color:#f59e0b">web-ifc.wasm</b> deve estar na mesma pasta do index.html</span><br>
+    <span style="color:#777">• O servidor deve servir <b style="color:#f59e0b">.wasm</b> com MIME <code>application/wasm</code></span>`;
+  const x=document.createElement('button');
+  x.textContent='×';
+  x.style.cssText='position:absolute;top:6px;right:8px;background:none;border:none;color:#ef4444;cursor:pointer;font-size:16px;padding:0';
+  x.onclick=()=>d.remove();
+  d.appendChild(x);
+  document.body.appendChild(d);
 }
 
 async function handleIFC(buffer, filename){
@@ -861,7 +861,7 @@ async function handleIFC(buffer, filename){
   const typeCount={};
   for(const typeName of Object.keys(IFC_CAT)){
     try{
-      const tc=WebIFC[typeName]; if(tc===undefined) continue;
+      const tc=window._WebIFC?.[typeName]; if(tc===undefined) continue;
       const ids=ifcAPI.GetAllItemsOfType(modelID,tc,false);
       if(ids&&ids.length>0) typeCount[typeName]=ids.length;
     }catch(e){}
