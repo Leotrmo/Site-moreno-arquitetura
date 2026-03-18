@@ -817,14 +817,52 @@ async function handleIFC(buffer, filename){
   try{ modelID=ifcAPI.OpenModel(new Uint8Array(buffer)); }
   catch(e){ hideConvOverlay(); alert('Erro ao abrir IFC: '+e.message); return; }
 
-  // ── STEP 1: extract geometry
-  setConvStep(1, 20); await tick();
+  // ── STEP 1: extract geometry element-by-element (NOT StreamAllMeshes)
+  // StreamAllMeshes aborts entirely on first WASM error — this approach isolates each element
+  setConvStep(1, 15); await tick();
 
   const tempGroup=new THREE.Group();
   let totalVerts=0, meshCount=0, skipped=0;
 
+  // Collect all express IDs across all IFC geometry types
+  const GEOM_TYPES=[
+    'IFCWALL','IFCWALLSTANDARDCASE','IFCSLAB','IFCROOF','IFCCOLUMN','IFCBEAM',
+    'IFCDOOR','IFCWINDOW','IFCSTAIR','IFCRAILING','IFCFURNISHINGELEMENT',
+    'IFCMEMBER','IFCPLATE','IFCFOOTING','IFCPILE','IFCBUILDINGELEMENTPROXY',
+    'IFCCOVERING','IFCSPACE','IFCRAMP','IFCSHADINGDEVICE','IFCREINFORCINGBAR',
+    'IFCFLOWSEGMENT','IFCFLOWFITTING','IFCFLOWTERMINAL','IFCFLOWCONTROLLER',
+    'IFCDISTRIBUTIONELEMENT','IFCENERGYCONVERSIONDEVICE',
+  ];
+
+  let allIDs=[];
+  for(const typeName of GEOM_TYPES){
+    try{
+      const tc=window._WebIFC?.[typeName]; if(tc===undefined) continue;
+      const ids=ifcAPI.GetAllItemsOfType(modelID,tc,false);
+      if(ids&&ids.length) allIDs=allIDs.concat(Array.from(ids));
+    }catch(e){}
+  }
+
+  // Also get any remaining geometry not covered above
   try{
-    ifcAPI.StreamAllMeshes(modelID, mesh=>{
+    const allGeomIDs=ifcAPI.GetAllItemsOfType(modelID, window._WebIFC?.IFCPRODUCT||103090709, false);
+    if(allGeomIDs&&allGeomIDs.length) allIDs=allIDs.concat(Array.from(allGeomIDs));
+  }catch(e){}
+
+  // Deduplicate
+  allIDs=[...new Set(allIDs)];
+  console.log(`[web-ifc] ${allIDs.length} elements to process`);
+
+  const total=allIDs.length||1;
+  for(let ei=0;ei<allIDs.length;ei++){
+    // Update progress every 50 elements and yield to browser
+    if(ei%50===0){
+      setConvStep(1, 15+Math.round((ei/total)*40));
+      await tick(0);
+    }
+    try{
+      const mesh=ifcAPI.GetMesh(modelID, allIDs[ei]);
+      if(!mesh) continue;
       const geoms=mesh.geometries;
       for(let i=0;i<geoms.size();i++){
         try{
@@ -832,13 +870,12 @@ async function handleIFC(buffer, filename){
           const ifcG=ifcAPI.GetGeometry(modelID,g.geometryExpressID);
           const vr=ifcAPI.GetVertexArray(ifcG.GetVertexData(),ifcG.GetVertexDataSize());
           const ir=ifcAPI.GetIndexArray(ifcG.GetIndexData(), ifcG.GetIndexDataSize());
-          if(!vr||vr.length===0){ ifcAPI.Dispose(ifcG); continue; }
+          if(!vr||vr.length===0){ try{ifcAPI.Dispose(ifcG);}catch(e){} continue; }
           const nv=vr.length/6;
-          // Validate index range to avoid out-of-bounds
-          const maxIdx=nv-1;
+          // Validate indices
           let valid=true;
-          for(let k=0;k<ir.length;k++){ if(ir[k]>maxIdx){valid=false;break;} }
-          if(!valid){ ifcAPI.Dispose(ifcG); skipped++; continue; }
+          for(let k=0;k<ir.length;k++){ if(ir[k]>=nv){valid=false;break;} }
+          if(!valid){ try{ifcAPI.Dispose(ifcG);}catch(e){} skipped++; continue; }
           const pos=new Float32Array(nv*3), nrm=new Float32Array(nv*3);
           for(let j=0;j<nv;j++){
             pos[j*3]=vr[j*6]; pos[j*3+1]=vr[j*6+1]; pos[j*3+2]=vr[j*6+2];
@@ -851,21 +888,19 @@ async function handleIFC(buffer, filename){
           const col=g.color;
           const mat=new THREE.MeshLambertMaterial({
             color:new THREE.Color(col.x,col.y,col.z),
-            transparent:col.w<0.99, opacity:col.w, side:THREE.DoubleSide
+            transparent:col.w<0.99, opacity:Math.max(0.1,col.w), side:THREE.DoubleSide
           });
           const m=new THREE.Mesh(geo,mat);
           m.applyMatrix4(new THREE.Matrix4().fromArray(g.flatTransformation));
           tempGroup.add(m);
           totalVerts+=nv; meshCount++;
-          ifcAPI.Dispose(ifcG);
-        }catch(meshErr){
-          skipped++;
-          console.warn('[web-ifc] skipped corrupted mesh:',meshErr.message);
-        }
+          try{ifcAPI.Dispose(ifcG);}catch(e){}
+        }catch(gErr){ skipped++; }
       }
-    });
-  }catch(e){ console.error('IFC stream error:',e); }
-  if(skipped>0) console.warn(`[web-ifc] ${skipped} meshes ignorados por geometria inválida`);
+    }catch(elemErr){ skipped++; }
+  }
+
+  console.log(`[web-ifc] ${meshCount} meshes OK, ${skipped} ignorados`);
 
   // ── STEP 2: collect element types
   setConvStep(2, 55); await tick();
