@@ -821,40 +821,51 @@ async function handleIFC(buffer, filename){
   setConvStep(1, 20); await tick();
 
   const tempGroup=new THREE.Group();
-  let totalVerts=0, meshCount=0;
+  let totalVerts=0, meshCount=0, skipped=0;
 
   try{
     ifcAPI.StreamAllMeshes(modelID, mesh=>{
       const geoms=mesh.geometries;
       for(let i=0;i<geoms.size();i++){
-        const g=geoms.get(i);
-        const ifcG=ifcAPI.GetGeometry(modelID,g.geometryExpressID);
-        const vr=ifcAPI.GetVertexArray(ifcG.GetVertexData(),ifcG.GetVertexDataSize());
-        const ir=ifcAPI.GetIndexArray(ifcG.GetIndexData(), ifcG.GetIndexDataSize());
-        if(!vr||vr.length===0){ ifcAPI.Dispose(ifcG); continue; }
-        const nv=vr.length/6;
-        const pos=new Float32Array(nv*3), nrm=new Float32Array(nv*3);
-        for(let j=0;j<nv;j++){
-          pos[j*3]=vr[j*6]; pos[j*3+1]=vr[j*6+1]; pos[j*3+2]=vr[j*6+2];
-          nrm[j*3]=vr[j*6+3]; nrm[j*3+1]=vr[j*6+4]; nrm[j*3+2]=vr[j*6+5];
+        try{
+          const g=geoms.get(i);
+          const ifcG=ifcAPI.GetGeometry(modelID,g.geometryExpressID);
+          const vr=ifcAPI.GetVertexArray(ifcG.GetVertexData(),ifcG.GetVertexDataSize());
+          const ir=ifcAPI.GetIndexArray(ifcG.GetIndexData(), ifcG.GetIndexDataSize());
+          if(!vr||vr.length===0){ ifcAPI.Dispose(ifcG); continue; }
+          const nv=vr.length/6;
+          // Validate index range to avoid out-of-bounds
+          const maxIdx=nv-1;
+          let valid=true;
+          for(let k=0;k<ir.length;k++){ if(ir[k]>maxIdx){valid=false;break;} }
+          if(!valid){ ifcAPI.Dispose(ifcG); skipped++; continue; }
+          const pos=new Float32Array(nv*3), nrm=new Float32Array(nv*3);
+          for(let j=0;j<nv;j++){
+            pos[j*3]=vr[j*6]; pos[j*3+1]=vr[j*6+1]; pos[j*3+2]=vr[j*6+2];
+            nrm[j*3]=vr[j*6+3]; nrm[j*3+1]=vr[j*6+4]; nrm[j*3+2]=vr[j*6+5];
+          }
+          const geo=new THREE.BufferGeometry();
+          geo.setAttribute('position',new THREE.Float32BufferAttribute(pos,3));
+          geo.setAttribute('normal',  new THREE.Float32BufferAttribute(nrm,3));
+          geo.setIndex(new THREE.Uint32BufferAttribute(ir,1));
+          const col=g.color;
+          const mat=new THREE.MeshLambertMaterial({
+            color:new THREE.Color(col.x,col.y,col.z),
+            transparent:col.w<0.99, opacity:col.w, side:THREE.DoubleSide
+          });
+          const m=new THREE.Mesh(geo,mat);
+          m.applyMatrix4(new THREE.Matrix4().fromArray(g.flatTransformation));
+          tempGroup.add(m);
+          totalVerts+=nv; meshCount++;
+          ifcAPI.Dispose(ifcG);
+        }catch(meshErr){
+          skipped++;
+          console.warn('[web-ifc] skipped corrupted mesh:',meshErr.message);
         }
-        const geo=new THREE.BufferGeometry();
-        geo.setAttribute('position',new THREE.Float32BufferAttribute(pos,3));
-        geo.setAttribute('normal',  new THREE.Float32BufferAttribute(nrm,3));
-        geo.setIndex(new THREE.Uint32BufferAttribute(ir,1));
-        const col=g.color;
-        const mat=new THREE.MeshLambertMaterial({
-          color:new THREE.Color(col.x,col.y,col.z),
-          transparent:col.w<0.99, opacity:col.w, side:THREE.DoubleSide
-        });
-        const m=new THREE.Mesh(geo,mat);
-        m.applyMatrix4(new THREE.Matrix4().fromArray(g.flatTransformation));
-        tempGroup.add(m);
-        totalVerts+=nv; meshCount++;
-        ifcAPI.Dispose(ifcG);
       }
     });
-  }catch(e){ console.error('IFC geometry error:',e); }
+  }catch(e){ console.error('IFC stream error:',e); }
+  if(skipped>0) console.warn(`[web-ifc] ${skipped} meshes ignorados por geometria inválida`);
 
   // ── STEP 2: collect element types
   setConvStep(2, 55); await tick();
