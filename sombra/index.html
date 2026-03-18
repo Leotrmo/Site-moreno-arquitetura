@@ -224,6 +224,16 @@ button.danger{background:transparent;border-color:var(--red);color:var(--red)}
 ::-webkit-scrollbar{width:3px}
 ::-webkit-scrollbar-track{background:var(--bg)}
 ::-webkit-scrollbar-thumb{background:var(--border2)}
+
+/* ── TOAST ── */
+#toast{
+  position:fixed;bottom:24px;left:50%;transform:translateX(-50%) translateY(20px);
+  background:var(--s2);border:1px solid var(--border2);
+  padding:10px 18px;font-size:9px;letter-spacing:1px;color:var(--txt);
+  opacity:0;transition:all .3s;pointer-events:none;z-index:9999;white-space:nowrap;
+}
+#toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
+#wasm-pill.loading{animation:pulse .8s infinite}
 </style>
 </head>
 <body>
@@ -413,6 +423,9 @@ button.danger{background:transparent;border-color:var(--red);color:var(--red)}
   <div id="date-badge">—</div>
 </div>
 
+<!-- TOAST -->
+<div id="toast"></div>
+
 <!-- CONVERSION OVERLAY -->
 <div id="conv-overlay">
   <div class="conv-box">
@@ -552,6 +565,15 @@ function fmtH(h){ if(h==null||isNaN(h)) return '—'; const hh=Math.floor(h),mm=
 function dayLabel(doy){ return new Date(2024,0,doy).toLocaleDateString('pt-BR',{day:'numeric',month:'short'}).toUpperCase(); }
 function fmtN(n){ if(n>=1e6) return (n/1e6).toFixed(1)+'M'; if(n>=1e3) return (n/1e3).toFixed(1)+'K'; return String(n); }
 function tick(ms=20){ return new Promise(r=>setTimeout(r,ms)); }
+
+/* ── TOAST ── */
+let toastTimer=null;
+function showToast(msg, duration=4000){
+  const t=document.getElementById('toast');
+  t.textContent=msg; t.classList.add('show');
+  if(toastTimer) clearTimeout(toastTimer);
+  toastTimer=setTimeout(()=>t.classList.remove('show'), duration);
+}
 
 /* ═══════════════════════
    THREE.JS
@@ -712,6 +734,7 @@ function glbToScene(buffer, filename, fmt){
    IFC HANDLER
 ═══════════════════════ */
 let ifcAPI=null, wasmReady=false;
+let ifcQueue=null; // {buffer, filename} pending while WASM loads
 
 async function initWebIFC(){
   try{
@@ -721,15 +744,35 @@ async function initWebIFC(){
     wasmReady=true;
     const p=document.getElementById('wasm-pill');
     p.textContent='✓ IFC PRONTO'; p.classList.add('ok');
+    // If user dropped a file while WASM was loading, process it now
+    if(ifcQueue){
+      const {buffer,filename}=ifcQueue;
+      ifcQueue=null;
+      handleIFC(buffer,filename);
+    }
   }catch(e){
     const p=document.getElementById('wasm-pill');
     p.textContent='✗ IFC ERRO'; p.classList.add('err');
     console.error(e);
+    // Show friendlier message if there was a queued file
+    if(ifcQueue){
+      ifcQueue=null;
+      alert('Erro ao carregar o motor IFC. Verifique sua conexão e recarregue a página.');
+    }
   }
 }
 
 async function handleIFC(buffer, filename){
-  if(!wasmReady){ alert('web-ifc WASM não carregado ainda. Aguarde "IFC PRONTO" no cabeçalho.'); return; }
+  if(!wasmReady){
+    // Queue the file and show waiting state in the pill
+    ifcQueue={buffer,filename};
+    const p=document.getElementById('wasm-pill');
+    p.textContent='⏳ AGUARDANDO IFC...';
+    p.classList.add('loading');
+    // Also show a non-blocking toast instead of alert
+    showToast('Motor IFC carregando, seu arquivo será processado automaticamente...');
+    return;
+  }
 
   showConvOverlay('ifc', filename, STEPS_IFC);
   setConvStep(0, 5);
