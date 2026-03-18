@@ -734,32 +734,61 @@ function glbToScene(buffer, filename, fmt){
    IFC HANDLER
 ═══════════════════════ */
 let ifcAPI=null, wasmReady=false;
-let ifcQueue=null; // {buffer, filename} pending while WASM loads
+let ifcQueue=null;
+
+// Try multiple CDN sources for the WASM file
+const WASM_CDNS=[
+  'https://cdn.jsdelivr.net/npm/web-ifc@0.0.57/',
+  'https://unpkg.com/web-ifc@0.0.57/',
+];
 
 async function initWebIFC(){
-  try{
-    ifcAPI=new WebIFC.IfcAPI();
-    ifcAPI.SetWasmPath('https://cdn.jsdelivr.net/npm/web-ifc@0.0.57/');
-    await ifcAPI.Init();
-    wasmReady=true;
-    const p=document.getElementById('wasm-pill');
-    p.textContent='✓ IFC PRONTO'; p.classList.add('ok');
-    // If user dropped a file while WASM was loading, process it now
-    if(ifcQueue){
-      const {buffer,filename}=ifcQueue;
-      ifcQueue=null;
-      handleIFC(buffer,filename);
-    }
-  }catch(e){
-    const p=document.getElementById('wasm-pill');
-    p.textContent='✗ IFC ERRO'; p.classList.add('err');
-    console.error(e);
-    // Show friendlier message if there was a queued file
-    if(ifcQueue){
-      ifcQueue=null;
-      alert('Erro ao carregar o motor IFC. Verifique sua conexão e recarregue a página.');
+  const p=document.getElementById('wasm-pill');
+  let lastErr=null;
+
+  for(const cdnPath of WASM_CDNS){
+    try{
+      p.textContent='⏳ IFC WASM...'; p.className='';
+      ifcAPI=new WebIFC.IfcAPI();
+      ifcAPI.SetWasmPath(cdnPath);
+      await ifcAPI.Init();
+      wasmReady=true;
+      p.textContent='✓ IFC PRONTO'; p.classList.add('ok');
+      console.log('[web-ifc] loaded from', cdnPath);
+      if(ifcQueue){
+        const {buffer,filename}=ifcQueue; ifcQueue=null;
+        handleIFC(buffer,filename);
+      }
+      return; // success — stop trying
+    }catch(e){
+      lastErr=e;
+      console.warn('[web-ifc] failed from', cdnPath, e.message);
     }
   }
+
+  // All CDNs failed
+  p.textContent='✗ IFC ERRO'; p.classList.add('err');
+  p.title=lastErr?.message||'unknown';
+  console.error('[web-ifc] all CDNs failed:', lastErr);
+  ifcQueue=null;
+
+  // Diagnose the likely cause
+  let hint='Verifique sua conexão com a internet.';
+  if(lastErr?.message?.includes('SharedArrayBuffer')||lastErr?.message?.includes('cross-origin'))
+    hint='O servidor precisa enviar os headers:\nCross-Origin-Opener-Policy: same-origin\nCross-Origin-Embedder-Policy: require-corp';
+  else if(lastErr?.message?.includes('fetch')||lastErr?.message?.includes('network')||lastErr?.message?.includes('Failed'))
+    hint='CDN bloqueado ou sem conexão. Tente acessar: https://cdn.jsdelivr.net/npm/web-ifc@0.0.57/web-ifc.wasm';
+
+  showToast('⚠ IFC ERRO: '+hint, 12000);
+  // Also show in a visible div below the pill
+  const errDiv=document.createElement('div');
+  errDiv.style.cssText='position:fixed;top:52px;right:12px;z-index:9999;background:#1a0a0a;border:1px solid #ef4444;padding:10px 14px;font-size:9px;color:#ef4444;letter-spacing:.5px;max-width:320px;line-height:1.8';
+  errDiv.innerHTML='<b>ERRO IFC:</b> '+p.title+'<br><span style="color:#666">'+hint.replace(/\n/g,'<br>')+'</span><br><a href="https://cdn.jsdelivr.net/npm/web-ifc@0.0.57/web-ifc.wasm" target="_blank" style="color:#f59e0b">Testar CDN ↗</a>';
+  const closeBtn=document.createElement('button');
+  closeBtn.textContent='×'; closeBtn.style.cssText='position:absolute;top:4px;right:6px;background:none;border:none;color:#ef4444;cursor:pointer;font-size:14px;padding:0';
+  closeBtn.onclick=()=>errDiv.remove();
+  errDiv.appendChild(closeBtn);
+  document.body.appendChild(errDiv);
 }
 
 async function handleIFC(buffer, filename){
