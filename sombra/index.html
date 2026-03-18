@@ -7,7 +7,8 @@
 <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/exporters/GLTFExporter.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/loaders/GLTFLoader.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/web-ifc@0.0.57/web-ifc-api.js"></script>
+<!-- web-ifc 0.0.44 — última versão com build browser-compatível (não ES module) -->
+<script src="https://cdn.jsdelivr.net/npm/web-ifc@0.0.44/web-ifc-api.js"></script>
 <link href="https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&family=Barlow+Condensed:wght@300;500;700;900&display=swap" rel="stylesheet">
 <style>
 :root {
@@ -736,10 +737,12 @@ function glbToScene(buffer, filename, fmt){
 let ifcAPI=null, wasmReady=false;
 let ifcQueue=null;
 
-// Try multiple CDN sources for the WASM file
+// CDN order: v0.0.44 UMD builds (not ES module)
+// The .wasm file should be in the same folder as index.html
 const WASM_CDNS=[
-  'https://cdn.jsdelivr.net/npm/web-ifc@0.0.57/',
-  'https://unpkg.com/web-ifc@0.0.57/',
+  './',                                                       // local — put web-ifc.wasm next to index.html ✓
+  'https://cdn.jsdelivr.net/npm/web-ifc@0.0.44/',
+  'https://unpkg.com/web-ifc@0.0.44/',
 ];
 
 async function initWebIFC(){
@@ -777,13 +780,15 @@ async function initWebIFC(){
   if(lastErr?.message?.includes('SharedArrayBuffer')||lastErr?.message?.includes('cross-origin'))
     hint='O servidor precisa enviar os headers:\nCross-Origin-Opener-Policy: same-origin\nCross-Origin-Embedder-Policy: require-corp';
   else if(lastErr?.message?.includes('fetch')||lastErr?.message?.includes('network')||lastErr?.message?.includes('Failed'))
-    hint='CDN bloqueado ou sem conexão. Tente acessar: https://cdn.jsdelivr.net/npm/web-ifc@0.0.57/web-ifc.wasm';
+    hint='CDN bloqueado ou sem conexão. Coloque o arquivo web-ifc.wasm na mesma pasta do index.html.';
+  else if(lastErr?.message?.includes('fetch')||lastErr?.message?.includes('network')||lastErr?.message?.includes('Failed'))
+    hint='Coloque o arquivo web-ifc.wasm na mesma pasta do index.html para funcionar sem CDN.';
 
   showToast('⚠ IFC ERRO: '+hint, 12000);
-  // Also show in a visible div below the pill
   const errDiv=document.createElement('div');
-  errDiv.style.cssText='position:fixed;top:52px;right:12px;z-index:9999;background:#1a0a0a;border:1px solid #ef4444;padding:10px 14px;font-size:9px;color:#ef4444;letter-spacing:.5px;max-width:320px;line-height:1.8';
-  errDiv.innerHTML='<b>ERRO IFC:</b> '+p.title+'<br><span style="color:#666">'+hint.replace(/\n/g,'<br>')+'</span><br><a href="https://cdn.jsdelivr.net/npm/web-ifc@0.0.57/web-ifc.wasm" target="_blank" style="color:#f59e0b">Testar CDN ↗</a>';
+  errDiv.style.cssText='position:fixed;top:52px;right:12px;z-index:9999;background:#1a0a0a;border:1px solid #ef4444;padding:10px 14px;font-size:9px;color:#ef4444;letter-spacing:.5px;max-width:340px;line-height:1.8';
+  errDiv.innerHTML='<b>ERRO IFC:</b> '+p.title+'<br><span style="color:#888">'+hint.replace(/\n/g,'<br>')+'</span><br>'
+    +'<span style="color:#666">Solução: coloque <b style="color:#f59e0b">web-ifc.wasm</b> na mesma pasta do index.html</span>';
   const closeBtn=document.createElement('button');
   closeBtn.textContent='×'; closeBtn.style.cssText='position:absolute;top:4px;right:6px;background:none;border:none;color:#ef4444;cursor:pointer;font-size:14px;padding:0';
   closeBtn.onclick=()=>errDiv.remove();
