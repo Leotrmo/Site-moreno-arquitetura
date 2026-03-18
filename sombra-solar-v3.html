@@ -1,0 +1,1194 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>SOMBRA — Análise Solar de Terreno</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/exporters/GLTFExporter.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/loaders/GLTFLoader.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/web-ifc@0.0.57/web-ifc-api.js"></script>
+<link href="https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&family=Barlow+Condensed:wght@300;500;700;900&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg:#080809; --s1:#0f0f12; --s2:#161619;
+  --border:#1f1f25; --border2:#2a2a32;
+  --txt:#c8c8d0; --muted:#4a4a58; --muted2:#6a6a7a;
+  --sun:#f59e0b; --sun2:#fbbf24;
+  --red:#ef4444; --green:#10b981;
+  --purple:#7c3aed; --purple2:#a78bfa;
+}
+*{margin:0;padding:0;box-sizing:border-box}
+html,body{height:100vh;overflow:hidden}
+body{
+  background:var(--bg);color:var(--txt);font-family:'Space Mono',monospace;
+  display:grid;
+  grid-template-columns:280px 1fr 230px;
+  grid-template-rows:44px 1fr 180px;
+}
+
+/* ── HEADER ── */
+header{
+  grid-column:1/-1;background:var(--s1);border-bottom:1px solid var(--border);
+  display:flex;align-items:center;padding:0 16px;gap:12px;
+}
+.logo{font-family:'Barlow Condensed';font-weight:900;font-size:22px;letter-spacing:6px;color:var(--sun);text-transform:uppercase}
+.logo-sep{width:1px;height:20px;background:var(--border2)}
+.logo-sub{font-size:9px;letter-spacing:3px;color:var(--muted2);text-transform:uppercase}
+header .spacer{flex:1}
+.hstat{font-size:9px;color:var(--muted);letter-spacing:1px;text-align:right}
+.hstat span{display:block;color:var(--sun);font-size:13px;font-family:'Barlow Condensed';font-weight:700}
+#wasm-pill{
+  font-size:8px;letter-spacing:2px;padding:3px 9px;
+  border:1px solid var(--border2);color:var(--muted2);text-transform:uppercase;white-space:nowrap;
+  transition:all .3s;
+}
+#wasm-pill.ok{border-color:rgba(16,185,129,.4);color:var(--green);background:rgba(16,185,129,.06)}
+#wasm-pill.err{border-color:rgba(239,68,68,.4);color:var(--red)}
+
+/* ── PANELS ── */
+.panel{
+  background:var(--s1);border-right:1px solid var(--border);
+  overflow-y:auto;overflow-x:hidden;padding:14px 12px;
+  display:flex;flex-direction:column;gap:14px;
+}
+.panel-right{
+  background:var(--s1);border-left:1px solid var(--border);
+  padding:14px 12px;display:flex;flex-direction:column;gap:12px;overflow-y:auto;
+}
+#viewport{position:relative;overflow:hidden;background:#050507}
+#c3d{display:block;width:100%;height:100%}
+.bottom{
+  grid-column:2/3;background:var(--s1);border-top:1px solid var(--border);
+  padding:10px 14px;display:flex;align-items:center;gap:12px;
+}
+
+/* ── FORM ── */
+.sec-title{
+  font-family:'Barlow Condensed';font-weight:700;font-size:10px;
+  letter-spacing:4px;text-transform:uppercase;color:var(--muted);
+  border-bottom:1px solid var(--border);padding-bottom:6px;margin-bottom:4px;
+}
+.sec{display:flex;flex-direction:column;gap:7px}
+label{font-size:9px;color:var(--muted);letter-spacing:1.5px;text-transform:uppercase;display:block;margin-bottom:3px}
+input[type=number],input[type=text],select{
+  width:100%;background:var(--bg);border:1px solid var(--border2);
+  color:var(--txt);font-family:'Space Mono';font-size:10px;
+  padding:5px 7px;outline:none;appearance:none;-webkit-appearance:none;
+}
+input:focus,select:focus{border-color:var(--sun)}
+select option{background:var(--s2)}
+input[type=range]{width:100%;accent-color:var(--sun);cursor:pointer}
+.row2{display:grid;grid-template-columns:1fr 1fr;gap:6px}
+
+/* ── BUTTONS ── */
+button{
+  background:var(--s2);border:1px solid var(--border2);
+  color:var(--txt);font-family:'Space Mono';font-size:9px;
+  padding:7px 10px;cursor:pointer;letter-spacing:1px;
+  transition:all .15s;text-transform:uppercase;user-select:none;
+}
+button:hover{background:var(--border2);color:#fff;border-color:var(--muted)}
+button:disabled{opacity:.35;cursor:not-allowed}
+button.on{background:var(--sun);color:#000;border-color:var(--sun);font-weight:700}
+button.primary{background:var(--sun);color:#000;border-color:var(--sun);font-weight:700;width:100%;padding:9px}
+button.primary:hover{background:var(--sun2)}
+button.danger{background:transparent;border-color:var(--red);color:var(--red)}
+.btn-row{display:flex;gap:5px;flex-wrap:wrap}
+#view-btns{display:flex;gap:0}
+#view-btns button{flex:1;border-radius:0;border-right-width:0}
+#view-btns button:last-child{border-right-width:1px}
+
+/* ── DROPZONE ── */
+.dropzone{
+  border:2px dashed var(--border2);padding:14px;text-align:center;
+  cursor:pointer;font-size:9px;color:var(--muted);transition:all .2s;letter-spacing:1px;
+}
+.dropzone:hover,.dropzone.over{border-color:var(--sun);color:var(--sun)}
+.dz-icon{font-size:22px;margin-bottom:6px}
+.dz-formats{display:flex;gap:4px;justify-content:center;margin-top:6px;flex-wrap:wrap}
+.fmt-tag{font-size:8px;padding:2px 6px;border:1px solid var(--border2);color:var(--muted2);letter-spacing:1px}
+.fmt-tag.ifc{border-color:rgba(167,139,250,.5);color:var(--purple2)}
+.fmt-tag.obj{border-color:rgba(245,158,11,.5);color:var(--sun)}
+.fmt-tag.glb{border-color:rgba(16,185,129,.5);color:var(--green)}
+
+/* ── CONVERTING OVERLAY ── */
+#conv-overlay{
+  display:none;position:fixed;inset:0;z-index:999;
+  background:rgba(0,0,0,.78);align-items:center;justify-content:center;
+}
+#conv-overlay.show{display:flex}
+.conv-box{
+  background:var(--s1);border:1px solid var(--border2);
+  padding:30px 36px;min-width:360px;display:flex;flex-direction:column;gap:16px;
+}
+.conv-title{
+  font-family:'Barlow Condensed';font-weight:900;font-size:16px;
+  letter-spacing:5px;color:var(--txt);text-transform:uppercase;
+  display:flex;align-items:center;gap:10px;
+}
+.conv-badge{
+  font-size:9px;padding:2px 8px;border:1px solid var(--border2);
+  color:var(--muted2);letter-spacing:2px;text-transform:uppercase;
+}
+.conv-badge.ifc{border-color:var(--purple2);color:var(--purple2);background:rgba(124,58,237,.1)}
+.conv-badge.obj{border-color:var(--sun);color:var(--sun);background:rgba(245,158,11,.08)}
+.conv-steps{display:flex;flex-direction:column;gap:5px}
+.conv-step{
+  display:flex;align-items:center;gap:9px;
+  font-size:9px;letter-spacing:1px;color:var(--muted);padding:6px 10px;
+  border:1px solid var(--border);transition:all .3s;
+}
+.conv-step.active{color:var(--txt);border-color:var(--border2);background:var(--s2)}
+.conv-step.done{color:var(--green);border-color:rgba(16,185,129,.3);background:rgba(16,185,129,.05)}
+.conv-step .step-dot{
+  width:6px;height:6px;border-radius:50%;background:var(--muted);flex-shrink:0;transition:all .3s;
+}
+.conv-step.active .step-dot{background:var(--sun);box-shadow:0 0 6px var(--sun);animation:pulse .8s infinite}
+.conv-step.done  .step-dot{background:var(--green)}
+.conv-bar-outer{height:2px;background:var(--border);overflow:hidden}
+.conv-bar-inner{height:100%;width:0%;background:linear-gradient(90deg,var(--sun),var(--sun2));transition:width .3s}
+.conv-pct{
+  font-family:'Barlow Condensed';font-weight:900;font-size:36px;
+  color:var(--sun);letter-spacing:2px;text-align:right;line-height:1;
+}
+.conv-filename{font-size:8px;color:var(--muted2);letter-spacing:.5px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+/* ifc layers in overlay */
+.conv-layers{display:flex;flex-direction:column;gap:3px;max-height:120px;overflow-y:auto}
+.conv-layer{
+  display:flex;align-items:center;gap:7px;font-size:8px;
+  padding:3px 0;border-bottom:1px solid var(--border);
+}
+.conv-layer-dot{width:7px;height:7px;flex-shrink:0}
+.conv-layer-name{flex:1;color:var(--muted2)}
+.conv-layer-cnt{color:var(--muted)}
+
+/* ── FILE TAG ── */
+.file-tag{
+  font-size:9px;padding:5px 8px;
+  display:flex;align-items:center;justify-content:space-between;gap:6px;
+}
+.file-tag.ifc{background:rgba(124,58,237,.1);border:1px solid rgba(167,139,250,.3);color:var(--purple2)}
+.file-tag.obj{background:rgba(245,158,11,.08);border:1px solid rgba(245,158,11,.3);color:var(--sun)}
+.file-tag.glb{background:rgba(16,185,129,.08);border:1px solid rgba(16,185,129,.3);color:var(--green)}
+.file-tag-arrow{
+  font-size:8px;color:var(--green);letter-spacing:1px;white-space:nowrap;
+  padding:1px 5px;border:1px solid rgba(16,185,129,.3);background:rgba(16,185,129,.06);
+}
+.file-tag-x{cursor:pointer;font-size:13px;background:none;border:none;color:inherit;padding:0;flex-shrink:0}
+
+/* ── HUD ── */
+#hud{
+  position:absolute;top:10px;left:10px;
+  background:rgba(0,0,0,.72);border:1px solid var(--border2);
+  padding:10px 13px;pointer-events:none;min-width:120px;
+}
+#hud .hud-time{font-family:'Barlow Condensed';font-weight:900;font-size:32px;color:var(--sun);letter-spacing:2px}
+#hud .hud-row{font-size:9px;color:var(--muted);letter-spacing:1px;margin-top:2px}
+#hud .hud-row span{color:var(--txt)}
+#north-canvas{position:absolute;top:10px;right:10px;width:50px;height:50px;pointer-events:none}
+
+/* ── SUN PATH ── */
+#sp-canvas{width:100%;aspect-ratio:1;border:1px solid var(--border);display:block}
+
+/* ── STATS ── */
+.stat{display:flex;justify-content:space-between;align-items:baseline}
+.stat-k{font-size:9px;color:var(--muted);letter-spacing:1px}
+.stat-v{font-family:'Barlow Condensed';font-size:16px;font-weight:700;color:var(--txt)}
+.stat-v.hi{color:var(--sun)}
+
+/* ── HEATMAP LEGEND ── */
+.legend-wrap{display:flex;gap:5px;align-items:center;font-size:9px;color:var(--muted)}
+.legend-bar{flex:1;height:7px;background:linear-gradient(to right,#1e3a5f,#3b82f6,#22c55e,#f59e0b,#ef4444)}
+
+/* ── PLAY BTN ── */
+#play-btn{
+  width:38px;height:38px;border-radius:50%;background:var(--sun);border:none;
+  color:#000;font-size:16px;cursor:pointer;display:flex;align-items:center;justify-content:center;
+  flex-shrink:0;transition:transform .1s,background .15s;
+}
+#play-btn:hover{background:var(--sun2);transform:scale(1.08)}
+.ctrl-wrap{display:flex;flex-direction:column;gap:3px;flex:1}
+.ctrl-label{font-size:9px;color:var(--muted);letter-spacing:2px;text-transform:uppercase}
+
+/* ── MISC ── */
+.status{font-size:9px;color:var(--sun);letter-spacing:1px;text-align:center}
+.pulse{animation:pulse 1s infinite}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.3}}
+#date-badge{
+  background:var(--s2);border:1px solid var(--border2);
+  padding:4px 10px;font-family:'Barlow Condensed';font-size:16px;font-weight:700;
+  color:var(--sun);white-space:nowrap;
+}
+.tip{font-size:9px;color:var(--muted2);line-height:1.6}
+::-webkit-scrollbar{width:3px}
+::-webkit-scrollbar-track{background:var(--bg)}
+::-webkit-scrollbar-thumb{background:var(--border2)}
+</style>
+</head>
+<body>
+
+<!-- HEADER -->
+<header>
+  <div class="logo">SOMBRA</div>
+  <div class="logo-sep"></div>
+  <div class="logo-sub">Análise Solar · Terreno &amp; Entorno</div>
+  <div class="spacer"></div>
+  <div id="wasm-pill">⏳ IFC WASM</div>
+  <div class="logo-sep"></div>
+  <div class="hstat">ALTITUDE<span id="h-alt">—</span></div>
+  <div class="logo-sep"></div>
+  <div class="hstat">AZIMUTE<span id="h-az">—</span></div>
+  <div class="logo-sep"></div>
+  <div class="hstat">LOCALIZAÇÃO<span id="h-loc">—</span></div>
+</header>
+
+<!-- LEFT PANEL -->
+<div class="panel">
+
+  <div class="sec">
+    <div class="sec-title">Localização</div>
+    <div>
+      <label>Cidade predefinida</label>
+      <select id="city-sel">
+        <option value="">— Selecionar —</option>
+        <option value="-25.43,-49.27" selected>Curitiba, PR</option>
+        <option value="-23.55,-46.63">São Paulo, SP</option>
+        <option value="-22.91,-43.17">Rio de Janeiro, RJ</option>
+        <option value="-19.92,-43.94">Belo Horizonte, MG</option>
+        <option value="-15.78,-47.93">Brasília, DF</option>
+        <option value="-3.72,-38.54">Fortaleza, CE</option>
+        <option value="-12.97,-38.50">Salvador, BA</option>
+        <option value="-30.03,-51.23">Porto Alegre, RS</option>
+        <option value="40.71,-74.01">Nova York, EUA</option>
+        <option value="48.85,2.35">Paris, França</option>
+        <option value="35.68,139.69">Tóquio, Japão</option>
+      </select>
+    </div>
+    <div class="row2">
+      <div><label>Latitude</label><input type="number" id="in-lat" value="-25.43" step="0.01"></div>
+      <div><label>Longitude</label><input type="number" id="in-lon" value="-49.27" step="0.01"></div>
+    </div>
+  </div>
+
+  <div class="sec">
+    <div class="sec-title">Entorno — Importar Modelo</div>
+    <div class="dropzone" id="dz">
+      <input type="file" id="model-input" accept=".ifc,.obj,.glb,.gltf" style="display:none">
+      <div class="dz-icon">↑</div>
+      <div>Arraste o arquivo aqui</div>
+      <div style="margin-top:4px;font-size:8px;opacity:.6">ou clique para selecionar</div>
+      <div class="dz-formats">
+        <span class="fmt-tag ifc">IFC</span>
+        <span class="fmt-tag obj">OBJ</span>
+        <span class="fmt-tag glb">GLB / glTF</span>
+      </div>
+    </div>
+    <div id="file-tags"></div>
+    <div class="row2">
+      <div>
+        <label>Escala (OBJ)</label>
+        <select id="obj-scale">
+          <option value="auto" selected>Auto</option>
+          <option value="1">1:1 metros</option>
+          <option value="0.001">mm → m</option>
+          <option value="0.0254">pol → m</option>
+          <option value="0.3048">pés → m</option>
+        </select>
+      </div>
+      <div style="display:flex;align-items:flex-end">
+        <button id="clear-btn" class="danger" style="width:100%">✕ LIMPAR</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="sec">
+    <div class="sec-title">Terreno (Lote)</div>
+    <div class="row2">
+      <div><label>Largura (m)</label><input type="number" id="lot-w" value="20" min="1" max="500"></div>
+      <div><label>Profund. (m)</label><input type="number" id="lot-d" value="30" min="1" max="500"></div>
+    </div>
+    <div class="row2">
+      <div><label>Offset X (m)</label><input type="number" id="lot-x" value="0" step="1"></div>
+      <div><label>Offset Z (m)</label><input type="number" id="lot-z" value="0" step="1"></div>
+    </div>
+    <button class="primary" id="upd-lot">↺ ATUALIZAR LOTE</button>
+  </div>
+
+  <div class="sec">
+    <div class="sec-title">Análise de Insolação</div>
+    <div class="row2">
+      <div>
+        <label>Resolução</label>
+        <select id="grid-res">
+          <option value="5">Baixa 5×5</option>
+          <option value="10" selected>Média 10×10</option>
+          <option value="20">Alta 20×20</option>
+        </select>
+      </div>
+      <div>
+        <label>Passo horário</label>
+        <select id="hr-step">
+          <option value="1" selected>1 hora</option>
+          <option value="0.5">30 min</option>
+          <option value="0.25">15 min</option>
+        </select>
+      </div>
+    </div>
+    <button class="primary" id="analyze-btn">▶ CALCULAR INSOLAÇÃO</button>
+    <div id="analyze-status"></div>
+    <div id="hm-legend" style="display:none">
+      <div class="legend-wrap">
+        <span>0h</span><div class="legend-bar"></div><span id="hm-max">—</span>
+      </div>
+    </div>
+  </div>
+
+</div><!-- /panel-left -->
+
+<!-- VIEWPORT -->
+<div id="viewport">
+  <canvas id="c3d"></canvas>
+  <div id="hud">
+    <div class="hud-time" id="hud-time">12:00</div>
+    <div class="hud-row">ALT <span id="hud-alt">—</span> · AZ <span id="hud-az">—</span></div>
+    <div class="hud-row" id="hud-msg"></div>
+  </div>
+  <canvas id="north-canvas" width="50" height="50"></canvas>
+</div>
+
+<!-- RIGHT PANEL -->
+<div class="panel-right">
+  <div class="sec-title">Diagrama Solar</div>
+  <canvas id="sp-canvas" width="200" height="200"></canvas>
+
+  <div class="sec">
+    <div class="sec-title">Dados do Dia</div>
+    <div class="stat"><span class="stat-k">NASCER DO SOL</span><span class="stat-v hi" id="r-rise">—</span></div>
+    <div class="stat"><span class="stat-k">PÔR DO SOL</span>  <span class="stat-v hi" id="r-set">—</span></div>
+    <div class="stat"><span class="stat-k">HORAS DE LUZ</span><span class="stat-v"    id="r-hrs">—</span></div>
+    <div class="stat"><span class="stat-k">ALT. MÁXIMA</span> <span class="stat-v"    id="r-maxalt">—</span></div>
+  </div>
+
+  <div class="sec">
+    <div class="sec-title">Vista 3D</div>
+    <div id="view-btns">
+      <button id="v-3d" class="on">3D</button>
+      <button id="v-top">TOPO</button>
+      <button id="v-n">NORTE</button>
+      <button id="v-e">LESTE</button>
+    </div>
+  </div>
+
+  <div class="sec">
+    <div class="sec-title">Exibir</div>
+    <div class="btn-row">
+      <button id="tog-shadow" class="on">SOMBRAS</button>
+      <button id="tog-hm">CALOR</button>
+      <button id="tog-grid" class="on">GRADE</button>
+      <button id="tog-sky" class="on">CÉU</button>
+    </div>
+  </div>
+
+  <div class="sec">
+    <div class="sec-title">Velocidade</div>
+    <input type="range" id="speed-sl" min="5" max="200" value="40">
+    <div style="text-align:center;font-family:'Barlow Condensed';font-size:13px;color:var(--muted)">
+      <span id="speed-val">40</span>× tempo real
+    </div>
+  </div>
+</div>
+
+<!-- BOTTOM -->
+<div class="bottom">
+  <button id="play-btn">▶</button>
+  <div class="ctrl-wrap">
+    <div class="ctrl-label">HORA DO DIA</div>
+    <input type="range" id="time-sl" min="0" max="1440" value="720" step="1">
+  </div>
+  <div class="ctrl-wrap">
+    <div class="ctrl-label">DIA DO ANO</div>
+    <input type="range" id="date-sl" min="1" max="365" value="172" step="1">
+  </div>
+  <div id="date-badge">—</div>
+</div>
+
+<!-- CONVERSION OVERLAY -->
+<div id="conv-overlay">
+  <div class="conv-box">
+    <div class="conv-title">
+      <span>CONVERTENDO</span>
+      <span class="conv-badge" id="conv-badge-fmt">—</span>
+      <span style="font-size:10px;color:var(--muted);letter-spacing:3px">→ glTF</span>
+    </div>
+    <div class="conv-filename" id="conv-filename">—</div>
+    <div class="conv-bar-outer"><div class="conv-bar-inner" id="conv-pbar"></div></div>
+    <div style="display:flex;justify-content:space-between;align-items:flex-end">
+      <div class="conv-steps" id="conv-steps"></div>
+      <div class="conv-pct" id="conv-pct">0%</div>
+    </div>
+    <div class="conv-layers" id="conv-layers" style="display:none"></div>
+  </div>
+</div>
+
+<script>
+(function(){
+'use strict';
+
+const DEG=Math.PI/180, RAD=180/Math.PI;
+
+/* ═══════════════════════
+   STATE
+═══════════════════════ */
+const S={
+  lat:-25.43, lon:-49.27,
+  hour:12, doy:172,
+  playing:false, speed:40,
+  lotW:20, lotD:30, lotX:0, lotZ:0,
+  showShadow:true, showHeatmap:false, showGrid:true, showSky:true,
+};
+
+/* ═══════════════════════
+   IFC CATALOG
+═══════════════════════ */
+const IFC_CAT={
+  IFCWALL:             {label:'Paredes',       color:'#94a3b8'},
+  IFCWALLSTANDARDCASE:{label:'Paredes',       color:'#94a3b8'},
+  IFCSLAB:             {label:'Lajes / Pisos', color:'#64748b'},
+  IFCROOF:             {label:'Coberturas',    color:'#b45309'},
+  IFCCOLUMN:           {label:'Pilares',       color:'#c0c0c0'},
+  IFCBEAM:             {label:'Vigas',         color:'#a0a0a0'},
+  IFCDOOR:             {label:'Portas',        color:'#78350f'},
+  IFCWINDOW:           {label:'Janelas',       color:'#7dd3fc'},
+  IFCSTAIR:            {label:'Escadas',       color:'#d97706'},
+  IFCFURNISHINGELEMENT:{label:'Mobiliário',    color:'#f472b6'},
+  IFCMEMBER:           {label:'Estruturais',   color:'#b0b0b0'},
+};
+
+/* ═══════════════════════
+   CONVERSION OVERLAY UI
+═══════════════════════ */
+const STEPS_IFC=['Abrindo IFC','Extraindo geometria','Coletando tipos','Exportando glTF','Carregando na cena'];
+const STEPS_OBJ=['Lendo OBJ','Construindo mesh','Exportando glTF','Carregando na cena'];
+
+let convSteps=[];
+
+function showConvOverlay(fmt, filename, steps){
+  const ov=document.getElementById('conv-overlay');
+  document.getElementById('conv-badge-fmt').textContent=fmt.toUpperCase();
+  document.getElementById('conv-badge-fmt').className='conv-badge '+fmt.toLowerCase();
+  document.getElementById('conv-filename').textContent=filename;
+  document.getElementById('conv-pbar').style.width='0%';
+  document.getElementById('conv-pct').textContent='0%';
+  document.getElementById('conv-layers').style.display='none';
+  document.getElementById('conv-layers').innerHTML='';
+
+  // Build step rows
+  const stepsEl=document.getElementById('conv-steps');
+  stepsEl.innerHTML='';
+  convSteps=[];
+  steps.forEach((s,i)=>{
+    const d=document.createElement('div');
+    d.className='conv-step';
+    d.innerHTML=`<div class="step-dot"></div><span>${s}</span>`;
+    stepsEl.appendChild(d);
+    convSteps.push(d);
+  });
+
+  ov.classList.add('show');
+}
+
+function setConvStep(idx, pct){
+  convSteps.forEach((el,i)=>{
+    el.classList.remove('active','done');
+    if(i<idx)  el.classList.add('done');
+    if(i===idx) el.classList.add('active');
+  });
+  document.getElementById('conv-pbar').style.width=pct+'%';
+  document.getElementById('conv-pct').textContent=Math.round(pct)+'%';
+}
+
+function hideConvOverlay(){ document.getElementById('conv-overlay').classList.remove('show'); }
+
+function showConvLayers(typeCount){
+  const wrap=document.getElementById('conv-layers');
+  wrap.innerHTML='';
+  const entries=Object.entries(typeCount).filter(([,v])=>v>0);
+  if(!entries.length) return;
+  entries.forEach(([type,count])=>{
+    const info=IFC_CAT[type]||{label:type,color:'#666'};
+    const d=document.createElement('div');
+    d.className='conv-layer';
+    d.innerHTML=`<div class="conv-layer-dot" style="background:${info.color}"></div>
+      <div class="conv-layer-name">${info.label}</div>
+      <div class="conv-layer-cnt">×${count}</div>`;
+    wrap.appendChild(d);
+  });
+  wrap.style.display='flex';
+}
+
+/* ═══════════════════════
+   SOLAR MATH
+═══════════════════════ */
+function sunPos(lat,doy,hour){
+  const phi=lat*DEG;
+  const decl=23.45*Math.sin((284+doy)*360/365*DEG)*DEG;
+  const H=(hour-12)*15*DEG;
+  const sinEl=Math.sin(phi)*Math.sin(decl)+Math.cos(phi)*Math.cos(decl)*Math.cos(H);
+  const el=Math.asin(Math.max(-1,Math.min(1,sinEl)));
+  let az=Math.atan2(Math.sin(H),Math.cos(H)*Math.sin(phi)-Math.tan(decl)*Math.cos(phi));
+  az=(az+Math.PI)%(2*Math.PI); if(az<0) az+=2*Math.PI;
+  return {el,az};
+}
+function sunVec(el,az){return new THREE.Vector3(Math.sin(az)*Math.cos(el),Math.sin(el),-Math.cos(az)*Math.cos(el));}
+function sunriseSunset(lat,doy){
+  const phi=lat*DEG, decl=23.45*Math.sin((284+doy)*360/365*DEG)*DEG;
+  const cosH0=-Math.tan(phi)*Math.tan(decl);
+  if(cosH0>1) return null; if(cosH0<-1) return {rise:0,set:24};
+  const H0=Math.acos(cosH0)*RAD;
+  return {rise:12-H0/15,set:12+H0/15};
+}
+function fmtH(h){ if(h==null||isNaN(h)) return '—'; const hh=Math.floor(h),mm=Math.round((h-hh)*60); return String(hh).padStart(2,'0')+':'+String(mm).padStart(2,'0'); }
+function dayLabel(doy){ return new Date(2024,0,doy).toLocaleDateString('pt-BR',{day:'numeric',month:'short'}).toUpperCase(); }
+function fmtN(n){ if(n>=1e6) return (n/1e6).toFixed(1)+'M'; if(n>=1e3) return (n/1e3).toFixed(1)+'K'; return String(n); }
+function tick(ms=20){ return new Promise(r=>setTimeout(r,ms)); }
+
+/* ═══════════════════════
+   THREE.JS
+═══════════════════════ */
+let renderer,scene,camera;
+let sunLight,ambLight,hemiLight;
+let groundMesh,lotMesh,lotLine,gridHelper;
+let buildingGroup,heatmapGroup,sunSphere;
+let orb={theta:Math.PI/5,phi:Math.PI/4,r:120,tx:0,ty:0,tz:0};
+let drag=null,lastTouch=null;
+
+function initThree(){
+  const canvas=document.getElementById('c3d');
+  renderer=new THREE.WebGLRenderer({canvas,antialias:true});
+  renderer.setPixelRatio(Math.min(window.devicePixelRatio,2));
+  renderer.shadowMap.enabled=true;
+  renderer.shadowMap.type=THREE.PCFSoftShadowMap;
+  renderer.toneMapping=THREE.ACESFilmicToneMapping;
+  renderer.toneMappingExposure=0.9;
+  scene=new THREE.Scene();
+  camera=new THREE.PerspectiveCamera(48,1,0.5,3000);
+  updateCamera();
+
+  ambLight=new THREE.AmbientLight(0x2a3050,0.6); scene.add(ambLight);
+  hemiLight=new THREE.HemisphereLight(0x6688cc,0x223322,0.5); scene.add(hemiLight);
+  sunLight=new THREE.DirectionalLight(0xfff8e0,1.8); sunLight.castShadow=true;
+  sunLight.shadow.mapSize.width=sunLight.shadow.mapSize.height=2048;
+  const sc=sunLight.shadow.camera;
+  sc.near=1;sc.far=600;sc.left=sc.bottom=-200;sc.right=sc.top=200;
+  sunLight.shadow.bias=-0.001;
+  scene.add(sunLight); scene.add(sunLight.target);
+
+  groundMesh=new THREE.Mesh(new THREE.PlaneGeometry(1000,1000),new THREE.MeshLambertMaterial({color:0x131318}));
+  groundMesh.rotation.x=-Math.PI/2; groundMesh.receiveShadow=true; scene.add(groundMesh);
+
+  gridHelper=new THREE.GridHelper(400,80,0x1a1a22,0x151520);
+  gridHelper.position.y=0.02; scene.add(gridHelper);
+
+  buildingGroup=new THREE.Group(); scene.add(buildingGroup);
+  heatmapGroup=new THREE.Group(); scene.add(heatmapGroup);
+
+  sunSphere=new THREE.Mesh(new THREE.SphereGeometry(1.8,16,16),new THREE.MeshBasicMaterial({color:0xffd700}));
+  scene.add(sunSphere);
+
+  createLot();
+  setupOrbit();
+  resizeRenderer();
+  window.addEventListener('resize',resizeRenderer);
+  animate();
+}
+function resizeRenderer(){
+  const vp=document.getElementById('viewport');
+  renderer.setSize(vp.clientWidth,vp.clientHeight,false);
+  camera.aspect=vp.clientWidth/vp.clientHeight; camera.updateProjectionMatrix();
+}
+function updateCamera(){
+  camera.position.set(
+    orb.tx+orb.r*Math.sin(orb.phi)*Math.sin(orb.theta),
+    orb.ty+orb.r*Math.cos(orb.phi),
+    orb.tz+orb.r*Math.sin(orb.phi)*Math.cos(orb.theta)
+  );
+  camera.lookAt(orb.tx,orb.ty,orb.tz);
+}
+function setupOrbit(){
+  const vp=document.getElementById('viewport');
+  vp.addEventListener('mousedown',e=>{
+    if(e.button===0) drag={type:'orbit',x:e.clientX,y:e.clientY};
+    if(e.button===2) drag={type:'pan',  x:e.clientX,y:e.clientY};
+  });
+  window.addEventListener('mousemove',e=>{
+    if(!drag) return;
+    const dx=e.clientX-drag.x, dy=e.clientY-drag.y;
+    drag.x=e.clientX; drag.y=e.clientY;
+    if(drag.type==='orbit'){
+      orb.theta-=dx*0.006;
+      orb.phi=Math.max(0.05,Math.min(Math.PI/2-0.02,orb.phi+dy*0.006));
+    } else {
+      const right=new THREE.Vector3();
+      camera.getWorldDirection(right).cross(new THREE.Vector3(0,1,0)).normalize();
+      const sp=orb.r*0.001;
+      orb.tx-=right.x*dx*sp; orb.tz-=right.z*dx*sp; orb.ty+=dy*sp;
+    }
+    updateCamera();
+  });
+  window.addEventListener('mouseup',()=>drag=null);
+  vp.addEventListener('wheel',e=>{
+    e.preventDefault();
+    orb.r=Math.max(5,Math.min(600,orb.r+e.deltaY*0.12)); updateCamera();
+  },{passive:false});
+  vp.addEventListener('contextmenu',e=>e.preventDefault());
+  vp.addEventListener('touchstart',e=>{
+    if(e.touches.length===1) lastTouch={x:e.touches[0].clientX,y:e.touches[0].clientY,type:'orbit'};
+    if(e.touches.length===2){const d=Math.hypot(e.touches[0].clientX-e.touches[1].clientX,e.touches[0].clientY-e.touches[1].clientY);lastTouch={pinchDist:d,type:'pinch'};}
+  },{passive:true});
+  vp.addEventListener('touchmove',e=>{
+    e.preventDefault(); if(!lastTouch) return;
+    if(lastTouch.type==='orbit'&&e.touches.length===1){
+      const dx=e.touches[0].clientX-lastTouch.x, dy=e.touches[0].clientY-lastTouch.y;
+      orb.theta-=dx*0.006; orb.phi=Math.max(0.05,Math.min(Math.PI/2-0.02,orb.phi+dy*0.006));
+      lastTouch={x:e.touches[0].clientX,y:e.touches[0].clientY,type:'orbit'}; updateCamera();
+    } else if(lastTouch.type==='pinch'&&e.touches.length===2){
+      const d=Math.hypot(e.touches[0].clientX-e.touches[1].clientX,e.touches[0].clientY-e.touches[1].clientY);
+      orb.r=Math.max(5,Math.min(600,orb.r*lastTouch.pinchDist/d)); lastTouch.pinchDist=d; updateCamera();
+    }
+  },{passive:false});
+  vp.addEventListener('touchend',()=>lastTouch=null,{passive:true});
+}
+
+/* ═══════════════════════
+   LOT
+═══════════════════════ */
+function createLot(){
+  if(lotMesh){scene.remove(lotMesh);lotMesh.geometry.dispose();}
+  if(lotLine){scene.remove(lotLine);lotLine.geometry.dispose();}
+  lotMesh=new THREE.Mesh(new THREE.PlaneGeometry(S.lotW,S.lotD),new THREE.MeshLambertMaterial({color:0x0d3320,transparent:true,opacity:.9}));
+  lotMesh.rotation.x=-Math.PI/2; lotMesh.position.set(S.lotX,0.01,S.lotZ); lotMesh.receiveShadow=true; scene.add(lotMesh);
+  lotLine=new THREE.LineSegments(new THREE.EdgesGeometry(new THREE.PlaneGeometry(S.lotW,S.lotD)),new THREE.LineBasicMaterial({color:0x22ff66}));
+  lotLine.rotation.x=-Math.PI/2; lotLine.position.set(S.lotX,0.03,S.lotZ); scene.add(lotLine);
+}
+
+/* ═══════════════════════
+   CORE PIPELINE:
+   raw input → Three.js Group → GLTFExporter → GLTFLoader → scene
+═══════════════════════ */
+
+// Step 1: convert any Three.js Group to GLB ArrayBuffer
+function groupToGLB(group){
+  return new Promise((resolve,reject)=>{
+    const exporter=new THREE.GLTFExporter();
+    exporter.parse(group,(glb)=>resolve(glb),{binary:true,embedImages:false,forceIndices:true});
+  });
+}
+
+// Step 2: load GLB ArrayBuffer into scene via GLTFLoader
+function glbToScene(buffer, filename, fmt){
+  return new Promise((resolve,reject)=>{
+    const loader=new THREE.GLTFLoader();
+    loader.parse(buffer,'',(gltf)=>{
+      const model=gltf.scene;
+      // Center & place at Y=0
+      const box=new THREE.Box3().setFromObject(model);
+      const center=new THREE.Vector3(), size=new THREE.Vector3();
+      box.getCenter(center); box.getSize(size);
+      model.position.sub(new THREE.Vector3(center.x,box.min.y,center.z));
+      model.traverse(o=>{
+        if(o.isMesh){ o.castShadow=true; o.receiveShadow=true; o.userData.isBuilding=true; }
+      });
+      buildingGroup.add(model);
+      const maxDim=Math.max(size.x,size.y,size.z);
+      orb.r=maxDim*1.8; orb.ty=size.y*0.25; orb.tx=0; orb.tz=0; updateCamera();
+      addFileTag(filename, fmt);
+      resolve({size});
+    },(err)=>reject(err));
+  });
+}
+
+/* ═══════════════════════
+   IFC HANDLER
+═══════════════════════ */
+let ifcAPI=null, wasmReady=false;
+
+async function initWebIFC(){
+  try{
+    ifcAPI=new WebIFC.IfcAPI();
+    ifcAPI.SetWasmPath('https://cdn.jsdelivr.net/npm/web-ifc@0.0.57/');
+    await ifcAPI.Init();
+    wasmReady=true;
+    const p=document.getElementById('wasm-pill');
+    p.textContent='✓ IFC PRONTO'; p.classList.add('ok');
+  }catch(e){
+    const p=document.getElementById('wasm-pill');
+    p.textContent='✗ IFC ERRO'; p.classList.add('err');
+    console.error(e);
+  }
+}
+
+async function handleIFC(buffer, filename){
+  if(!wasmReady){ alert('web-ifc WASM não carregado ainda. Aguarde "IFC PRONTO" no cabeçalho.'); return; }
+
+  showConvOverlay('ifc', filename, STEPS_IFC);
+  setConvStep(0, 5);
+  await tick();
+
+  // ── STEP 0: open IFC
+  let modelID;
+  try{ modelID=ifcAPI.OpenModel(new Uint8Array(buffer)); }
+  catch(e){ hideConvOverlay(); alert('Erro ao abrir IFC: '+e.message); return; }
+
+  // ── STEP 1: extract geometry
+  setConvStep(1, 20); await tick();
+
+  const tempGroup=new THREE.Group();
+  let totalVerts=0, meshCount=0;
+
+  try{
+    ifcAPI.StreamAllMeshes(modelID, mesh=>{
+      const geoms=mesh.geometries;
+      for(let i=0;i<geoms.size();i++){
+        const g=geoms.get(i);
+        const ifcG=ifcAPI.GetGeometry(modelID,g.geometryExpressID);
+        const vr=ifcAPI.GetVertexArray(ifcG.GetVertexData(),ifcG.GetVertexDataSize());
+        const ir=ifcAPI.GetIndexArray(ifcG.GetIndexData(), ifcG.GetIndexDataSize());
+        if(!vr||vr.length===0){ ifcAPI.Dispose(ifcG); continue; }
+        const nv=vr.length/6;
+        const pos=new Float32Array(nv*3), nrm=new Float32Array(nv*3);
+        for(let j=0;j<nv;j++){
+          pos[j*3]=vr[j*6]; pos[j*3+1]=vr[j*6+1]; pos[j*3+2]=vr[j*6+2];
+          nrm[j*3]=vr[j*6+3]; nrm[j*3+1]=vr[j*6+4]; nrm[j*3+2]=vr[j*6+5];
+        }
+        const geo=new THREE.BufferGeometry();
+        geo.setAttribute('position',new THREE.Float32BufferAttribute(pos,3));
+        geo.setAttribute('normal',  new THREE.Float32BufferAttribute(nrm,3));
+        geo.setIndex(new THREE.Uint32BufferAttribute(ir,1));
+        const col=g.color;
+        const mat=new THREE.MeshLambertMaterial({
+          color:new THREE.Color(col.x,col.y,col.z),
+          transparent:col.w<0.99, opacity:col.w, side:THREE.DoubleSide
+        });
+        const m=new THREE.Mesh(geo,mat);
+        m.applyMatrix4(new THREE.Matrix4().fromArray(g.flatTransformation));
+        tempGroup.add(m);
+        totalVerts+=nv; meshCount++;
+        ifcAPI.Dispose(ifcG);
+      }
+    });
+  }catch(e){ console.error('IFC geometry error:',e); }
+
+  // ── STEP 2: collect element types
+  setConvStep(2, 55); await tick();
+  const typeCount={};
+  for(const typeName of Object.keys(IFC_CAT)){
+    try{
+      const tc=WebIFC[typeName]; if(tc===undefined) continue;
+      const ids=ifcAPI.GetAllItemsOfType(modelID,tc,false);
+      if(ids&&ids.length>0) typeCount[typeName]=ids.length;
+    }catch(e){}
+  }
+  showConvLayers(typeCount);
+  try{ ifcAPI.CloseModel(modelID); }catch(e){}
+
+  // ── STEP 3: IFC Group → GLB
+  setConvStep(3, 72); await tick();
+  let glb;
+  try{ glb=await groupToGLB(tempGroup); }
+  catch(e){ hideConvOverlay(); alert('Erro ao exportar glTF: '+e.message); return; }
+  // Free temp group
+  tempGroup.traverse(o=>{ if(o.isMesh){ o.geometry.dispose(); if(Array.isArray(o.material)) o.material.forEach(m=>m.dispose()); else o.material.dispose(); }});
+
+  // ── STEP 4: GLB → scene (via GLTFLoader)
+  setConvStep(4, 90); await tick();
+  try{ await glbToScene(glb, filename, 'ifc'); }
+  catch(e){ hideConvOverlay(); alert('Erro ao carregar glTF na cena: '+e.message); return; }
+
+  setConvStep(4, 100); await tick(400);
+  hideConvOverlay();
+}
+
+/* ═══════════════════════
+   OBJ HANDLER
+═══════════════════════ */
+async function handleOBJ(text, filename, scaleMode){
+  showConvOverlay('obj', filename, STEPS_OBJ);
+  setConvStep(0, 10); await tick();
+
+  // ── STEP 1: parse OBJ
+  setConvStep(1, 30); await tick();
+  const rawVerts=[], indices=[];
+  for(const raw of text.split('\n')){
+    const l=raw.trim(); if(!l||l[0]==='#') continue;
+    const p=l.split(/\s+/);
+    if(p[0]==='v') rawVerts.push(parseFloat(p[1])||0,parseFloat(p[2])||0,parseFloat(p[3])||0);
+    if(p[0]==='f'){
+      const fi=p.slice(1).map(s=>parseInt(s.split('/')[0])-1);
+      for(let i=1;i<fi.length-1;i++) indices.push(fi[0],fi[i],fi[i+1]);
+    }
+  }
+  if(!rawVerts.length){ hideConvOverlay(); alert('OBJ inválido ou vazio'); return; }
+
+  const geo=new THREE.BufferGeometry();
+  geo.setAttribute('position',new THREE.Float32BufferAttribute(rawVerts,3));
+  geo.setIndex(indices); geo.computeVertexNormals();
+
+  // Scale
+  geo.computeBoundingBox();
+  const box=geo.boundingBox, size=new THREE.Vector3(), center=new THREE.Vector3();
+  box.getSize(size); box.getCenter(center);
+  geo.translate(-center.x,-box.min.y,-center.z);
+  let scale=1;
+  if(scaleMode==='auto'){
+    const mx=Math.max(size.x,size.y,size.z);
+    if(mx>500) scale=100/mx; else if(mx>200) scale=50/mx;
+  } else scale=parseFloat(scaleMode)||1;
+
+  const tempGroup=new THREE.Group();
+  const m=new THREE.Mesh(geo,new THREE.MeshLambertMaterial({color:0x2a2a38,side:THREE.DoubleSide}));
+  m.scale.setScalar(scale);
+  tempGroup.add(m);
+
+  // ── STEP 2: OBJ Group → GLB
+  setConvStep(2, 65); await tick();
+  let glb;
+  try{ glb=await groupToGLB(tempGroup); }
+  catch(e){ hideConvOverlay(); alert('Erro ao exportar glTF: '+e.message); return; }
+  geo.dispose(); tempGroup.remove(m); m.material.dispose();
+
+  // ── STEP 3: GLB → scene
+  setConvStep(3, 88); await tick();
+  try{ await glbToScene(glb, filename, 'obj'); }
+  catch(e){ hideConvOverlay(); alert('Erro ao carregar glTF na cena: '+e.message); return; }
+
+  setConvStep(3, 100); await tick(350);
+  hideConvOverlay();
+}
+
+/* ═══════════════════════
+   GLB / GLTF: direct load (already glTF — no conversion needed)
+═══════════════════════ */
+async function handleGLB(buffer, filename){
+  showConvOverlay('glb', filename, ['Carregando glTF na cena']);
+  setConvStep(0, 40); await tick();
+  try{ await glbToScene(buffer, filename, 'glb'); }
+  catch(e){ hideConvOverlay(); alert('Erro ao carregar GLB: '+e.message); return; }
+  setConvStep(0, 100); await tick(300);
+  hideConvOverlay();
+}
+
+/* ═══════════════════════
+   FILE DISPATCHER
+═══════════════════════ */
+function handleFile(file){
+  const name=file.name.toLowerCase();
+  if(name.endsWith('.ifc')){
+    const reader=new FileReader();
+    reader.onload=e=>handleIFC(e.target.result,file.name);
+    reader.readAsArrayBuffer(file);
+  } else if(name.endsWith('.obj')){
+    const reader=new FileReader();
+    reader.onload=e=>handleOBJ(e.target.result,file.name,document.getElementById('obj-scale').value);
+    reader.readAsText(file);
+  } else if(name.endsWith('.glb')||name.endsWith('.gltf')){
+    const reader=new FileReader();
+    reader.onload=e=>handleGLB(e.target.result,file.name);
+    reader.readAsArrayBuffer(file);
+  } else {
+    alert('Formato não suportado. Use: .ifc  .obj  .glb  .gltf');
+  }
+}
+
+/* ═══════════════════════
+   FILE TAG
+═══════════════════════ */
+function addFileTag(fname, fmt){
+  const icons={ifc:'🏗️',obj:'📦',glb:'✦'};
+  const arrows={ifc:'IFC → glTF',obj:'OBJ → glTF',glb:'glTF'};
+  const tag=document.createElement('div');
+  tag.className='file-tag '+fmt;
+  tag.innerHTML=`<span>${icons[fmt]||'📁'} ${fname}</span>
+    <span class="file-tag-arrow">${arrows[fmt]||''}</span>
+    <button class="file-tag-x">×</button>`;
+  tag.querySelector('.file-tag-x').onclick=()=>tag.remove();
+  document.getElementById('file-tags').appendChild(tag);
+}
+
+/* ═══════════════════════
+   CLEAR
+═══════════════════════ */
+function clearBuildings(){
+  while(buildingGroup.children.length){
+    const c=buildingGroup.children[0];
+    c.traverse(o=>{ if(o.isMesh){ o.geometry.dispose(); if(Array.isArray(o.material)) o.material.forEach(m=>m.dispose()); else o.material.dispose(); }});
+    buildingGroup.remove(c);
+  }
+  buildingGroup.position.set(0,0,0);
+  document.getElementById('file-tags').innerHTML='';
+  clearHeatmap();
+}
+function clearHeatmap(){
+  while(heatmapGroup.children.length) heatmapGroup.remove(heatmapGroup.children[0]);
+  document.getElementById('analyze-status').textContent='';
+  document.getElementById('hm-legend').style.display='none';
+}
+
+/* ═══════════════════════
+   SUN UPDATE
+═══════════════════════ */
+function updateSun(){
+  const {el,az}=sunPos(S.lat,S.doy,S.hour);
+  const v=sunVec(el,az), d=150;
+  sunLight.position.set(v.x*d,v.y*d,v.z*d);
+  sunLight.target.position.set(0,0,0); sunLight.target.updateMatrixWorld();
+  const intensity=Math.max(0,Math.sin(el));
+  sunLight.intensity=intensity*1.8; hemiLight.intensity=0.2+intensity*0.3;
+  const t=Math.min(1,el/(30*DEG));
+  sunLight.color.setRGB(1,0.5+t*0.5,0.3+t*0.7);
+  sunSphere.position.set(v.x*100,v.y*100,v.z*100); sunSphere.visible=el>0;
+
+  if(S.showSky){
+    if(el>0.1){const st=Math.min(1,el/(60*DEG)); renderer.setClearColor(new THREE.Color(0.04+st*0.04,0.06+st*0.12,0.12+st*0.28),1);}
+    else renderer.setClearColor(0x030307,1);
+  } else renderer.setClearColor(0x080809,1);
+
+  const elDeg=(el*RAD).toFixed(1), azDeg=(az*RAD).toFixed(1);
+  ['hud-alt','h-alt'].forEach(id=>document.getElementById(id).textContent=elDeg+'°');
+  ['hud-az','h-az'].forEach(id=>document.getElementById(id).textContent=azDeg+'°');
+  document.getElementById('h-loc').textContent=S.lat.toFixed(2)+'°, '+S.lon.toFixed(2)+'°';
+  document.getElementById('hud-msg').textContent=el>0?'':'⚫ Sol abaixo do horizonte';
+
+  const ss=sunriseSunset(S.lat,S.doy);
+  document.getElementById('r-rise').textContent=ss?fmtH(ss.rise):'—';
+  document.getElementById('r-set').textContent=ss?fmtH(ss.set):'—';
+  document.getElementById('r-hrs').textContent=ss?((ss.set-ss.rise).toFixed(1)+'h'):'—';
+  let maxEl=0;
+  for(let h=0;h<=24;h+=0.25){const e=sunPos(S.lat,S.doy,h).el; if(e>maxEl) maxEl=e;}
+  document.getElementById('r-maxalt').textContent=(maxEl*RAD).toFixed(1)+'°';
+
+  drawSunPath(el,az); drawNorth();
+}
+
+/* ═══════════════════════
+   SUN PATH DIAGRAM
+═══════════════════════ */
+function drawSunPath(curEl,curAz){
+  const canvas=document.getElementById('sp-canvas');
+  const ctx=canvas.getContext('2d');
+  const W=canvas.width,H=canvas.height,cx=W/2,cy=H/2,R=W/2-10;
+  ctx.clearRect(0,0,W,H); ctx.fillStyle='#080809'; ctx.fillRect(0,0,W,H);
+  ctx.beginPath(); ctx.arc(cx,cy,R,0,Math.PI*2); ctx.strokeStyle='#222228'; ctx.lineWidth=1; ctx.stroke();
+  [30,60].forEach(deg=>{
+    const r=R*(1-deg/90);
+    ctx.beginPath(); ctx.arc(cx,cy,r,0,Math.PI*2);
+    ctx.strokeStyle='#181820'; ctx.setLineDash([2,4]); ctx.stroke(); ctx.setLineDash([]);
+    ctx.fillStyle='#333'; ctx.font='7px Space Mono'; ctx.fillText(deg+'°',cx+r+2,cy-2);
+  });
+  [['N',0],['L',90],['S',180],['O',270]].forEach(([l,a])=>{
+    const ang=a*DEG,px=cx+(R+6)*Math.sin(ang),py=cy-(R+6)*Math.cos(ang);
+    ctx.fillStyle=l==='N'?'#f59e0b':'#444';
+    ctx.font='bold 8px Barlow Condensed,sans-serif'; ctx.textAlign='center'; ctx.textBaseline='middle';
+    ctx.fillText(l,px,py);
+  });
+  [[355,'#1e40af'],[80,'#047857'],[172,'#92400e']].forEach(([doy,color])=>{
+    ctx.beginPath(); let s=false;
+    for(let h=0;h<=24;h+=0.25){
+      const p=sunPos(S.lat,doy,h); if(p.el<0){s=false;continue;}
+      const r=R*(1-p.el/(Math.PI/2)),px=cx+r*Math.sin(p.az),py=cy-r*Math.cos(p.az);
+      if(!s){ctx.moveTo(px,py);s=true;}else ctx.lineTo(px,py);
+    }
+    ctx.strokeStyle=color; ctx.lineWidth=1.5; ctx.setLineDash([4,3]); ctx.stroke(); ctx.setLineDash([]);
+  });
+  ctx.beginPath(); let s=false;
+  for(let h=0;h<=24;h+=0.1){
+    const p=sunPos(S.lat,S.doy,h); if(p.el<0){s=false;continue;}
+    const r=R*(1-p.el/(Math.PI/2)),px=cx+r*Math.sin(p.az),py=cy-r*Math.cos(p.az);
+    if(!s){ctx.moveTo(px,py);s=true;}else ctx.lineTo(px,py);
+  }
+  ctx.strokeStyle='#f59e0b55'; ctx.lineWidth=2; ctx.stroke();
+  const ss=sunriseSunset(S.lat,S.doy);
+  if(ss){ for(let h=Math.ceil(ss.rise);h<=Math.floor(ss.set);h++){
+    const p=sunPos(S.lat,S.doy,h); if(p.el<0) continue;
+    const r=R*(1-p.el/(Math.PI/2));
+    ctx.beginPath(); ctx.arc(cx+r*Math.sin(p.az),cy-r*Math.cos(p.az),2,0,Math.PI*2);
+    ctx.fillStyle='#f59e0b'; ctx.fill();
+  }}
+  if(curEl>0){
+    const r=R*(1-curEl/(Math.PI/2)),px=cx+r*Math.sin(curAz),py=cy-r*Math.cos(curAz);
+    const grad=ctx.createRadialGradient(px,py,0,px,py,12);
+    grad.addColorStop(0,'rgba(255,200,50,.5)'); grad.addColorStop(1,'rgba(255,200,50,0)');
+    ctx.beginPath(); ctx.arc(px,py,12,0,Math.PI*2); ctx.fillStyle=grad; ctx.fill();
+    ctx.beginPath(); ctx.arc(px,py,5,0,Math.PI*2);
+    ctx.fillStyle='#ffd700'; ctx.fill(); ctx.strokeStyle='#fff'; ctx.lineWidth=1; ctx.stroke();
+  }
+}
+function drawNorth(){
+  const canvas=document.getElementById('north-canvas');
+  const ctx=canvas.getContext('2d');
+  const W=canvas.width,H=canvas.height,cx=W/2,cy=H/2,r=W/2-4;
+  ctx.clearRect(0,0,W,H);
+  ctx.beginPath(); ctx.arc(cx,cy,r,0,Math.PI*2); ctx.fillStyle='rgba(0,0,0,.6)'; ctx.fill();
+  ctx.strokeStyle='#222228'; ctx.lineWidth=1; ctx.stroke();
+  ctx.beginPath(); ctx.moveTo(cx,cy-r+4); ctx.lineTo(cx+4,cy+3); ctx.lineTo(cx,cy-1); ctx.closePath();
+  ctx.fillStyle='#f59e0b'; ctx.fill();
+  ctx.beginPath(); ctx.moveTo(cx,cy-r+4); ctx.lineTo(cx-4,cy+3); ctx.lineTo(cx,cy-1); ctx.closePath();
+  ctx.fillStyle='#555'; ctx.fill();
+  ctx.fillStyle='#f59e0b'; ctx.font='bold 9px Barlow Condensed,sans-serif';
+  ctx.textAlign='center'; ctx.textBaseline='middle'; ctx.fillText('N',cx,cy-r/2);
+}
+
+/* ═══════════════════════
+   INSOLATION ANALYSIS
+═══════════════════════ */
+function heatColor(t){
+  const stops=[[13,27,75],[14,165,233],[34,197,94],[245,158,11],[239,68,68]];
+  t=Math.max(0,Math.min(1,t));
+  const fi=t*(stops.length-1),i=Math.min(Math.floor(fi),stops.length-2),f=fi-i;
+  const a=stops[i],b=stops[i+1];
+  return new THREE.Color((a[0]+(b[0]-a[0])*f)/255,(a[1]+(b[1]-a[1])*f)/255,(a[2]+(b[2]-a[2])*f)/255);
+}
+async function analyzeInsolation(){
+  const res=parseInt(document.getElementById('grid-res').value);
+  const step=parseFloat(document.getElementById('hr-step').value);
+  const statusEl=document.getElementById('analyze-status');
+  statusEl.innerHTML='<div class="status pulse">Calculando...</div>';
+  await tick();
+  const raycaster=new THREE.Raycaster();
+  const obstacles=[];
+  buildingGroup.traverse(o=>{if(o.isMesh) obstacles.push(o);});
+  const ss=sunriseSunset(S.lat,S.doy);
+  const hStart=ss?Math.max(ss.rise,5):6, hEnd=ss?Math.min(ss.set,20):19;
+  let maxHours=0; const results=[];
+  for(let gi=0;gi<res;gi++) for(let gj=0;gj<res;gj++){
+    const px=S.lotX-S.lotW/2+(gi+.5)*S.lotW/res;
+    const pz=S.lotZ-S.lotD/2+(gj+.5)*S.lotD/res;
+    const pt=new THREE.Vector3(px,0.1,pz);
+    let sunHours=0;
+    for(let h=hStart;h<=hEnd;h+=step){
+      const {el,az}=sunPos(S.lat,S.doy,h); if(el<=0.01) continue;
+      raycaster.set(pt,sunVec(el,az));
+      if(raycaster.intersectObjects(obstacles,true).length===0) sunHours+=step;
+    }
+    results.push({px,pz,sunHours}); maxHours=Math.max(maxHours,sunHours);
+  }
+  clearHeatmap();
+  const cW=S.lotW/res, cD=S.lotD/res;
+  results.forEach(({px,pz,sunHours})=>{
+    const m=new THREE.Mesh(
+      new THREE.PlaneGeometry(cW*.95,cD*.95),
+      new THREE.MeshBasicMaterial({color:heatColor(maxHours>0?sunHours/maxHours:0),transparent:true,opacity:.88})
+    );
+    m.rotation.x=-Math.PI/2; m.position.set(px,0.05,pz); heatmapGroup.add(m);
+  });
+  heatmapGroup.visible=true; S.showHeatmap=true;
+  document.getElementById('tog-hm').classList.add('on');
+  document.getElementById('hm-legend').style.display='';
+  document.getElementById('hm-max').textContent=maxHours.toFixed(1)+'h';
+  statusEl.innerHTML=`<div class="status">✓ ${res*res} pts · max ${maxHours.toFixed(1)}h/dia</div>`;
+}
+
+/* ═══════════════════════
+   ANIMATION LOOP
+═══════════════════════ */
+let lastTime=0;
+function animate(ts=0){
+  requestAnimationFrame(animate);
+  const dt=ts-lastTime; lastTime=ts;
+  if(S.playing){
+    S.hour+=(dt/1000)*S.speed/3600;
+    if(S.hour>=24) S.hour-=24;
+    document.getElementById('time-sl').value=Math.round(S.hour*60);
+    updateHUD(); updateSun();
+  }
+  renderer.render(scene,camera);
+}
+function updateHUD(){
+  document.getElementById('hud-time').textContent=fmtH(S.hour);
+  document.getElementById('date-badge').textContent=dayLabel(S.doy);
+}
+
+/* ═══════════════════════
+   VIEWS
+═══════════════════════ */
+function setView(p){
+  ['v-3d','v-top','v-n','v-e'].forEach(id=>document.getElementById(id).classList.remove('on'));
+  if(p==='3d')   { orb.theta=Math.PI/5; orb.phi=Math.PI/4;  orb.r=120; document.getElementById('v-3d').classList.add('on'); }
+  if(p==='top')  { orb.phi=0.01;                             orb.r=120; document.getElementById('v-top').classList.add('on'); }
+  if(p==='north'){ orb.theta=0;         orb.phi=Math.PI/3;  orb.r=120; document.getElementById('v-n').classList.add('on'); }
+  if(p==='east') { orb.theta=Math.PI/2; orb.phi=Math.PI/3;  orb.r=120; document.getElementById('v-e').classList.add('on'); }
+  orb.tx=0; orb.ty=0; orb.tz=0; updateCamera();
+}
+
+/* ═══════════════════════
+   BIND UI
+═══════════════════════ */
+function bindUI(){
+  document.getElementById('city-sel').addEventListener('change',e=>{
+    const v=e.target.value; if(!v) return;
+    const [lat,lon]=v.split(',').map(parseFloat);
+    S.lat=lat; S.lon=lon;
+    document.getElementById('in-lat').value=lat;
+    document.getElementById('in-lon').value=lon;
+    updateSun();
+  });
+  document.getElementById('in-lat').addEventListener('input',e=>{S.lat=parseFloat(e.target.value)||0;updateSun();});
+  document.getElementById('in-lon').addEventListener('input',e=>{S.lon=parseFloat(e.target.value)||0;updateSun();});
+
+  document.getElementById('time-sl').addEventListener('input',e=>{S.hour=parseInt(e.target.value)/60;updateHUD();updateSun();});
+  document.getElementById('date-sl').addEventListener('input',e=>{S.doy=parseInt(e.target.value);updateHUD();updateSun();});
+
+  const playBtn=document.getElementById('play-btn');
+  playBtn.addEventListener('click',()=>{S.playing=!S.playing;playBtn.textContent=S.playing?'⏸':'▶';});
+  document.getElementById('speed-sl').addEventListener('input',e=>{S.speed=parseFloat(e.target.value);document.getElementById('speed-val').textContent=e.target.value;});
+
+  document.getElementById('upd-lot').addEventListener('click',()=>{
+    S.lotW=parseFloat(document.getElementById('lot-w').value)||20;
+    S.lotD=parseFloat(document.getElementById('lot-d').value)||30;
+    S.lotX=parseFloat(document.getElementById('lot-x').value)||0;
+    S.lotZ=parseFloat(document.getElementById('lot-z').value)||0;
+    createLot(); clearHeatmap();
+  });
+
+  const dz=document.getElementById('dz');
+  dz.addEventListener('click',()=>document.getElementById('model-input').click());
+  dz.addEventListener('dragover',e=>{e.preventDefault();dz.classList.add('over');});
+  dz.addEventListener('dragleave',()=>dz.classList.remove('over'));
+  dz.addEventListener('drop',e=>{e.preventDefault();dz.classList.remove('over');const f=e.dataTransfer.files[0];if(f) handleFile(f);});
+  document.getElementById('model-input').addEventListener('change',e=>{const f=e.target.files[0];if(f) handleFile(f);e.target.value='';});
+
+  document.getElementById('clear-btn').addEventListener('click',clearBuildings);
+  document.getElementById('analyze-btn').addEventListener('click',analyzeInsolation);
+
+  document.getElementById('tog-shadow').addEventListener('click',function(){
+    S.showShadow=!S.showShadow; this.classList.toggle('on',S.showShadow);
+    renderer.shadowMap.enabled=S.showShadow;
+    scene.traverse(o=>{if(o.isMesh){o.castShadow=S.showShadow&&o.userData.isBuilding;o.receiveShadow=S.showShadow;}});
+  });
+  document.getElementById('tog-hm').addEventListener('click',function(){S.showHeatmap=!S.showHeatmap;this.classList.toggle('on',S.showHeatmap);heatmapGroup.visible=S.showHeatmap;});
+  document.getElementById('tog-grid').addEventListener('click',function(){S.showGrid=!S.showGrid;this.classList.toggle('on',S.showGrid);gridHelper.visible=S.showGrid;});
+  document.getElementById('tog-sky').addEventListener('click',function(){S.showSky=!S.showSky;this.classList.toggle('on',S.showSky);updateSun();});
+
+  document.getElementById('v-3d').addEventListener('click',()=>setView('3d'));
+  document.getElementById('v-top').addEventListener('click',()=>setView('top'));
+  document.getElementById('v-n').addEventListener('click',()=>setView('north'));
+  document.getElementById('v-e').addEventListener('click',()=>setView('east'));
+}
+
+/* ═══════════════════════
+   INIT
+═══════════════════════ */
+async function init(){
+  initThree();
+  bindUI();
+  updateHUD();
+  updateSun();
+  document.getElementById('tog-sky').classList.add('on');
+  initWebIFC(); // background, non-blocking
+}
+
+init();
+})();
+</script>
+</body>
+</html>
