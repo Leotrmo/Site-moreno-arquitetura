@@ -392,17 +392,14 @@ async function open(file){
 
 // ── IFC ─────────────────────────────────────────────────────
 async function loadIFC(url, name){
-  setLd('Inicializando IFC parser…', 0);
-  let IFCLoader;
-  try{
-    // Try from three.js examples
-    ({ IFCLoader } = await import('three/addons/loaders/IFCLoader.js'));
-  }catch(e){
-    throw new Error('IFC loader não disponível neste ambiente. Tente converter para GLB.\n\nDica: abra o IFC no FreeCAD ou Blender e exporte como GLB.');
-  }
+  setLd('Inicializando IFC parser…', 5);
+  const { IFCLoader } = await import('https://esm.sh/web-ifc-three@0.0.140');
+  setLd('Carregando WASM…', 20);
   const loader = new IFCLoader();
   await loader.ifcManager.setWasmPath('https://cdn.jsdelivr.net/npm/web-ifc@0.0.44/');
-  await loader.ifcManager.applyWebIfcConfig({ COORDINATE_TO_ORIGIN:true, USE_FAST_BOOLS:false });
+  try{
+    await loader.ifcManager.applyWebIfcConfig({ COORDINATE_TO_ORIGIN:true, USE_FAST_BOOLS:false });
+  }catch(e){ /* config opcional */ }
 
   return new Promise((res,rej)=>{
     loader.load(url, m=>{
@@ -411,7 +408,7 @@ async function loadIFC(url, name){
       setLd('Modelo IFC carregado!', 100);
       setTimeout(res, 300);
     }, p=>{
-      const pct = p.total ? Math.round(p.loaded/p.total*100) : 50;
+      const pct = p.total ? Math.round(20 + p.loaded/p.total*78) : 60;
       setLd(`Carregando IFC… ${pct}%`, pct);
     }, rej);
   });
