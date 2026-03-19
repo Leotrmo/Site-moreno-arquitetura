@@ -6,7 +6,6 @@
 <title>Visualizador 3D — moreno.arq.br</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;1,300&family=DM+Mono:wght@300;400&display=swap" rel="stylesheet">
-<script src="https://cdn.jsdelivr.net/npm/web-ifc@0.0.44/web-ifc-api.js"></script>
 
 <script type="importmap">
 {
@@ -283,13 +282,14 @@ import * as THREE from 'three';
 import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
 import { GLTFLoader }    from 'three/addons/loaders/GLTFLoader.js';
 import { OBJLoader }     from 'three/addons/loaders/OBJLoader.js';
+import * as WebIFC from 'https://cdn.jsdelivr.net/npm/web-ifc@0.0.44/web-ifc-api.js';
 
 // ── RENDERER ─────────────────────────────────────────────────
 const cv = document.getElementById('cv');
 const renderer = new THREE.WebGLRenderer({ antialias:true });
 renderer.setPixelRatio(Math.min(devicePixelRatio,2));
 renderer.setSize(innerWidth, innerHeight);
-renderer.outputEncoding = THREE.sRGBEncoding;
+renderer.outputColorSpace = THREE.SRGBColorSpace;
 renderer.toneMapping   = THREE.ACESFilmicToneMapping;
 renderer.toneMappingExposure = 0.85;
 renderer.shadowMap.enabled = true;
@@ -393,7 +393,7 @@ async function open(file){
 
 // ── IFC ─────────────────────────────────────────────────────
 async function loadIFC(url, name){
-  if(typeof WebIFC === 'undefined') throw new Error('web-ifc não carregou. Verifique sua conexão e recarregue a página.');
+  if(!WebIFC || !WebIFC.IfcAPI) throw new Error('web-ifc não inicializou corretamente.');
 
   setLd('Baixando arquivo IFC…', 10);
   const resp = await fetch(url);
