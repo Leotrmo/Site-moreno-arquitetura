@@ -1,0 +1,742 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Visualizador 3D — moreno.arq.br</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;1,300&family=DM+Mono:wght@300;400&display=swap" rel="stylesheet">
+
+<script type="importmap">
+{
+  "imports": {
+    "three": "https://cdn.jsdelivr.net/npm/three@0.152.0/build/three.module.js",
+    "three/addons/": "https://cdn.jsdelivr.net/npm/three@0.152.0/examples/jsm/"
+  }
+}
+</script>
+
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+
+:root{
+  --bg:#0b0b0a;
+  --s1:#141412;
+  --s2:#1c1c1a;
+  --border:#252522;
+  --border2:#2e2e2a;
+  --text:#ddd9d0;
+  --dim:#6b6760;
+  --gold:#c4a46b;
+  --blue:#5a9af4;
+  --red:#e07070;
+  --green:#70b884;
+  --mono:'DM Mono',monospace;
+  --serif:'Cormorant Garamond',serif;
+}
+
+html,body{width:100%;height:100%;overflow:hidden;background:var(--bg);color:var(--text);font-family:var(--mono)}
+
+/* ── UPLOAD SCREEN ─────────────────────────────────────────── */
+#upload{
+  position:fixed;inset:0;z-index:100;
+  display:flex;flex-direction:column;align-items:center;justify-content:center;
+  background:var(--bg);
+  transition:opacity .5s ease;
+}
+#upload.out{opacity:0;pointer-events:none}
+
+.u-brand{
+  font-family:var(--serif);font-weight:300;
+  font-size:.85rem;letter-spacing:.4em;text-transform:uppercase;
+  color:var(--dim);margin-bottom:3.5rem;
+}
+
+.drop{
+  width:400px;border:1px solid var(--border2);
+  padding:3rem 2.5rem 2.5rem;text-align:center;cursor:pointer;
+  position:relative;transition:border-color .2s;
+}
+.drop::after{
+  content:'';position:absolute;inset:0;
+  background:radial-gradient(ellipse at 50% 0%,rgba(196,164,107,.07),transparent 60%);
+  opacity:0;transition:opacity .3s;pointer-events:none;
+}
+.drop:hover,.drop.drag{border-color:var(--gold)}
+.drop:hover::after,.drop.drag::after{opacity:1}
+
+.drop-icon{width:40px;height:40px;margin:0 auto 1.5rem;color:var(--dim)}
+
+.drop-title{
+  font-family:var(--serif);font-size:1.5rem;
+  font-weight:300;color:var(--text);margin-bottom:.4rem;
+}
+.drop-hint{font-size:.65rem;color:var(--dim);line-height:2}
+
+.tags{display:flex;gap:.4rem;justify-content:center;margin-top:1.2rem;flex-wrap:wrap}
+.tag{font-size:.6rem;padding:.2rem .55rem;border:1px solid var(--border2);color:var(--dim);letter-spacing:.08em}
+.tag.g{border-color:rgba(196,164,107,.5);color:var(--gold)}
+
+.skp-note{
+  margin-top:1.4rem;padding:.75rem 1rem;
+  border-top:1px solid var(--border);
+  font-size:.6rem;color:var(--dim);line-height:1.7;
+}
+.skp-note em{color:var(--gold);font-style:normal}
+
+#file-input{display:none}
+
+/* ── LOADING ───────────────────────────────────────────────── */
+#loading{
+  position:fixed;inset:0;z-index:200;
+  display:flex;flex-direction:column;align-items:center;justify-content:center;
+  background:var(--bg);
+  opacity:0;pointer-events:none;transition:opacity .3s;
+}
+#loading.on{opacity:1;pointer-events:all}
+
+.ld-label{
+  font-family:var(--serif);font-weight:300;font-size:1rem;
+  letter-spacing:.25em;color:var(--dim);
+}
+.ld-bar{width:180px;height:1px;background:var(--border2);margin-top:1.8rem;overflow:hidden}
+.ld-fill{height:100%;background:var(--gold);width:0%;transition:width .3s}
+.ld-txt{font-size:.6rem;color:var(--dim);margin-top:.7rem}
+
+/* ── CANVAS ────────────────────────────────────────────────── */
+#cv{position:fixed;inset:0}
+
+/* ── TOP BAR ───────────────────────────────────────────────── */
+#top{
+  position:fixed;top:0;left:0;right:0;height:42px;
+  display:none;align-items:center;padding:0 1rem;gap:.6rem;
+  background:rgba(11,11,10,.9);backdrop-filter:blur(10px);
+  border-bottom:1px solid var(--border);z-index:10;
+}
+.t-brand{
+  font-family:var(--serif);font-weight:300;font-size:.85rem;
+  letter-spacing:.3em;text-transform:uppercase;color:var(--dim);
+  margin-right:auto;white-space:nowrap;
+}
+#t-file{font-size:.65rem;color:var(--dim);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:180px}
+
+.btn{
+  height:26px;padding:0 .75rem;border:1px solid var(--border2);
+  background:transparent;color:var(--dim);
+  font-family:var(--mono);font-size:.6rem;
+  cursor:pointer;transition:all .15s;letter-spacing:.05em;white-space:nowrap;
+}
+.btn:hover{border-color:var(--gold);color:var(--gold)}
+.btn.on{border-color:var(--blue);color:var(--blue);background:rgba(90,154,244,.07)}
+.btn.warn:hover{border-color:var(--red);color:var(--red)}
+
+/* ── SIDEBAR ───────────────────────────────────────────────── */
+#side{
+  position:fixed;right:0;top:42px;bottom:28px;width:220px;
+  display:none;flex-direction:column;gap:0;
+  background:rgba(11,11,10,.9);backdrop-filter:blur(10px);
+  border-left:1px solid var(--border);overflow-y:auto;z-index:10;
+}
+
+.panel{padding:1rem;border-bottom:1px solid var(--border)}
+.p-head{
+  font-size:.55rem;letter-spacing:.2em;text-transform:uppercase;
+  color:var(--dim);padding-bottom:.6rem;margin-bottom:.6rem;
+  border-bottom:1px solid var(--border);
+}
+
+.kv{display:flex;justify-content:space-between;align-items:baseline;padding:.18rem 0;font-size:.62rem}
+.kv .k{color:var(--dim)}
+.kv .v{color:var(--text)}
+
+.ctrl-tip{font-size:.58rem;color:var(--dim);line-height:2;padding:.15rem 0}
+
+/* ── MEASUREMENTS ──────────────────────────────────────────── */
+#m-list{display:flex;flex-direction:column;gap:.4rem;margin-top:.5rem}
+.m-row{
+  display:flex;align-items:center;justify-content:space-between;
+  font-size:.62rem;padding:.35rem .6rem;
+  background:rgba(90,154,244,.05);border:1px solid rgba(90,154,244,.15);color:var(--blue);
+}
+.m-del{cursor:pointer;color:var(--dim);padding:0 .2rem;transition:color .15s}
+.m-del:hover{color:var(--red)}
+.m-empty{font-size:.58rem;color:var(--dim)}
+
+/* ── STATUS BAR ────────────────────────────────────────────── */
+#status{
+  position:fixed;bottom:0;left:0;right:220px;height:28px;
+  display:none;align-items:center;padding:0 1rem;gap:1.2rem;
+  background:rgba(11,11,10,.9);backdrop-filter:blur(10px);
+  border-top:1px solid var(--border);font-size:.58rem;color:var(--dim);z-index:10;
+}
+#s-measure{color:var(--blue);margin-left:auto}
+#s-esc{color:var(--dim);font-size:.55rem}
+
+/* ── OVERLAY ELEMENTS ──────────────────────────────────────── */
+.pt-dot{
+  position:fixed;width:7px;height:7px;
+  border:1.5px solid var(--blue);border-radius:50%;
+  transform:translate(-50%,-50%);pointer-events:none;z-index:20;
+  background:rgba(90,154,244,.25);
+}
+.m-tip{
+  position:fixed;pointer-events:none;z-index:20;
+  background:rgba(11,11,10,.92);border:1px solid var(--blue);
+  color:var(--blue);font-size:.62rem;font-family:var(--mono);
+  padding:.2rem .5rem;transform:translate(-50%,-180%);white-space:nowrap;
+}
+.pending-line{position:fixed;pointer-events:none;z-index:15}
+
+/* scroll */
+#side::-webkit-scrollbar{width:3px}
+#side::-webkit-scrollbar-track{background:transparent}
+#side::-webkit-scrollbar-thumb{background:var(--border2);border-radius:2px}
+</style>
+</head>
+<body>
+
+<!-- Upload -->
+<div id="upload">
+  <div class="u-brand">moreno.arq.br — visualizador 3d</div>
+  <div class="drop" id="drop">
+    <svg class="drop-icon" viewBox="0 0 40 40" fill="none" xmlns="http://www.w3.org/2000/svg">
+      <rect x="4" y="10" width="32" height="24" rx="1" stroke="currentColor" stroke-width="1.2"/>
+      <path d="M20 28V16" stroke="currentColor" stroke-width="1.2" stroke-linecap="round"/>
+      <path d="M15 21L20 16L25 21" stroke="currentColor" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round"/>
+      <path d="M4 30H36" stroke="currentColor" stroke-width="1.2"/>
+    </svg>
+    <div class="drop-title">Arraste o arquivo aqui</div>
+    <div class="drop-hint">ou clique para selecionar</div>
+    <div class="tags">
+      <span class="tag g">IFC</span>
+      <span class="tag g">GLB</span>
+      <span class="tag">GLTF</span>
+      <span class="tag">OBJ</span>
+    </div>
+    <div class="skp-note">
+      Para arquivos <em>SketchUp (.skp)</em>:<br>
+      Arquivo → Exportar → Formato 3D → <em>glTF/GLB</em>
+    </div>
+    <input type="file" id="file-input" accept=".ifc,.glb,.gltf,.obj">
+  </div>
+</div>
+
+<!-- Loading -->
+<div id="loading">
+  <div class="ld-label">Carregando modelo</div>
+  <div class="ld-bar"><div class="ld-fill" id="ld-fill"></div></div>
+  <div class="ld-txt" id="ld-txt">Processando geometria…</div>
+</div>
+
+<!-- Canvas -->
+<div id="cv"></div>
+
+<!-- Top bar -->
+<div id="top">
+  <span class="t-brand">moreno.arq.br</span>
+  <span id="t-file"></span>
+  <button class="btn" id="b-wire">wireframe</button>
+  <button class="btn on" id="b-meas">&#9251; medição</button>
+  <button class="btn" id="b-reset">resetar vista</button>
+  <button class="btn warn" id="b-open">abrir novo</button>
+</div>
+
+<!-- Sidebar -->
+<div id="side">
+  <div class="panel">
+    <div class="p-head">Modelo</div>
+    <div class="kv"><span class="k">arquivo</span><span class="v" id="i-name">—</span></div>
+    <div class="kv"><span class="k">formato</span><span class="v" id="i-fmt">—</span></div>
+    <div class="kv"><span class="k">vértices</span><span class="v" id="i-vert">—</span></div>
+    <div class="kv"><span class="k">triângulos</span><span class="v" id="i-tri">—</span></div>
+  </div>
+
+  <div class="panel" style="flex:1">
+    <div class="p-head">Medições</div>
+    <div id="m-list">
+      <div class="m-empty">Clique em dois pontos no modelo</div>
+    </div>
+    <button class="btn" id="b-clr" style="width:100%;margin-top:.8rem">limpar medições</button>
+  </div>
+
+  <div class="panel">
+    <div class="p-head">Navegação</div>
+    <div class="ctrl-tip">← arrastar: orbitar</div>
+    <div class="ctrl-tip">→ arrastar: deslocar câmera</div>
+    <div class="ctrl-tip">↕ scroll: zoom</div>
+    <div class="ctrl-tip">esc: cancelar ponto</div>
+  </div>
+</div>
+
+<!-- Status bar -->
+<div id="status">
+  <span>x&nbsp;<span id="s-x" style="color:var(--text)">—</span></span>
+  <span>y&nbsp;<span id="s-y" style="color:var(--text)">—</span></span>
+  <span>z&nbsp;<span id="s-z" style="color:var(--text)">—</span></span>
+  <span id="s-measure">● modo medição ativo</span>
+  <span id="s-esc" style="display:none">ESC para cancelar</span>
+</div>
+
+<script type="module">
+import * as THREE from 'three';
+import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
+import { GLTFLoader }    from 'three/addons/loaders/GLTFLoader.js';
+import { OBJLoader }     from 'three/addons/loaders/OBJLoader.js';
+
+// ── RENDERER ─────────────────────────────────────────────────
+const cv = document.getElementById('cv');
+const renderer = new THREE.WebGLRenderer({ antialias:true });
+renderer.setPixelRatio(Math.min(devicePixelRatio,2));
+renderer.setSize(innerWidth, innerHeight);
+renderer.outputEncoding = THREE.sRGBEncoding;
+renderer.toneMapping   = THREE.ACESFilmicToneMapping;
+renderer.toneMappingExposure = 0.85;
+renderer.shadowMap.enabled = true;
+renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+cv.appendChild(renderer.domElement);
+
+// ── SCENE ────────────────────────────────────────────────────
+const scene = new THREE.Scene();
+scene.background = new THREE.Color(0x0b0b0a);
+
+const camera = new THREE.PerspectiveCamera(45, innerWidth/innerHeight, 0.01, 2000);
+camera.position.set(10,8,15);
+
+const ctrl = new OrbitControls(camera, renderer.domElement);
+ctrl.enableDamping = true;
+ctrl.dampingFactor = 0.05;
+ctrl.screenSpacePanning = true;
+
+// ── LIGHTS ───────────────────────────────────────────────────
+scene.add(new THREE.AmbientLight(0xffffff, .45));
+
+const sun = new THREE.DirectionalLight(0xfff5e8, 1.3);
+sun.position.set(60,90,40);
+sun.castShadow = true;
+sun.shadow.mapSize.set(2048,2048);
+sun.shadow.camera.near = 1; sun.shadow.camera.far = 400;
+sun.shadow.camera.left = -80; sun.shadow.camera.right = 80;
+sun.shadow.camera.top  =  80; sun.shadow.camera.bottom = -80;
+scene.add(sun);
+
+const fill = new THREE.DirectionalLight(0xd0e8ff, .25);
+fill.position.set(-30,20,-30);
+scene.add(fill);
+
+// ── GRID ────────────────────────────────────────────────────
+const grid = new THREE.GridHelper(200,200,0x1e1e1c,0x161614);
+grid.position.y = -0.01;
+scene.add(grid);
+
+// ── STATE ────────────────────────────────────────────────────
+let model   = null;
+let mMode   = true;   // measurement mode
+let pending = null;   // first click point
+let mCount  = 0;
+const allM  = [];     // {p1,p2,line,tip,mid,dist,dot1,dot2}
+
+// ── ANIMATION ───────────────────────────────────────────────
+(function loop(){ requestAnimationFrame(loop); ctrl.update(); renderer.render(scene,camera); })();
+
+// ── RESIZE ──────────────────────────────────────────────────
+window.addEventListener('resize',()=>{
+  camera.aspect = innerWidth/innerHeight;
+  camera.updateProjectionMatrix();
+  renderer.setSize(innerWidth,innerHeight);
+});
+
+// ── UPLOAD WIRING ────────────────────────────────────────────
+const dropEl  = document.getElementById('drop');
+const fileIn  = document.getElementById('file-input');
+const upload  = document.getElementById('upload');
+
+dropEl.addEventListener('click', ()=> fileIn.click());
+fileIn.addEventListener('change', e => e.target.files[0] && open(e.target.files[0]));
+dropEl.addEventListener('dragover', e=>{ e.preventDefault(); dropEl.classList.add('drag'); });
+dropEl.addEventListener('dragleave', ()=> dropEl.classList.remove('drag'));
+dropEl.addEventListener('drop', e=>{
+  e.preventDefault(); dropEl.classList.remove('drag');
+  e.dataTransfer.files[0] && open(e.dataTransfer.files[0]);
+});
+document.getElementById('b-open').addEventListener('click', showUpload);
+
+// ── LOAD FILE ────────────────────────────────────────────────
+async function open(file){
+  const ext = file.name.split('.').pop().toLowerCase();
+  if(!['ifc','glb','gltf','obj'].includes(ext)){
+    alert(`Formato .${ext} não suportado.\n\nFormatos aceitos: IFC, GLB, GLTF, OBJ\n\nPara SketchUp: Arquivo → Exportar → Formato 3D → glTF 2.0`);
+    return;
+  }
+
+  showLoading();
+
+  if(model){ scene.remove(model); model=null; }
+  clearAllM();
+
+  const url = URL.createObjectURL(file);
+  try{
+    if(ext==='ifc')             await loadIFC(url, file.name);
+    else if(ext==='glb'||ext==='gltf') await loadGLTF(url, file.name);
+    else if(ext==='obj')        await loadOBJ(url, file.name);
+
+    updateInfo(file.name, ext);
+    fitCamera();
+    showViewer(file.name);
+  }catch(err){
+    hideLoading();
+    console.error(err);
+    alert('Erro ao carregar arquivo.\n\n'+err.message);
+  }
+  URL.revokeObjectURL(url);
+}
+
+// ── IFC ─────────────────────────────────────────────────────
+async function loadIFC(url, name){
+  setLd('Inicializando IFC parser…', 0);
+  let IFCLoader;
+  try{
+    // Try from three.js examples
+    ({ IFCLoader } = await import('three/addons/loaders/IFCLoader.js'));
+  }catch(e){
+    throw new Error('IFC loader não disponível neste ambiente. Tente converter para GLB.\n\nDica: abra o IFC no FreeCAD ou Blender e exporte como GLB.');
+  }
+  const loader = new IFCLoader();
+  await loader.ifcManager.setWasmPath('https://cdn.jsdelivr.net/npm/web-ifc@0.0.44/');
+  await loader.ifcManager.applyWebIfcConfig({ COORDINATE_TO_ORIGIN:true, USE_FAST_BOOLS:false });
+
+  return new Promise((res,rej)=>{
+    loader.load(url, m=>{
+      model = m;
+      scene.add(m);
+      setLd('Modelo IFC carregado!', 100);
+      setTimeout(res, 300);
+    }, p=>{
+      const pct = p.total ? Math.round(p.loaded/p.total*100) : 50;
+      setLd(`Carregando IFC… ${pct}%`, pct);
+    }, rej);
+  });
+}
+
+// ── GLTF / GLB ──────────────────────────────────────────────
+async function loadGLTF(url, name){
+  setLd('Carregando modelo…', 10);
+  const loader = new GLTFLoader();
+  return new Promise((res,rej)=>{
+    loader.load(url, g=>{
+      model = g.scene;
+      model.traverse(n=>{
+        if(n.isMesh){
+          n.castShadow = n.receiveShadow = true;
+          if(n.material) n.material.side = THREE.DoubleSide;
+        }
+      });
+      scene.add(model);
+      setLd('Modelo carregado!', 100);
+      setTimeout(res,300);
+    }, p=>{
+      const pct = p.total ? Math.round(p.loaded/p.total*100) : 60;
+      setLd(`Carregando… ${pct}%`, pct);
+    }, rej);
+  });
+}
+
+// ── OBJ ─────────────────────────────────────────────────────
+async function loadOBJ(url, name){
+  setLd('Carregando OBJ…', 10);
+  const loader = new OBJLoader();
+  return new Promise((res,rej)=>{
+    loader.load(url, obj=>{
+      const mat = new THREE.MeshStandardMaterial({color:0xcec9c0,roughness:.75,metalness:0,side:THREE.DoubleSide});
+      obj.traverse(n=>{ if(n.isMesh){ n.material=mat; n.castShadow=n.receiveShadow=true; }});
+      model = obj;
+      scene.add(model);
+      setLd('Modelo carregado!', 100);
+      setTimeout(res,300);
+    }, p=>{
+      const pct = p.total ? Math.round(p.loaded/p.total*100) : 60;
+      setLd(`Carregando… ${pct}%`, pct);
+    }, rej);
+  });
+}
+
+// ── FIT CAMERA ──────────────────────────────────────────────
+function fitCamera(){
+  if(!model) return;
+  const box  = new THREE.Box3().setFromObject(model);
+  const ctr  = box.getCenter(new THREE.Vector3());
+  const size = box.getSize(new THREE.Vector3());
+  const maxD = Math.max(size.x, size.y, size.z);
+  const dist = maxD / (2 * Math.tan((camera.fov/2)*Math.PI/180)) * 1.4;
+
+  camera.position.set(ctr.x + dist*.5, ctr.y + dist*.4, ctr.z + dist*.8);
+  ctrl.target.copy(ctr);
+  ctrl.update();
+
+  camera.near = dist * .001;
+  camera.far  = dist * 30;
+  camera.updateProjectionMatrix();
+
+  grid.position.y = box.min.y - .01;
+  sun.shadow.camera.left = sun.shadow.camera.bottom = -maxD*2;
+  sun.shadow.camera.right = sun.shadow.camera.top   =  maxD*2;
+  sun.shadow.camera.far   = maxD * 10;
+  sun.shadow.camera.updateProjectionMatrix();
+}
+
+// ── MODEL INFO ──────────────────────────────────────────────
+function updateInfo(name, ext){
+  let v=0,t=0;
+  if(model) model.traverse(n=>{
+    if(!n.isMesh||!n.geometry) return;
+    const pos = n.geometry.attributes.position;
+    if(pos) v += pos.count;
+    const idx = n.geometry.index;
+    if(idx) t += idx.count/3;
+    else if(pos) t += pos.count/3;
+  });
+  document.getElementById('i-name').textContent = name.length>18?name.slice(0,17)+'…':name;
+  document.getElementById('i-fmt').textContent  = ext.toUpperCase();
+  document.getElementById('i-vert').textContent = fmt(v);
+  document.getElementById('i-tri').textContent  = fmt(Math.round(t));
+}
+function fmt(n){ return n>=1e6?(n/1e6).toFixed(1)+'M':n>=1e3?(n/1e3).toFixed(1)+'k':n.toString(); }
+
+// ── RAYCASTER ────────────────────────────────────────────────
+const ray = new THREE.Raycaster();
+const mp  = new THREE.Vector2();
+let dragging = false, downX=0, downY=0;
+
+renderer.domElement.addEventListener('mousedown', e=>{ downX=e.clientX; downY=e.clientY; dragging=false; });
+renderer.domElement.addEventListener('mousemove', e=>{
+  if(Math.abs(e.clientX-downX)>4||Math.abs(e.clientY-downY)>4) dragging=true;
+  const hit = getHit(e);
+  if(hit){
+    const p=hit.point;
+    document.getElementById('s-x').textContent=p.x.toFixed(3);
+    document.getElementById('s-y').textContent=p.y.toFixed(3);
+    document.getElementById('s-z').textContent=p.z.toFixed(3);
+  }
+});
+
+renderer.domElement.addEventListener('mouseup', e=>{
+  if(dragging||!mMode||e.button!==0) return;
+  const hit = getHit(e);
+  if(!hit) return;
+  clickMeasure(hit.point);
+});
+
+function getHit(e){
+  const r = renderer.domElement.getBoundingClientRect();
+  mp.x = (e.clientX-r.left)/r.width*2-1;
+  mp.y = -(e.clientY-r.top)/r.height*2+1;
+  ray.setFromCamera(mp,camera);
+  const objs=[];
+  scene.traverse(o=>{ if(o.isMesh&&o!==grid) objs.push(o); });
+  const hits=ray.intersectObjects(objs,false);
+  return hits.length?hits[0]:null;
+}
+
+// ── MEASUREMENT LOGIC ────────────────────────────────────────
+function clickMeasure(point){
+  if(!pending){
+    // First point
+    const dot = makeDot();
+    dot.point = point.clone();
+    pending = dot;
+    document.getElementById('s-esc').style.display='inline';
+    return;
+  }
+  // Second point
+  const p1  = pending.point;
+  const p2  = point.clone();
+  const dist = p1.distanceTo(p2);
+  const mid  = p1.clone().lerp(p2,.5);
+
+  const dot2 = makeDot();
+  dot2.point = p2;
+
+  const line = makeLine(p1,p2);
+  const tip  = makeTip(mid, fmtDist(dist));
+
+  const sphere1 = makeSphere(p1);
+  const sphere2 = makeSphere(p2);
+
+  mCount++;
+  const entry = {p1, p2, mid, dist, line, tip, sphere1, sphere2, dot1:pending, dot2, id:mCount};
+  allM.push(entry);
+
+  addToList(entry);
+  pending=null;
+  document.getElementById('s-esc').style.display='none';
+}
+
+function makeDot(){
+  const el=document.createElement('div');
+  el.className='pt-dot';
+  document.body.appendChild(el);
+  return el;
+}
+
+function makeSphere(pos){
+  const m=new THREE.Mesh(
+    new THREE.SphereGeometry(.06,8,8),
+    new THREE.MeshBasicMaterial({color:0x5a9af4, depthTest:false})
+  );
+  m.position.copy(pos);
+  scene.add(m);
+  return m;
+}
+
+function makeLine(p1,p2){
+  const geo=new THREE.BufferGeometry().setFromPoints([p1,p2]);
+  const mat=new THREE.LineBasicMaterial({color:0x5a9af4,linewidth:1,depthTest:false,transparent:true,opacity:.8});
+  const line=new THREE.Line(geo,mat);
+  scene.add(line);
+  return line;
+}
+
+function makeTip(point, text){
+  const el=document.createElement('div');
+  el.className='m-tip';
+  el.textContent=text;
+  document.body.appendChild(el);
+  el._point=point;
+  return el;
+}
+
+function fmtDist(d){
+  if(d<.001) return (d*1000).toFixed(0)+' mm';
+  if(d<.01)  return (d*100).toFixed(1)+' cm';
+  if(d<1)    return (d*100).toFixed(1)+' cm';
+  return d.toFixed(3)+' m';
+}
+
+// ── OVERLAY POSITIONING (RAF) ────────────────────────────────
+(function updateOverlays(){
+  // Update measurement tooltips and pending dot
+  allM.forEach(e=>{
+    posEl(e.tip, e.mid);
+  });
+  if(pending) posEl(pending, pending.point);
+  requestAnimationFrame(updateOverlays);
+})();
+
+function posEl(el, point){
+  if(!el||!el.parentNode) return;
+  const v = point.clone().project(camera);
+  const x = (v.x*.5+.5)*innerWidth;
+  const y = (-v.y*.5+.5)*innerHeight;
+  // Hide if behind camera
+  if(v.z>1){ el.style.display='none'; return; }
+  el.style.display='block';
+  el.style.left=x+'px';
+  el.style.top=y+'px';
+}
+
+// ── MEASUREMENT LIST UI ──────────────────────────────────────
+function addToList(entry){
+  const list=document.getElementById('m-list');
+  const empty=list.querySelector('.m-empty');
+  if(empty) empty.remove();
+
+  const row=document.createElement('div');
+  row.className='m-row';
+  row.dataset.id=entry.id;
+  row.innerHTML=`<span>${String(entry.id).padStart(2,'0')} — ${fmtDist(entry.dist)}</span><span class="m-del" title="remover">✕</span>`;
+  row.querySelector('.m-del').addEventListener('click',()=>{ removeMeasure(entry.id); row.remove(); checkEmpty(); });
+  list.appendChild(row);
+}
+
+function checkEmpty(){
+  const list=document.getElementById('m-list');
+  if(!list.children.length){
+    list.innerHTML='<div class="m-empty">Clique em dois pontos no modelo</div>';
+  }
+}
+
+function removeMeasure(id){
+  const idx=allM.findIndex(e=>e.id===id);
+  if(idx===-1) return;
+  const e=allM[idx];
+  if(e.line) scene.remove(e.line);
+  if(e.sphere1) scene.remove(e.sphere1);
+  if(e.sphere2) scene.remove(e.sphere2);
+  if(e.tip) e.tip.remove();
+  if(e.dot1) e.dot1.remove();
+  if(e.dot2) e.dot2.remove();
+  allM.splice(idx,1);
+}
+
+function clearAllM(){
+  allM.forEach(e=>{
+    if(e.line) scene.remove(e.line);
+    if(e.sphere1) scene.remove(e.sphere1);
+    if(e.sphere2) scene.remove(e.sphere2);
+    if(e.tip) e.tip.remove();
+    if(e.dot1) e.dot1.remove();
+    if(e.dot2) e.dot2.remove();
+  });
+  allM.length=0;
+  mCount=0;
+  if(pending){ pending.remove(); pending=null; }
+  document.getElementById('m-list').innerHTML='<div class="m-empty">Clique em dois pontos no modelo</div>';
+}
+
+// ── ESC ──────────────────────────────────────────────────────
+document.addEventListener('keydown', e=>{
+  if(e.key==='Escape'&&pending){
+    pending.remove(); pending=null;
+    document.getElementById('s-esc').style.display='none';
+  }
+});
+
+// ── BUTTONS ──────────────────────────────────────────────────
+let wireframe=false;
+document.getElementById('b-wire').addEventListener('click',function(){
+  wireframe=!wireframe;
+  this.classList.toggle('on',wireframe);
+  if(!model) return;
+  model.traverse(n=>{
+    if(!n.isMesh||!n.material) return;
+    (Array.isArray(n.material)?n.material:[n.material]).forEach(m=>m.wireframe=wireframe);
+  });
+});
+
+document.getElementById('b-meas').addEventListener('click',function(){
+  mMode=!mMode;
+  this.classList.toggle('on',mMode);
+  document.getElementById('s-measure').style.display=mMode?'inline':'none';
+  if(!mMode&&pending){ pending.remove(); pending=null; document.getElementById('s-esc').style.display='none'; }
+});
+
+document.getElementById('b-reset').addEventListener('click', fitCamera);
+document.getElementById('b-clr').addEventListener('click', clearAllM);
+
+// ── UI STATE ─────────────────────────────────────────────────
+function showLoading(){
+  document.getElementById('loading').classList.add('on');
+  setLd('Processando geometria…',0);
+}
+function hideLoading(){ document.getElementById('loading').classList.remove('on'); }
+function setLd(txt,pct){
+  document.getElementById('ld-txt').textContent=txt;
+  document.getElementById('ld-fill').style.width=pct+'%';
+}
+function showViewer(name){
+  upload.classList.add('out');
+  document.getElementById('top').style.display='flex';
+  document.getElementById('side').style.display='flex';
+  document.getElementById('status').style.display='flex';
+  document.getElementById('t-file').textContent=name;
+  document.getElementById('s-measure').style.display='inline';
+  hideLoading();
+}
+function showUpload(){
+  upload.classList.remove('out');
+  document.getElementById('top').style.display='none';
+  document.getElementById('side').style.display='none';
+  document.getElementById('status').style.display='none';
+}
+</script>
+</body>
+</html>
