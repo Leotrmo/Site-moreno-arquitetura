@@ -1,0 +1,21 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
+  <defs>
+    <clipPath id="clip-top"><rect x="0" y="0" width="512" height="256"/></clipPath>
+    <clipPath id="clip-bot"><rect x="0" y="256" width="512" height="256"/></clipPath>
+  </defs>
+  <!-- background -->
+  <circle cx="256" cy="256" r="256" fill="#0a0e14"/>
+  <!-- top red half -->
+  <circle cx="256" cy="256" r="226" fill="#ef4444" clip-path="url(#clip-top)"/>
+  <!-- bottom dark half -->
+  <circle cx="256" cy="256" r="226" fill="#1d2530" clip-path="url(#clip-bot)"/>
+  <!-- gold band -->
+  <rect x="30" y="246" width="452" height="20" fill="#f5c518"/>
+  <!-- center ring -->
+  <circle cx="256" cy="256" r="68" fill="#f5c518"/>
+  <circle cx="256" cy="256" r="54" fill="#0a0e14"/>
+  <!-- L initial -->
+  <text x="256" y="256" font-family="-apple-system, Arial, sans-serif"
+        font-size="50" font-weight="900" fill="#f5c518"
+        text-anchor="middle" dominant-baseline="central">L</text>
+</svg>

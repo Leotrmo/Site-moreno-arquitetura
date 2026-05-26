@@ -1,6 +1,12 @@
 <!DOCTYPE html>
 <html lang="pt-BR"><head><meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Pokémon Leo">
+<meta name="theme-color" content="#0a0e14">
+<link rel="manifest" href="./manifest.json">
+<link rel="apple-touch-icon" href="./icons/icon-180.png">
 <title>Análise Pokémon - Leo</title>
 <style>
 :root {
@@ -26,14 +32,14 @@ html { scroll-behavior: smooth; }
 body {
   font-family: -apple-system, 'SF Pro Display', 'Segoe UI', Roboto, sans-serif;
   background: var(--bg); color: var(--text); line-height: 1.5;
-  padding: 0; margin: 0; padding-bottom: 80px;
+  padding: 0; margin: 0; padding-bottom: calc(80px + env(safe-area-inset-bottom));
 }
 .container { max-width: 900px; margin: 0 auto; padding: 16px; }
 
 /* Header */
 header {
   background: linear-gradient(135deg, rgba(245,197,24,0.1), rgba(239,68,68,0.1));
-  padding: 28px 20px;
+  padding: calc(28px + env(safe-area-inset-top)) 20px 28px;
   border-bottom: 1px solid var(--border);
   text-align: center;
 }
@@ -52,7 +58,7 @@ h1 {
 
 /* Sticky nav */
 .tabs {
-  position: sticky; top: 0; z-index: 100;
+  position: sticky; top: env(safe-area-inset-top); z-index: 100;
   background: var(--bg); border-bottom: 1px solid var(--border);
   overflow-x: auto; white-space: nowrap;
   padding: 12px 8px; gap: 8px; display: flex;
@@ -225,8 +231,33 @@ h2 {
 .changelog ul { margin: 6px 0 0 16px; }
 .changelog li { margin: 3px 0; }
 
+/* Transfer checklist */
+.dup-name { display: flex; justify-content: space-between; align-items: center; }
+.dup-name-text { flex: 1; }
+.dup-check {
+  flex-shrink: 0; width: 30px; height: 30px; margin-left: 10px;
+  border-radius: 8px; border: 2px solid var(--border);
+  background: transparent; color: transparent;
+  font-size: 16px; font-weight: 800; cursor: pointer;
+  display: flex; align-items: center; justify-content: center;
+  transition: all 0.15s; -webkit-tap-highlight-color: transparent;
+}
+.dup-group.done .dup-check { background: var(--green); border-color: var(--green); color: #000; }
+.dup-group.done { opacity: 0.4; }
+.dup-group.done .dup-name-text { text-decoration: line-through; color: var(--text-dim); }
+.transfer-controls {
+  display: flex; gap: 8px; margin: 12px 0 16px; flex-wrap: wrap; align-items: center;
+}
+.filter-btn {
+  padding: 7px 14px; border-radius: 20px; font-size: 13px; font-weight: 600;
+  border: 1px solid var(--border); background: var(--surface-2); color: var(--text);
+  cursor: pointer; -webkit-tap-highlight-color: transparent;
+}
+.filter-btn.active { background: rgba(52,211,153,0.15); color: var(--green); border-color: var(--green); }
+.transfer-progress { font-size: 13px; color: var(--text-dim); padding: 7px 0; }
+
 footer {
-  margin-top: 40px; padding: 24px 16px;
+  margin-top: 40px; padding: 24px 16px calc(24px + env(safe-area-inset-bottom));
   border-top: 1px solid var(--border);
   text-align: center; color: var(--text-dim); font-size: 11px;
 }
@@ -1057,4 +1088,99 @@ footer {
   Sempre confira seu time atual antes de transferir.
 </footer>
 
+
+<script>
+(function () {
+  const STORAGE_KEY = 'pokemon-transfer-done';
+
+  function getDone() {
+    try { return new Set(JSON.parse(localStorage.getItem(STORAGE_KEY) || '[]')); }
+    catch { return new Set(); }
+  }
+  function saveDone(set) {
+    localStorage.setItem(STORAGE_KEY, JSON.stringify([...set]));
+  }
+
+  const section = document.getElementById('transfer');
+  if (!section) return;
+
+  const done = getDone();
+  let filterMode = false;
+
+  // Inject checkbox into each dup-group
+  const groups = section.querySelectorAll('.dup-group');
+  groups.forEach(group => {
+    const nameEl = group.querySelector('.dup-name');
+    const key = nameEl.textContent.trim();
+    group.dataset.tk = key;
+
+    const span = document.createElement('span');
+    span.className = 'dup-name-text';
+    span.textContent = nameEl.textContent;
+    nameEl.textContent = '';
+    nameEl.appendChild(span);
+
+    const btn = document.createElement('button');
+    btn.className = 'dup-check';
+    btn.setAttribute('aria-label', 'Marcar como transferido');
+    btn.textContent = '✓';
+    btn.addEventListener('click', function (e) {
+      e.stopPropagation();
+      if (done.has(key)) { done.delete(key); group.classList.remove('done'); }
+      else               { done.add(key);    group.classList.add('done');    }
+      saveDone(done);
+      updateProgress();
+    });
+    nameEl.appendChild(btn);
+
+    if (done.has(key)) group.classList.add('done');
+  });
+
+  // Inject controls bar above the groups
+  const desc = section.querySelector('.section-desc');
+  const controls = document.createElement('div');
+  controls.className = 'transfer-controls';
+  controls.innerHTML =
+    '<button class="filter-btn" id="tf-filter">🔍 Ver pendentes</button>' +
+    '<button class="filter-btn" id="tf-clear">↩ Limpar marcações</button>' +
+    '<span class="transfer-progress" id="tf-progress"></span>';
+  desc.after(controls);
+
+  document.getElementById('tf-filter').addEventListener('click', function () {
+    filterMode = !filterMode;
+    this.classList.toggle('active', filterMode);
+    this.textContent = filterMode ? '👁 Ver todos' : '🔍 Ver pendentes';
+    applyFilter();
+  });
+
+  document.getElementById('tf-clear').addEventListener('click', function () {
+    if (!confirm('Limpar todas as marcações de transferência?')) return;
+    done.clear();
+    saveDone(done);
+    groups.forEach(g => g.classList.remove('done'));
+    updateProgress();
+  });
+
+  function applyFilter() {
+    groups.forEach(g => {
+      g.style.display = (filterMode && g.classList.contains('done')) ? 'none' : '';
+    });
+  }
+
+  function updateProgress() {
+    const remaining = groups.length - done.size;
+    document.getElementById('tf-progress').textContent =
+      done.size + ' transferidos · ' + remaining + ' restantes';
+    applyFilter();
+  }
+
+  updateProgress();
+})();
+</script>
+
+<script>
+  if ('serviceWorker' in navigator) {
+    try { navigator.serviceWorker.register('./sw.js'); } catch(e) {}
+  }
+</script>
 </body></html>

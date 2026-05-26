@@ -1,0 +1,30 @@
+{
+  "name": "Análise Pokémon Leo",
+  "short_name": "Pokémon Leo",
+  "description": "Análise da coleção Pokémon GO de Leo",
+  "display": "standalone",
+  "orientation": "portrait",
+  "start_url": "./index.html",
+  "scope": "./",
+  "theme_color": "#0a0e14",
+  "background_color": "#0a0e14",
+  "icons": [
+    {
+      "src": "./icons/icon-180.png",
+      "sizes": "180x180",
+      "type": "image/png"
+    },
+    {
+      "src": "./icons/icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "./icons/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ]
+}
