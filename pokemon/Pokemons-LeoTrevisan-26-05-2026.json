@@ -1,7 +1,7 @@
 {
   "fileName" : "Pokemons-LeoTrevisan-26-05-2026",
-  "exportTime" : "26 de mai. de 2026, 10:29:03 BRT",
-  "pokemonCount" : 573,
+  "exportTime" : "26 de mai. de 2026, 14:21:48 BRT",
+  "pokemonCount" : 574,
   "version" : "1.0",
   "fileData" : {
     "6704624461195111630" : {
@@ -3064,6 +3064,22 @@
       "mon_isLucky" : "NO",
       "mon_defence" : 12
     },
+    "2024950961863847143" : {
+      "mon_weight" : 29.928802490234375,
+      "mon_move_1" : "Revólver d'Água",
+      "mon_height" : 1.1526833772659302,
+      "mon_gender" : "MALE",
+      "mon_form" : "VAPOREON_NORMAL",
+      "mon_stamina" : 9,
+      "mon_attack" : 12,
+      "mon_name" : "Vaporeon",
+      "mon_isShiny" : "NO",
+      "mon_move_2" : "Aquaríete",
+      "mon_cp" : 395,
+      "mon_number" : 134,
+      "mon_isLucky" : "NO",
+      "mon_defence" : 3
+    },
     "3669738851034098109" : {
       "mon_weather_boost" : "OVERCAST",
       "mon_weight" : 11.266409873962402,
@@ -4156,22 +4172,6 @@
       "mon_number" : 328,
       "mon_isLucky" : "NO",
       "mon_defence" : 11
-    },
-    "3127123915020637033" : {
-      "mon_weight" : 17.362030029296875,
-      "mon_move_1" : "Lançamento de Rocha",
-      "mon_height" : 0.3567851185798645,
-      "mon_gender" : "FEMALE",
-      "mon_form" : "GEODUDE_ALOLA",
-      "mon_stamina" : 15,
-      "mon_attack" : 13,
-      "mon_name" : "Alola Geodude",
-      "mon_isShiny" : "NO",
-      "mon_move_2" : "Tumba de Rochas",
-      "mon_cp" : 812,
-      "mon_number" : 74,
-      "mon_isLucky" : "NO",
-      "mon_defence" : 6
     },
     "2890372708870976992" : {
       "mon_weight" : 56.203151702880859,
@@ -5941,21 +5941,21 @@
       "mon_isLucky" : "NO",
       "mon_defence" : 15
     },
-    "2722852185838809752" : {
-      "mon_weight" : 15.323861122131348,
+    "15955769775648194367" : {
+      "mon_weight" : 7.9813814163208008,
       "mon_move_1" : "Cabeçada Zen",
-      "mon_height" : 0.70058137178421021,
-      "mon_gender" : "FEMALE",
+      "mon_height" : 0.58652305603027344,
+      "mon_gender" : "MALE",
       "mon_form" : "VULPIX_ALOLA",
-      "mon_stamina" : 11,
-      "mon_attack" : 12,
+      "mon_stamina" : 6,
+      "mon_attack" : 3,
       "mon_name" : "Alola Vulpix",
       "mon_isShiny" : "NO",
-      "mon_move_2" : "Pulso Sombrio",
-      "mon_cp" : 477,
+      "mon_move_2" : "Nevasca",
+      "mon_cp" : 452,
       "mon_number" : 37,
       "mon_isLucky" : "NO",
-      "mon_defence" : 12
+      "mon_defence" : 2
     },
     "2794330531890093872" : {
       "mon_weather_boost" : "RAINY",
@@ -7472,6 +7472,21 @@
       "mon_number" : 132,
       "mon_isLucky" : "NO",
       "mon_defence" : 11
+    },
+    "17657472623069802894" : {
+      "mon_weight" : 10.159087181091309,
+      "mon_move_1" : "Investida",
+      "mon_height" : 0.59582877159118652,
+      "mon_gender" : "FEMALE",
+      "mon_stamina" : 14,
+      "mon_attack" : 15,
+      "mon_name" : "Snivy",
+      "mon_isShiny" : "NO",
+      "mon_move_2" : "Embrulho",
+      "mon_cp" : 477,
+      "mon_number" : 495,
+      "mon_isLucky" : "NO",
+      "mon_defence" : 12
     },
     "11676905579359655731" : {
       "mon_weight" : 3.7548606395721436,
@@ -9343,5 +9358,5 @@
     }
   },
   "fileType" : "pokemon",
-  "exportTimestamp" : 1779802143.102191
+  "exportTimestamp" : 1779816108.2706461
 }
