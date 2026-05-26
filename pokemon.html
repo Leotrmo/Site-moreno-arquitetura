@@ -1,0 +1,1060 @@
+<!DOCTYPE html>
+<html lang="pt-BR"><head><meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Análise Pokémon - Leo</title>
+<style>
+:root {
+  --bg: #0a0e14;
+  --surface: #141b24;
+  --surface-2: #1d2530;
+  --surface-3: #29323e;
+  --text: #f1f3f5;
+  --text-dim: #8b95a3;
+  --gold: #f5c518;
+  --green: #34d399;
+  --yellow: #fbbf24;
+  --red: #ef4444;
+  --orange: #fb923c;
+  --shiny: #ec4899;
+  --lucky: #06b6d4;
+  --purple: #a78bfa;
+  --blue: #60a5fa;
+  --border: #2d3540;
+}
+* { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+html { scroll-behavior: smooth; }
+body {
+  font-family: -apple-system, 'SF Pro Display', 'Segoe UI', Roboto, sans-serif;
+  background: var(--bg); color: var(--text); line-height: 1.5;
+  padding: 0; margin: 0; padding-bottom: 80px;
+}
+.container { max-width: 900px; margin: 0 auto; padding: 16px; }
+
+/* Header */
+header {
+  background: linear-gradient(135deg, rgba(245,197,24,0.1), rgba(239,68,68,0.1));
+  padding: 28px 20px;
+  border-bottom: 1px solid var(--border);
+  text-align: center;
+}
+h1 {
+  font-size: 26px; font-weight: 800; margin-bottom: 6px;
+  background: linear-gradient(135deg, #f5c518, #ef4444, #ec4899);
+  -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+.subtitle { color: var(--text-dim); font-size: 13px; }
+.total-count {
+  display: inline-block; margin-top: 10px; padding: 6px 16px;
+  background: var(--surface-2); border-radius: 20px; font-size: 14px;
+  font-weight: 600;
+}
+
+/* Sticky nav */
+.tabs {
+  position: sticky; top: 0; z-index: 100;
+  background: var(--bg); border-bottom: 1px solid var(--border);
+  overflow-x: auto; white-space: nowrap;
+  padding: 12px 8px; gap: 8px; display: flex;
+  -webkit-overflow-scrolling: touch;
+  scrollbar-width: none;
+}
+.tabs::-webkit-scrollbar { display: none; }
+.tab {
+  flex-shrink: 0; padding: 8px 14px; border-radius: 20px;
+  background: var(--surface-2); color: var(--text-dim);
+  text-decoration: none; font-size: 13px; font-weight: 600;
+  transition: all 0.2s; border: 1px solid transparent;
+}
+.tab:hover { background: var(--surface-3); color: var(--text); }
+.tab.action-tab { background: rgba(52, 211, 153, 0.15); color: var(--green); border-color: var(--green); }
+.tab.warning-tab { background: rgba(239, 68, 68, 0.15); color: var(--red); border-color: var(--red); }
+
+/* Summary cards */
+.summary {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 10px; margin: 20px 0;
+}
+@media (min-width: 600px) {
+  .summary { grid-template-columns: repeat(3, 1fr); }
+}
+.stat {
+  background: var(--surface); padding: 16px;
+  border-radius: 14px; border: 1px solid var(--border);
+  position: relative; overflow: hidden;
+}
+.stat::before {
+  content: ''; position: absolute; top: 0; left: 0; width: 4px;
+  height: 100%; background: var(--border);
+}
+.stat.gold::before { background: var(--gold); }
+.stat.shiny::before { background: var(--shiny); }
+.stat.lucky::before { background: var(--lucky); }
+.stat.green::before { background: var(--green); }
+.stat.purple::before { background: var(--purple); }
+.stat.blue::before { background: var(--blue); }
+.stat-value { font-size: 26px; font-weight: 800; line-height: 1; }
+.stat-label { font-size: 11px; color: var(--text-dim); text-transform: uppercase; letter-spacing: 0.5px; margin-top: 4px; }
+.stat.gold .stat-value { color: var(--gold); }
+.stat.shiny .stat-value { color: var(--shiny); }
+.stat.lucky .stat-value { color: var(--lucky); }
+.stat.green .stat-value { color: var(--green); }
+.stat.purple .stat-value { color: var(--purple); }
+.stat.blue .stat-value { color: var(--blue); }
+
+/* Sections */
+section {
+  margin: 28px 0;
+  padding-top: 16px;
+  scroll-margin-top: 70px;
+}
+h2 {
+  font-size: 19px; font-weight: 700; margin-bottom: 4px;
+  display: flex; align-items: center; gap: 8px;
+}
+.section-desc {
+  color: var(--text-dim); font-size: 13px;
+  margin-bottom: 14px;
+}
+
+/* Mon list */
+.mon-list { display: flex; flex-direction: column; gap: 6px; }
+.mon {
+  background: var(--surface); padding: 12px 14px;
+  border-radius: 10px; border-left: 3px solid var(--border);
+  display: flex; flex-direction: column; gap: 6px;
+}
+.mon-main {
+  display: flex; justify-content: space-between;
+  align-items: center; flex-wrap: wrap; gap: 8px;
+}
+.mon-extra {
+  font-size: 12px; color: var(--text-dim);
+  padding-top: 4px;
+  border-top: 1px dashed var(--border);
+}
+.mon-extra strong { color: var(--green); }
+.mon.gold { border-left-color: var(--gold); background: linear-gradient(90deg, rgba(245,197,24,0.1), var(--surface)); }
+.mon.shiny-bg { border-left-color: var(--shiny); background: linear-gradient(90deg, rgba(236,72,153,0.1), var(--surface)); }
+.mon.lucky-bg { border-left-color: var(--lucky); background: linear-gradient(90deg, rgba(6,182,212,0.1), var(--surface)); }
+.mon.green { border-left-color: var(--green); }
+.mon.yellow { border-left-color: var(--yellow); }
+.mon.legendary { border-left-color: var(--purple); background: linear-gradient(90deg, rgba(167,139,250,0.1), var(--surface)); }
+.mon.trade-evo { border-left-color: var(--orange); background: linear-gradient(90deg, rgba(251,146,60,0.1), var(--surface)); }
+.mon.regional { border-left-color: var(--blue); background: linear-gradient(90deg, rgba(96,165,250,0.08), var(--surface)); }
+.mon.trade-friend { border-left-color: var(--blue); }
+.mon.shiny-border { border: 2px solid var(--shiny); }
+.mon-name { font-weight: 600; font-size: 15px; }
+.arrow { color: var(--text-dim); margin: 0 4px; }
+.evo { color: var(--yellow); font-size: 13px; font-weight: 500; }
+
+.mon-stats { display: flex; gap: 6px; flex-wrap: wrap; align-items: center; font-size: 11px; }
+.cp { background: var(--surface-3); padding: 2px 8px; border-radius: 4px; font-weight: 600; }
+.iv { padding: 2px 8px; border-radius: 4px; font-weight: 700; color: #000; }
+.iv-perfect { background: var(--gold); }
+.iv-great { background: var(--green); }
+.iv-good { background: var(--yellow); }
+.iv-low { background: var(--text-dim); }
+.ivs { color: var(--text-dim); font-family: 'SF Mono', monospace; font-size: 11px; }
+.tag { padding: 2px 6px; border-radius: 4px; font-weight: 700; font-size: 10px; }
+.tag.shiny { background: var(--shiny); color: #fff; }
+.tag.lucky { background: var(--lucky); color: #000; }
+
+/* Reason group (trade with friends) */
+.reason-group {
+  margin-bottom: 16px;
+  background: var(--surface);
+  padding: 12px; border-radius: 12px;
+  border: 1px solid var(--border);
+}
+.reason-title {
+  font-weight: 700; font-size: 13px;
+  color: var(--blue); margin-bottom: 10px;
+  text-transform: uppercase; letter-spacing: 0.5px;
+}
+.reason-group .mon { background: var(--surface-2); }
+
+/* Transfer group */
+.dup-group {
+  background: var(--surface); padding: 10px 12px;
+  border-radius: 10px; margin-bottom: 6px;
+  border: 1px solid var(--border);
+}
+.dup-name {
+  font-weight: 600; margin-bottom: 6px;
+  color: var(--text); font-size: 14px;
+}
+.dup-item {
+  display: flex; padding: 4px 8px;
+  border-radius: 5px; font-size: 12px; align-items: center;
+}
+.dup-item.transfer {
+  background: rgba(239, 68, 68, 0.08);
+  border-left: 3px solid var(--red);
+  margin-bottom: 3px;
+}
+.dup-stats { color: var(--text-dim); font-family: monospace; }
+
+/* Info boxes */
+.info-box {
+  background: var(--surface); padding: 16px;
+  border-radius: 12px; margin: 16px 0;
+  border: 1px solid var(--border); font-size: 13px;
+  line-height: 1.6;
+}
+.info-box.warning { border-color: var(--yellow); background: rgba(251,191,36,0.05); }
+.info-box.tip { border-color: var(--green); background: rgba(52,211,153,0.05); }
+.info-box.howto { border-color: var(--blue); background: rgba(96,165,250,0.05); }
+.info-box h3 {
+  font-size: 14px; margin-bottom: 8px; font-weight: 700;
+  display: flex; align-items: center; gap: 6px;
+}
+.info-box.warning h3 { color: var(--yellow); }
+.info-box.tip h3 { color: var(--green); }
+.info-box.howto h3 { color: var(--blue); }
+.info-box ul { margin: 8px 0 0 18px; }
+.info-box li { margin: 4px 0; }
+.info-box ol { margin: 8px 0 0 20px; }
+
+.changelog {
+  background: var(--surface); padding: 14px; border-radius: 12px;
+  margin: 16px 0; border-left: 4px solid var(--green); font-size: 13px;
+}
+.changelog strong { color: var(--green); }
+.changelog ul { margin: 6px 0 0 16px; }
+.changelog li { margin: 3px 0; }
+
+footer {
+  margin-top: 40px; padding: 24px 16px;
+  border-top: 1px solid var(--border);
+  text-align: center; color: var(--text-dim); font-size: 11px;
+}
+</style></head><body>
+
+<header>
+  <h1>🎮 Análise da Coleção</h1>
+  <div class="subtitle">Leo · atualizado em 26/05/2026</div>
+  <div class="total-count">573 Pokémons</div>
+</header>
+
+<nav class="tabs">
+  <a href="#changelog" class="tab">🆕 Novidades</a>
+  <a href="#hundos" class="tab">🌟 Hundos</a>
+  <a href="#shinies" class="tab">✨ Shinies</a>
+  <a href="#legendaries" class="tab">👑 Lendários</a>
+  <a href="#power-up" class="tab action-tab">💪 Fortalecer</a>
+  <a href="#evolve" class="tab action-tab">🔄 Evoluir</a>
+  <a href="#trade-evo" class="tab action-tab">🎁 Trocar p/ evoluir</a>
+  <a href="#trade-friends" class="tab action-tab">🤝 Trocar c/ amigos</a>
+  <a href="#transfer" class="tab warning-tab">❌ Transferir</a>
+</nav>
+
+<div class="container">
+
+<div class="info-box howto" id="howto">
+  <h3>📱 Como visualizar este arquivo no celular</h3>
+  <p>Você está no Claude App. Para abrir esta análise:</p>
+  <ol>
+    <li>Toque no arquivo HTML acima e escolha <strong>"Abrir em"</strong> → <strong>Safari</strong> (ou Chrome)</li>
+    <li>Ou: Toque em <strong>"Salvar em Arquivos"</strong> → abre o app <strong>Arquivos</strong> → toca no HTML → "Abrir em Safari"</li>
+    <li>No Safari, toque no botão de compartilhar e escolha <strong>"Adicionar à tela inicial"</strong> para virar um atalho</li>
+  </ol>
+  <p style="margin-top:8px;"><strong>Para guardar e acessar sempre:</strong> envie o arquivo pra você mesmo no WhatsApp ou Mail, ou salve no Google Drive/iCloud Drive.</p>
+</div>
+
+<section id="changelog">
+<div class="changelog">
+  <strong>🔄 Mudanças desde 22/05:</strong> +99 Pokémons (122 capturados, 23 transferidos).
+  <ul>
+    <li>🦴 <strong>Omanyte IV 96%</strong> — quase perfeito!</li>
+    <li>👑 <strong>Diancie IV 93%</strong> — mítico raríssimo</li>
+    <li>👑 <strong>Aria Meloetta CP 1656</strong> — mítico</li>
+    <li>🐺 <strong>Hisuian Sneasel IV 93%</strong> — evolui para Sneasler</li>
+    <li>🥚 <strong>Happiny IV 91%</strong> — vira Chansey → Blissey</li>
+    <li>🐉 <strong>Fraxure IV 87%</strong> — futuro Haxorus (meta de Dragão)</li>
+    <li>🐉 Outro <strong>Gible IV 87%</strong> — mais um Garchomp em construção</li>
+  </ul>
+</div>
+</section>
+
+<div class="summary">
+  <div class="stat gold"><div class="stat-value">3</div><div class="stat-label">Hundos 100%</div></div>
+  <div class="stat shiny"><div class="stat-value">8</div><div class="stat-label">Shinies ✨</div></div>
+  <div class="stat lucky"><div class="stat-value">1</div><div class="stat-label">Lucky 🍀</div></div>
+  <div class="stat purple"><div class="stat-value">8</div><div class="stat-label">Lendários 👑</div></div>
+  <div class="stat green"><div class="stat-value">10</div><div class="stat-label">95-97% IV</div></div>
+  <div class="stat blue"><div class="stat-value">42</div><div class="stat-label">91-95% IV</div></div>
+</div>
+
+<div class="info-box">
+  <h3>📖 Como ler o IV</h3>
+  <p>IV (Valor Individual) é a "genética" do Pokémon: 3 stats (Ataque/Defesa/HP) de 0 a 15 cada, total máximo 45 = 100%. Quanto maior, mais forte ele fica ao fortalecer.</p>
+  <p style="margin-top:6px;"><strong>Importante para PvP:</strong> em Liga Grande e Ultra, IV de ataque BAIXO é melhor (mais HP/Def no mesmo CP). Só em Liga Mestre o IV alto vence.</p>
+</div>
+
+<section id="hundos">
+  <h2>🌟 Hundos (100% IV)</h2>
+  <p class="section-desc">Perfeitos. Sua prioridade #1 de fortalecimento. <strong>NUNCA transfira ou troque.</strong></p>
+  <div class="mon-list"><div class='mon gold'><div class='mon-main'><div class='mon-name'>Slowking</div><div class='mon-stats'><span class='cp'>CP 1417</span><span class='iv iv-perfect'>100%</span><span class='ivs'>15/15/15</span></div></div></div><div class='mon gold'><div class='mon-main'><div class='mon-name'>Chansey</div><div class='mon-stats'><span class='cp'>CP 645</span><span class='iv iv-perfect'>100%</span><span class='ivs'>15/15/15</span></div></div></div><div class='mon gold'><div class='mon-main'><div class='mon-name'>Magikarp</div><div class='mon-stats'><span class='cp'>CP 196</span><span class='iv iv-perfect'>100%</span><span class='ivs'>15/15/15</span></div></div></div></div>
+</section>
+
+<section id="shinies">
+  <h2>✨ Shinies</h2>
+  <p class="section-desc">Raros e colecionáveis. Mantenha todos. Duplicatas têm alto valor de troca.</p>
+  <div class="mon-list"><div class='mon shiny-bg'><div class='mon-main'><div class='mon-name'>Celebi</div><div class='mon-stats'><span class='cp'>CP 1414</span><span class='iv iv-good'>84%</span><span class='ivs'>12/11/15</span><span class='tag shiny'>✨</span></div></div></div><div class='mon shiny-bg'><div class='mon-main'><div class='mon-name'>Flareon</div><div class='mon-stats'><span class='cp'>CP 1261</span><span class='iv iv-good'>80%</span><span class='ivs'>11/11/14</span><span class='tag shiny'>✨</span></div></div></div><div class='mon shiny-bg'><div class='mon-main'><div class='mon-name'>Espurr</div><div class='mon-stats'><span class='cp'>CP 511</span><span class='iv iv-low'>78%</span><span class='ivs'>10/14/11</span><span class='tag shiny'>✨</span></div></div></div><div class='mon shiny-bg'><div class='mon-main'><div class='mon-name'>Kadabra</div><div class='mon-stats'><span class='cp'>CP 848</span><span class='iv iv-low'>78%</span><span class='ivs'>10/10/15</span><span class='tag shiny'>✨</span></div></div></div><div class='mon shiny-bg'><div class='mon-main'><div class='mon-name'>Togetic</div><div class='mon-stats'><span class='cp'>CP 169</span><span class='iv iv-low'>64%</span><span class='ivs'>14/12/3</span><span class='tag shiny'>✨</span></div></div></div><div class='mon shiny-bg'><div class='mon-main'><div class='mon-name'>Eevee</div><div class='mon-stats'><span class='cp'>CP 876</span><span class='iv iv-low'>56%</span><span class='ivs'>8/4/13</span><span class='tag shiny'>✨</span></div></div></div><div class='mon shiny-bg'><div class='mon-main'><div class='mon-name'>Deino</div><div class='mon-stats'><span class='cp'>CP 329</span><span class='iv iv-low'>36%</span><span class='ivs'>0/7/9</span><span class='tag shiny'>✨</span></div></div></div><div class='mon shiny-bg'><div class='mon-main'><div class='mon-name'>Deino</div><div class='mon-stats'><span class='cp'>CP 67</span><span class='iv iv-low'>24%</span><span class='ivs'>8/3/0</span><span class='tag shiny'>✨</span></div></div></div></div>
+</section>
+
+<section id="lucky">
+  <h2>🍀 Lucky — Custa 50% menos poeira</h2>
+  <p class="section-desc">Lucky Pokémons exigem só metade da poeira pra fortalecer. Ótimos investimentos.</p>
+  <div class="mon-list"><div class='mon lucky-bg'><div class='mon-main'><div class='mon-name'>Durant</div><div class='mon-stats'><span class='cp'>CP 1473</span><span class='iv iv-great'>96%</span><span class='ivs'>15/14/14</span><span class='tag lucky'>🍀</span></div></div></div></div>
+</section>
+
+<section id="legendaries">
+  <h2>👑 Lendários e Míticos</h2>
+  <p class="section-desc">Pokémon de altíssimo valor. Lendários NÃO podem ser trocados (mas Aria Meloetta é mítico — também não trocável).</p>
+  <div class="mon-list"><div class='mon legendary'><div class='mon-main'><div class='mon-name'>Aria Meloetta</div><div class='mon-stats'><span class='cp'>CP 1656</span><span class='iv iv-good'>80%</span><span class='ivs'>10/11/15</span></div></div></div><div class='mon legendary'><div class='mon-main'><div class='mon-name'>Latias</div><div class='mon-stats'><span class='cp'>CP 1645</span><span class='iv iv-great'>93%</span><span class='ivs'>15/12/15</span></div></div></div><div class='mon legendary'><div class='mon-main'><div class='mon-name'>Celebi</div><div class='mon-stats'><span class='cp'>CP 1414</span><span class='iv iv-good'>84%</span><span class='ivs'>12/11/15</span><span class='tag shiny'>✨</span></div></div></div><div class='mon legendary'><div class='mon-main'><div class='mon-name'>Diancie</div><div class='mon-stats'><span class='cp'>CP 1158</span><span class='iv iv-great'>93%</span><span class='ivs'>14/15/13</span></div></div></div><div class='mon legendary'><div class='mon-main'><div class='mon-name'>10% Zygarde</div><div class='mon-stats'><span class='cp'>CP 1012</span><span class='iv iv-great'>96%</span><span class='ivs'>15/13/15</span></div></div></div><div class='mon legendary'><div class='mon-main'><div class='mon-name'>Hisuian Electrode</div><div class='mon-stats'><span class='cp'>CP 914</span><span class='iv iv-great'>93%</span><span class='ivs'>15/12/15</span></div></div></div><div class='mon legendary'><div class='mon-main'><div class='mon-name'>Hisuian Voltorb</div><div class='mon-stats'><span class='cp'>CP 422</span><span class='iv iv-good'>89%</span><span class='ivs'>14/13/13</span></div></div></div><div class='mon legendary'><div class='mon-main'><div class='mon-name'>Hisuian Voltorb</div><div class='mon-stats'><span class='cp'>CP 414</span><span class='iv iv-good'>84%</span><span class='ivs'>11/14/13</span></div></div></div></div>
+</section>
+
+<section id="near-perfect">
+  <h2>⭐ Quase perfeitos (95-97% IV)</h2>
+  <p class="section-desc">Tão bons quanto hundos na prática. Mantenha todos.</p>
+  <div class="mon-list"><div class='mon '><div class='mon-main'><div class='mon-name'>Yungoos</div><div class='mon-stats'><span class='cp'>CP 374</span><span class='iv iv-great'>98%</span><span class='ivs'>14/15/15</span></div></div></div><div class='mon '><div class='mon-main'><div class='mon-name'>Cubone</div><div class='mon-stats'><span class='cp'>CP 577</span><span class='iv iv-great'>98%</span><span class='ivs'>14/15/15</span></div></div></div><div class='mon '><div class='mon-main'><div class='mon-name'>Vigoroth</div><div class='mon-stats'><span class='cp'>CP 1118</span><span class='iv iv-great'>96%</span><span class='ivs'>15/14/14</span></div></div></div><div class='mon '><div class='mon-main'><div class='mon-name'>Omanyte</div><div class='mon-stats'><span class='cp'>CP 877</span><span class='iv iv-great'>96%</span><span class='ivs'>15/13/15</span></div></div></div><div class='mon '><div class='mon-main'><div class='mon-name'>10% Zygarde</div><div class='mon-stats'><span class='cp'>CP 1012</span><span class='iv iv-great'>96%</span><span class='ivs'>15/13/15</span></div></div></div><div class='mon '><div class='mon-main'><div class='mon-name'>Voltorb</div><div class='mon-stats'><span class='cp'>CP 429</span><span class='iv iv-great'>96%</span><span class='ivs'>15/13/15</span></div></div></div><div class='mon '><div class='mon-main'><div class='mon-name'>Pyroar</div><div class='mon-stats'><span class='cp'>CP 1571</span><span class='iv iv-great'>96%</span><span class='ivs'>14/15/14</span></div></div></div><div class='mon '><div class='mon-main'><div class='mon-name'>Durant</div><div class='mon-stats'><span class='cp'>CP 1473</span><span class='iv iv-great'>96%</span><span class='ivs'>15/14/14</span><span class='tag lucky'>🍀</span></div></div></div><div class='mon '><div class='mon-main'><div class='mon-name'>Arcanine</div><div class='mon-stats'><span class='cp'>CP 1807</span><span class='iv iv-great'>96%</span><span class='ivs'>15/13/15</span></div></div></div><div class='mon '><div class='mon-main'><div class='mon-name'>Froakie</div><div class='mon-stats'><span class='cp'>CP 562</span><span class='iv iv-great'>96%</span><span class='ivs'>15/14/14</span></div></div></div></div>
+</section>
+
+<section id="power-up">
+  <h2>💪 Para fortalecer (Power Up)</h2>
+  <p class="section-desc">IV alto + relevância no meta. Gaste poeira estelar nestes primeiro.</p>
+  <div class="mon-list"><div class='mon green'><div class='mon-main'><div class='mon-name'>Slowking</div><div class='mon-stats'><span class='cp'>CP 1417</span><span class='iv iv-perfect'>100%</span><span class='ivs'>15/15/15</span></div></div></div><div class='mon green'><div class='mon-main'><div class='mon-name'>Chansey</div><div class='mon-stats'><span class='cp'>CP 645</span><span class='iv iv-perfect'>100%</span><span class='ivs'>15/15/15</span></div></div></div><div class='mon green'><div class='mon-main'><div class='mon-name'>Magikarp</div><div class='mon-stats'><span class='cp'>CP 196</span><span class='iv iv-perfect'>100%</span><span class='ivs'>15/15/15</span></div></div></div><div class='mon green'><div class='mon-main'><div class='mon-name'>Arcanine</div><div class='mon-stats'><span class='cp'>CP 1807</span><span class='iv iv-great'>96%</span><span class='ivs'>15/13/15</span></div></div></div><div class='mon green'><div class='mon-main'><div class='mon-name'>Durant</div><div class='mon-stats'><span class='cp'>CP 1473</span><span class='iv iv-great'>96%</span><span class='ivs'>15/14/14</span><span class='tag lucky'>🍀</span></div></div></div><div class='mon green'><div class='mon-main'><div class='mon-name'>Diancie</div><div class='mon-stats'><span class='cp'>CP 1158</span><span class='iv iv-great'>93%</span><span class='ivs'>14/15/13</span></div></div></div><div class='mon green'><div class='mon-main'><div class='mon-name'>Leafeon</div><div class='mon-stats'><span class='cp'>CP 1289</span><span class='iv iv-great'>91%</span><span class='ivs'>15/15/11</span></div></div></div></div>
+</section>
+
+<section id="evolve">
+  <h2>🔄 Para evoluir</h2>
+  <p class="section-desc">Pré-evoluções com IV ≥ 85%. Ordenadas por IV.</p>
+  <div class="mon-list"><div class='mon yellow'>
+        <div class='mon-main'>
+          <div class='mon-name'>Chansey <span class='arrow'>→</span> <span class='evo'>Blissey</span></div>
+          <div class='mon-stats'><span class='cp'>CP 645</span><span class='iv iv-perfect'>100%</span><span class='ivs'>15/15/15</span></div>
+        </div></div><div class='mon yellow'>
+        <div class='mon-main'>
+          <div class='mon-name'>Magikarp <span class='arrow'>→</span> <span class='evo'>Gyarados</span></div>
+          <div class='mon-stats'><span class='cp'>CP 196</span><span class='iv iv-perfect'>100%</span><span class='ivs'>15/15/15</span></div>
+        </div></div><div class='mon yellow'>
+        <div class='mon-main'>
+          <div class='mon-name'>Yungoos <span class='arrow'>→</span> <span class='evo'>Gumshoos</span></div>
+          <div class='mon-stats'><span class='cp'>CP 374</span><span class='iv iv-great'>98%</span><span class='ivs'>14/15/15</span></div>
+        </div></div><div class='mon yellow'>
+        <div class='mon-main'>
+          <div class='mon-name'>Cubone <span class='arrow'>→</span> <span class='evo'>Marowak</span></div>
+          <div class='mon-stats'><span class='cp'>CP 577</span><span class='iv iv-great'>98%</span><span class='ivs'>14/15/15</span></div>
+        </div></div><div class='mon yellow'>
+        <div class='mon-main'>
+          <div class='mon-name'>Vigoroth <span class='arrow'>→</span> <span class='evo'>Slaking</span></div>
+          <div class='mon-stats'><span class='cp'>CP 1118</span><span class='iv iv-great'>96%</span><span class='ivs'>15/14/14</span></div>
+        </div></div><div class='mon yellow'>
+        <div class='mon-main'>
+          <div class='mon-name'>Voltorb <span class='arrow'>→</span> <span class='evo'>Electrode</span></div>
+          <div class='mon-stats'><span class='cp'>CP 429</span><span class='iv iv-great'>96%</span><span class='ivs'>15/13/15</span></div>
+        </div></div><div class='mon yellow'>
+        <div class='mon-main'>
+          <div class='mon-name'>Froakie <span class='arrow'>→</span> <span class='evo'>Frogadier→Greninja</span></div>
+          <div class='mon-stats'><span class='cp'>CP 562</span><span class='iv iv-great'>96%</span><span class='ivs'>15/14/14</span></div>
+        </div></div><div class='mon yellow'>
+        <div class='mon-main'>
+          <div class='mon-name'>Makuhita <span class='arrow'>→</span> <span class='evo'>Hariyama</span></div>
+          <div class='mon-stats'><span class='cp'>CP 272</span><span class='iv iv-great'>93%</span><span class='ivs'>12/15/15</span></div>
+        </div></div><div class='mon yellow'>
+        <div class='mon-main'>
+          <div class='mon-name'>Meditite <span class='arrow'>→</span> <span class='evo'>Medicham</span></div>
+          <div class='mon-stats'><span class='cp'>CP 293</span><span class='iv iv-great'>93%</span><span class='ivs'>15/12/15</span></div>
+        </div></div><div class='mon yellow'>
+        <div class='mon-main'>
+          <div class='mon-name'>Oshawott <span class='arrow'>→</span> <span class='evo'>Dewott→Samurott</span></div>
+          <div class='mon-stats'><span class='cp'>CP 584</span><span class='iv iv-great'>93%</span><span class='ivs'>12/15/15</span></div>
+        </div></div><div class='mon yellow'>
+        <div class='mon-main'>
+          <div class='mon-name'>Snivy <span class='arrow'>→</span> <span class='evo'>Servine→Serperior</span></div>
+          <div class='mon-stats'><span class='cp'>CP 477</span><span class='iv iv-great'>93%</span><span class='ivs'>14/14/14</span></div>
+        </div></div><div class='mon yellow'>
+        <div class='mon-main'>
+          <div class='mon-name'>Hisuian Sneasel <span class='arrow'>→</span> <span class='evo'>Sneasler</span></div>
+          <div class='mon-stats'><span class='cp'>CP 871</span><span class='iv iv-great'>93%</span><span class='ivs'>15/13/14</span></div>
+        </div></div><div class='mon yellow'>
+        <div class='mon-main'>
+          <div class='mon-name'>Wooloo <span class='arrow'>→</span> <span class='evo'>Dubwool</span></div>
+          <div class='mon-stats'><span class='cp'>CP 297</span><span class='iv iv-great'>93%</span><span class='ivs'>14/14/14</span></div>
+        </div></div><div class='mon yellow'>
+        <div class='mon-main'>
+          <div class='mon-name'>Swablu <span class='arrow'>→</span> <span class='evo'>Altaria</span></div>
+          <div class='mon-stats'><span class='cp'>CP 466</span><span class='iv iv-great'>93%</span><span class='ivs'>15/12/15</span></div>
+        </div></div><div class='mon yellow'>
+        <div class='mon-main'>
+          <div class='mon-name'>Numel <span class='arrow'>→</span> <span class='evo'>Camerupt</span></div>
+          <div class='mon-stats'><span class='cp'>CP 447</span><span class='iv iv-great'>93%</span><span class='ivs'>14/15/13</span></div>
+        </div></div><div class='mon yellow'>
+        <div class='mon-main'>
+          <div class='mon-name'>Electabuzz <span class='arrow'>→</span> <span class='evo'>Electivire</span></div>
+          <div class='mon-stats'><span class='cp'>CP 1714</span><span class='iv iv-great'>91%</span><span class='ivs'>15/12/14</span></div>
+        </div></div><div class='mon yellow'>
+        <div class='mon-main'>
+          <div class='mon-name'>Happiny <span class='arrow'>→</span> <span class='evo'>Chansey→Blissey</span></div>
+          <div class='mon-stats'><span class='cp'>CP 200</span><span class='iv iv-great'>91%</span><span class='ivs'>13/14/14</span></div>
+        </div></div><div class='mon yellow'>
+        <div class='mon-main'>
+          <div class='mon-name'>Piplup <span class='arrow'>→</span> <span class='evo'>Prinplup→Empoleon</span></div>
+          <div class='mon-stats'><span class='cp'>CP 602</span><span class='iv iv-great'>91%</span><span class='ivs'>14/14/13</span></div>
+        </div></div><div class='mon yellow'>
+        <div class='mon-main'>
+          <div class='mon-name'>Totodile <span class='arrow'>→</span> <span class='evo'>Croconaw→Feraligatr</span></div>
+          <div class='mon-stats'><span class='cp'>CP 473</span><span class='iv iv-good'>89%</span><span class='ivs'>14/11/15</span></div>
+        </div></div><div class='mon yellow'>
+        <div class='mon-main'>
+          <div class='mon-name'>Roselia <span class='arrow'>→</span> <span class='evo'>Roserade</span></div>
+          <div class='mon-stats'><span class='cp'>CP 1625</span><span class='iv iv-good'>89%</span><span class='ivs'>14/11/15</span></div>
+        </div></div><div class='mon yellow'>
+        <div class='mon-main'>
+          <div class='mon-name'>Feebas <span class='arrow'>→</span> <span class='evo'>Milotic</span></div>
+          <div class='mon-stats'><span class='cp'>CP 112</span><span class='iv iv-good'>89%</span><span class='ivs'>14/11/15</span></div>
+        </div></div><div class='mon yellow'>
+        <div class='mon-main'>
+          <div class='mon-name'>Buneary <span class='arrow'>→</span> <span class='evo'>Lopunny</span></div>
+          <div class='mon-stats'><span class='cp'>CP 528</span><span class='iv iv-good'>89%</span><span class='ivs'>15/10/15</span></div>
+        </div></div><div class='mon yellow'>
+        <div class='mon-main'>
+          <div class='mon-name'>Snivy <span class='arrow'>→</span> <span class='evo'>Servine→Serperior</span></div>
+          <div class='mon-stats'><span class='cp'>CP 470</span><span class='iv iv-good'>89%</span><span class='ivs'>13/14/13</span></div>
+        </div></div><div class='mon yellow'>
+        <div class='mon-main'>
+          <div class='mon-name'>Turtwig <span class='arrow'>→</span> <span class='evo'>Grotle→Torterra</span></div>
+          <div class='mon-stats'><span class='cp'>CP 653</span><span class='iv iv-good'>89%</span><span class='ivs'>10/15/15</span></div>
+        </div></div><div class='mon yellow'>
+        <div class='mon-main'>
+          <div class='mon-name'>Chansey <span class='arrow'>→</span> <span class='evo'>Blissey</span></div>
+          <div class='mon-stats'><span class='cp'>CP 535</span><span class='iv iv-good'>89%</span><span class='ivs'>15/15/10</span></div>
+        </div></div><div class='mon yellow'>
+        <div class='mon-main'>
+          <div class='mon-name'>Pancham <span class='arrow'>→</span> <span class='evo'>Pangoro</span></div>
+          <div class='mon-stats'><span class='cp'>CP 828</span><span class='iv iv-good'>89%</span><span class='ivs'>12/13/15</span></div>
+        </div></div><div class='mon yellow'>
+        <div class='mon-main'>
+          <div class='mon-name'>Numel <span class='arrow'>→</span> <span class='evo'>Camerupt</span></div>
+          <div class='mon-stats'><span class='cp'>CP 617</span><span class='iv iv-good'>89%</span><span class='ivs'>15/10/15</span></div>
+        </div></div><div class='mon yellow'>
+        <div class='mon-main'>
+          <div class='mon-name'>Voltorb <span class='arrow'>→</span> <span class='evo'>Electrode</span></div>
+          <div class='mon-stats'><span class='cp'>CP 424</span><span class='iv iv-good'>89%</span><span class='ivs'>15/15/10</span></div>
+        </div></div><div class='mon yellow'>
+        <div class='mon-main'>
+          <div class='mon-name'>Roselia <span class='arrow'>→</span> <span class='evo'>Roserade</span></div>
+          <div class='mon-stats'><span class='cp'>CP 784</span><span class='iv iv-good'>89%</span><span class='ivs'>12/15/13</span></div>
+        </div></div><div class='mon yellow'>
+        <div class='mon-main'>
+          <div class='mon-name'>Makuhita <span class='arrow'>→</span> <span class='evo'>Hariyama</span></div>
+          <div class='mon-stats'><span class='cp'>CP 734</span><span class='iv iv-good'>89%</span><span class='ivs'>15/14/11</span></div>
+        </div></div></div>
+</section>
+
+<section id="trade-evo">
+  <h2>🎁 EVOLUÇÃO POR TROCA — Faça AGORA!</h2>
+  <div class="info-box tip">
+    <h3>💡 Por quê?</h3>
+    <p>Estes Pokémons evoluem <strong>SEM GASTAR CANDIES</strong> quando trocados com um amigo. Você economiza 50-400 candies por evolução!</p>
+    <p style="margin-top:6px;"><strong>Como fazer:</strong> peça pra um amigo trocar o Pokémon com você (vocês podem trocar mutuamente — ele te dá o dele e você o seu). Após receber o Pokémon trocado, ele evolui de graça.</p>
+  </div>
+  <div class="mon-list"><div class='mon trade-evo'>
+        <div class='mon-main'>
+          <div class='mon-name'>Kadabra <span class='arrow'>→</span> <span class='evo'>Alakazam</span></div>
+          <div class='mon-stats'><span class='cp'>CP 848</span><span class='iv iv-low'>78%</span><span class='ivs'>10/10/15</span><span class='tag shiny'>✨</span></div>
+        </div>
+        <div class='mon-extra'>💸 Evolui <strong>GRÁTIS</strong> via troca (sem custo de candies)</div>
+        </div><div class='mon trade-evo'>
+        <div class='mon-main'>
+          <div class='mon-name'>Shelmet <span class='arrow'>→</span> <span class='evo'>Accelgor</span></div>
+          <div class='mon-stats'><span class='cp'>CP 511</span><span class='iv iv-low'>58%</span><span class='ivs'>5/10/11</span></div>
+        </div>
+        <div class='mon-extra'>💸 Evolui <strong>GRÁTIS</strong> via troca (sem custo de candies)</div>
+        </div><div class='mon trade-evo'>
+        <div class='mon-main'>
+          <div class='mon-name'>Machoke <span class='arrow'>→</span> <span class='evo'>Machamp</span></div>
+          <div class='mon-stats'><span class='cp'>CP 1705</span><span class='iv iv-low'>56%</span><span class='ivs'>10/10/5</span></div>
+        </div>
+        <div class='mon-extra'>💸 Evolui <strong>GRÁTIS</strong> via troca (sem custo de candies)</div>
+        </div><div class='mon trade-evo'>
+        <div class='mon-main'>
+          <div class='mon-name'>Shelmet <span class='arrow'>→</span> <span class='evo'>Accelgor</span></div>
+          <div class='mon-stats'><span class='cp'>CP 409</span><span class='iv iv-low'>56%</span><span class='ivs'>11/7/7</span></div>
+        </div>
+        <div class='mon-extra'>💸 Evolui <strong>GRÁTIS</strong> via troca (sem custo de candies)</div>
+        </div></div>
+</section>
+
+<section id="regionals">
+  <h2>🌍 Regionais (alto valor de troca)</h2>
+  <p class="section-desc">Estes Pokémons só aparecem em certas regiões do mundo. Outros jogadores procuram. Duplicatas têm valor altíssimo de troca.</p>
+  <div class="mon-list"><div class='mon regional'>
+        <div class='mon-main'>
+          <div class='mon-name'>Mr. Mime 🌍</div>
+          <div class='mon-stats'><span class='cp'>CP 1253</span><span class='iv iv-great'>91%</span><span class='ivs'>13/14/14</span></div>
+        </div></div><div class='mon regional'>
+        <div class='mon-main'>
+          <div class='mon-name'>Tauros 🌍</div>
+          <div class='mon-stats'><span class='cp'>CP 1467</span><span class='iv iv-good'>82%</span><span class='ivs'>15/11/11</span></div>
+        </div></div><div class='mon regional'>
+        <div class='mon-main'>
+          <div class='mon-name'>Heracross 🌍</div>
+          <div class='mon-stats'><span class='cp'>CP 2869</span><span class='iv iv-good'>82%</span><span class='ivs'>11/11/15</span></div>
+        </div></div><div class='mon regional'>
+        <div class='mon-main'>
+          <div class='mon-name'>Lunatone 🌍</div>
+          <div class='mon-stats'><span class='cp'>CP 1096</span><span class='iv iv-low'>78%</span><span class='ivs'>14/8/13</span></div>
+        </div></div><div class='mon regional'>
+        <div class='mon-main'>
+          <div class='mon-name'>Solrock 🌍</div>
+          <div class='mon-stats'><span class='cp'>CP 1725</span><span class='iv iv-low'>76%</span><span class='ivs'>11/11/12</span></div>
+        </div></div><div class='mon regional'>
+        <div class='mon-main'>
+          <div class='mon-name'>Heracross 🌍</div>
+          <div class='mon-stats'><span class='cp'>CP 1361</span><span class='iv iv-low'>76%</span><span class='ivs'>7/12/15</span></div>
+        </div></div><div class='mon regional'>
+        <div class='mon-main'>
+          <div class='mon-name'>Throh 🌍</div>
+          <div class='mon-stats'><span class='cp'>CP 762</span><span class='iv iv-low'>76%</span><span class='ivs'>6/13/15</span></div>
+        </div></div><div class='mon regional'>
+        <div class='mon-main'>
+          <div class='mon-name'>Seviper 🌍</div>
+          <div class='mon-stats'><span class='cp'>CP 1727</span><span class='iv iv-low'>62%</span><span class='ivs'>13/6/9</span></div>
+        </div></div><div class='mon regional'>
+        <div class='mon-main'>
+          <div class='mon-name'>Throh 🌍</div>
+          <div class='mon-stats'><span class='cp'>CP 2088</span><span class='iv iv-low'>60%</span><span class='ivs'>12/9/6</span></div>
+        </div></div><div class='mon regional'>
+        <div class='mon-main'>
+          <div class='mon-name'>Galarian Farfetchd 🌍</div>
+          <div class='mon-stats'><span class='cp'>CP 348</span><span class='iv iv-low'>58%</span><span class='ivs'>7/14/5</span></div>
+        </div></div><div class='mon regional'>
+        <div class='mon-main'>
+          <div class='mon-name'>Heracross 🌍</div>
+          <div class='mon-stats'><span class='cp'>CP 2593</span><span class='iv iv-low'>51%</span><span class='ivs'>9/5/9</span></div>
+        </div></div><div class='mon regional'>
+        <div class='mon-main'>
+          <div class='mon-name'>Chatot 🌍</div>
+          <div class='mon-stats'><span class='cp'>CP 266</span><span class='iv iv-low'>49%</span><span class='ivs'>11/1/10</span></div>
+        </div></div><div class='mon regional'>
+        <div class='mon-main'>
+          <div class='mon-name'>Heracross 🌍</div>
+          <div class='mon-stats'><span class='cp'>CP 2518</span><span class='iv iv-low'>47%</span><span class='ivs'>9/5/7</span></div>
+        </div></div><div class='mon regional'>
+        <div class='mon-main'>
+          <div class='mon-name'>Illumise 🌍</div>
+          <div class='mon-stats'><span class='cp'>CP 163</span><span class='iv iv-low'>36%</span><span class='ivs'>4/12/0</span></div>
+        </div></div></div>
+</section>
+
+<section id="trade-friends">
+  <h2>🤝 Trocar com amigos (53 candidatos)</h2>
+  <div class="info-box tip">
+    <h3>🍀 Por que TROCAR e não TRANSFERIR?</h3>
+    <p>Trocar com amigos tem 3 vantagens:</p>
+    <ul>
+      <li><strong>Lucky:</strong> chance de virar Lucky (50% menos poeira pra fortalecer pra sempre)</li>
+      <li><strong>Reroll de IV:</strong> Pokémon trocado ganha IV novo aleatório com mínimo garantido (Great Friend +1, Ultra +2, Best +3 em cada stat). Pokémons baixos podem virar bons</li>
+      <li><strong>Você ajuda o amigo</strong> a completar a Pokédex dele</li>
+    </ul>
+    <p style="margin-top:8px;"><strong>Atenção:</strong> trocar custa poeira (varia de 100 a 1M dependendo da raridade e amizade). Para Pokémon comuns com Best Friend, custa só 100 poeira.</p>
+  </div>
+  <div class='reason-group'><div class='reason-title'>IV bom (82%) — pode virar Lucky em troca (18)</div><div class='mon trade-friend'>
+            <div class='mon-main'>
+              <div class='mon-name'>Audino</div>
+              <div class='mon-stats'><span class='cp'>CP 923</span><span class='iv iv-good'>82%</span><span class='ivs'>11/14/12</span></div>
+            </div></div><div class='mon trade-friend'>
+            <div class='mon-main'>
+              <div class='mon-name'>Charmeleon</div>
+              <div class='mon-stats'><span class='cp'>CP 908</span><span class='iv iv-good'>82%</span><span class='ivs'>10/14/13</span></div>
+            </div></div><div class='mon trade-friend'>
+            <div class='mon-main'>
+              <div class='mon-name'>Combee</div>
+              <div class='mon-stats'><span class='cp'>CP 262</span><span class='iv iv-good'>82%</span><span class='ivs'>11/12/14</span></div>
+            </div></div><div class='mon trade-friend'>
+            <div class='mon-main'>
+              <div class='mon-name'>Eevee</div>
+              <div class='mon-stats'><span class='cp'>CP 137</span><span class='iv iv-good'>82%</span><span class='ivs'>10/14/13</span></div>
+            </div></div><div class='mon trade-friend'>
+            <div class='mon-main'>
+              <div class='mon-name'>Furret</div>
+              <div class='mon-stats'><span class='cp'>CP 964</span><span class='iv iv-good'>82%</span><span class='ivs'>10/13/14</span></div>
+            </div></div><div class='mon trade-friend'>
+            <div class='mon-main'>
+              <div class='mon-name'>Gible</div>
+              <div class='mon-stats'><span class='cp'>CP 611</span><span class='iv iv-good'>82%</span><span class='ivs'>12/14/11</span></div>
+            </div></div><div class='mon trade-friend'>
+            <div class='mon-main'>
+              <div class='mon-name'>Hisuian Sneasel</div>
+              <div class='mon-stats'><span class='cp'>CP 849</span><span class='iv iv-good'>82%</span><span class='ivs'>10/15/12</span></div>
+            </div></div><div class='mon trade-friend'>
+            <div class='mon-main'>
+              <div class='mon-name'>Jumpluff</div>
+              <div class='mon-stats'><span class='cp'>CP 673</span><span class='iv iv-good'>82%</span><span class='ivs'>11/13/13</span></div>
+            </div></div><div class='mon trade-friend'>
+            <div class='mon-main'>
+              <div class='mon-name'>Meditite</div>
+              <div class='mon-stats'><span class='cp'>CP 375</span><span class='iv iv-good'>82%</span><span class='ivs'>12/15/10</span></div>
+            </div></div><div class='mon trade-friend'>
+            <div class='mon-main'>
+              <div class='mon-name'>Phony Sinistea</div>
+              <div class='mon-stats'><span class='cp'>CP 469</span><span class='iv iv-good'>82%</span><span class='ivs'>12/14/11</span></div>
+            </div></div><div class='mon trade-friend'>
+            <div class='mon-main'>
+              <div class='mon-name'>Piplup</div>
+              <div class='mon-stats'><span class='cp'>CP 591</span><span class='iv iv-good'>82%</span><span class='ivs'>13/12/12</span></div>
+            </div></div><div class='mon trade-friend'>
+            <div class='mon-main'>
+              <div class='mon-name'>Swablu</div>
+              <div class='mon-stats'><span class='cp'>CP 510</span><span class='iv iv-good'>82%</span><span class='ivs'>11/15/11</span></div>
+            </div></div><div class='mon trade-friend'>
+            <div class='mon-main'>
+              <div class='mon-name'>Togetic</div>
+              <div class='mon-stats'><span class='cp'>CP 702</span><span class='iv iv-good'>82%</span><span class='ivs'>10/14/13</span></div>
+            </div></div><div class='mon trade-friend'>
+            <div class='mon-main'>
+              <div class='mon-name'>Totodile</div>
+              <div class='mon-stats'><span class='cp'>CP 627</span><span class='iv iv-good'>82%</span><span class='ivs'>15/11/11</span></div>
+            </div></div><div class='mon trade-friend'>
+            <div class='mon-main'>
+              <div class='mon-name'>Totodile</div>
+              <div class='mon-stats'><span class='cp'>CP 615</span><span class='iv iv-good'>82%</span><span class='ivs'>10/13/14</span></div>
+            </div></div><div class='mon trade-friend'>
+            <div class='mon-main'>
+              <div class='mon-name'>Turtwig</div>
+              <div class='mon-stats'><span class='cp'>CP 659</span><span class='iv iv-good'>82%</span><span class='ivs'>15/11/11</span></div>
+            </div></div><div class='mon trade-friend'>
+            <div class='mon-main'>
+              <div class='mon-name'>Woobat</div>
+              <div class='mon-stats'><span class='cp'>CP 556</span><span class='iv iv-good'>82%</span><span class='ivs'>13/11/13</span></div>
+            </div></div><div class='mon trade-friend'>
+            <div class='mon-main'>
+              <div class='mon-name'>Wooloo</div>
+              <div class='mon-stats'><span class='cp'>CP 292</span><span class='iv iv-good'>82%</span><span class='ivs'>15/10/12</span></div>
+            </div></div></div><div class='reason-group'><div class='reason-title'>IV bom (89%) — pode virar Lucky em troca (8)</div><div class='mon trade-friend'>
+            <div class='mon-main'>
+              <div class='mon-name'>Chansey</div>
+              <div class='mon-stats'><span class='cp'>CP 535</span><span class='iv iv-good'>89%</span><span class='ivs'>15/15/10</span></div>
+            </div></div><div class='mon trade-friend'>
+            <div class='mon-main'>
+              <div class='mon-name'>Cottonee</div>
+              <div class='mon-stats'><span class='cp'>CP 287</span><span class='iv iv-good'>89%</span><span class='ivs'>12/13/15</span></div>
+            </div></div><div class='mon trade-friend'>
+            <div class='mon-main'>
+              <div class='mon-name'>Froakie</div>
+              <div class='mon-stats'><span class='cp'>CP 553</span><span class='iv iv-good'>89%</span><span class='ivs'>15/11/14</span></div>
+            </div></div><div class='mon trade-friend'>
+            <div class='mon-main'>
+              <div class='mon-name'>Makuhita</div>
+              <div class='mon-stats'><span class='cp'>CP 734</span><span class='iv iv-good'>89%</span><span class='ivs'>15/14/11</span></div>
+            </div></div><div class='mon trade-friend'>
+            <div class='mon-main'>
+              <div class='mon-name'>Numel</div>
+              <div class='mon-stats'><span class='cp'>CP 617</span><span class='iv iv-good'>89%</span><span class='ivs'>15/10/15</span></div>
+            </div></div><div class='mon trade-friend'>
+            <div class='mon-main'>
+              <div class='mon-name'>Roselia</div>
+              <div class='mon-stats'><span class='cp'>CP 784</span><span class='iv iv-good'>89%</span><span class='ivs'>12/15/13</span></div>
+            </div></div><div class='mon trade-friend'>
+            <div class='mon-main'>
+              <div class='mon-name'>Snivy</div>
+              <div class='mon-stats'><span class='cp'>CP 470</span><span class='iv iv-good'>89%</span><span class='ivs'>13/14/13</span></div>
+            </div></div><div class='mon trade-friend'>
+            <div class='mon-main'>
+              <div class='mon-name'>Voltorb</div>
+              <div class='mon-stats'><span class='cp'>CP 424</span><span class='iv iv-good'>89%</span><span class='ivs'>15/15/10</span></div>
+            </div></div></div><div class='reason-group'><div class='reason-title'>IV bom (80%) — pode virar Lucky em troca (8)</div><div class='mon trade-friend'>
+            <div class='mon-main'>
+              <div class='mon-name'>Eevee</div>
+              <div class='mon-stats'><span class='cp'>CP 440</span><span class='iv iv-good'>80%</span><span class='ivs'>13/11/12</span></div>
+            </div></div><div class='mon trade-friend'>
+            <div class='mon-main'>
+              <div class='mon-name'>Eevee</div>
+              <div class='mon-stats'><span class='cp'>CP 440</span><span class='iv iv-good'>80%</span><span class='ivs'>13/12/11</span></div>
+            </div></div><div class='mon trade-friend'>
+            <div class='mon-main'>
+              <div class='mon-name'>Gastly</div>
+              <div class='mon-stats'><span class='cp'>CP 803</span><span class='iv iv-good'>80%</span><span class='ivs'>13/11/12</span></div>
+            </div></div><div class='mon trade-friend'>
+            <div class='mon-main'>
+              <div class='mon-name'>Mawile</div>
+              <div class='mon-stats'><span class='cp'>CP 678</span><span class='iv iv-good'>80%</span><span class='ivs'>14/10/12</span></div>
+            </div></div><div class='mon trade-friend'>
+            <div class='mon-main'>
+              <div class='mon-name'>Onix</div>
+              <div class='mon-stats'><span class='cp'>CP 448</span><span class='iv iv-good'>80%</span><span class='ivs'>12/13/11</span></div>
+            </div></div><div class='mon trade-friend'>
+            <div class='mon-main'>
+              <div class='mon-name'>Scorbunny</div>
+              <div class='mon-stats'><span class='cp'>CP 595</span><span class='iv iv-good'>80%</span><span class='ivs'>12/10/14</span></div>
+            </div></div><div class='mon trade-friend'>
+            <div class='mon-main'>
+              <div class='mon-name'>Seedot</div>
+              <div class='mon-stats'><span class='cp'>CP 358</span><span class='iv iv-good'>80%</span><span class='ivs'>14/11/11</span></div>
+            </div></div><div class='mon trade-friend'>
+            <div class='mon-main'>
+              <div class='mon-name'>Wailmer</div>
+              <div class='mon-stats'><span class='cp'>CP 806</span><span class='iv iv-good'>80%</span><span class='ivs'>11/14/11</span></div>
+            </div></div></div><div class='reason-group'><div class='reason-title'>IV bom (84%) — pode virar Lucky em troca (7)</div><div class='mon trade-friend'>
+            <div class='mon-main'>
+              <div class='mon-name'>Alola Sandshrew</div>
+              <div class='mon-stats'><span class='cp'>CP 707</span><span class='iv iv-good'>84%</span><span class='ivs'>10/14/14</span></div>
+            </div></div><div class='mon trade-friend'>
+            <div class='mon-main'>
+              <div class='mon-name'>Cleffa</div>
+              <div class='mon-stats'><span class='cp'>CP 363</span><span class='iv iv-good'>84%</span><span class='ivs'>12/11/15</span></div>
+            </div></div><div class='mon trade-friend'>
+            <div class='mon-main'>
+              <div class='mon-name'>Electabuzz</div>
+              <div class='mon-stats'><span class='cp'>CP 1950</span><span class='iv iv-good'>84%</span><span class='ivs'>12/11/15</span></div>
+            </div></div><div class='mon trade-friend'>
+            <div class='mon-main'>
+              <div class='mon-name'>Happiny</div>
+              <div class='mon-stats'><span class='cp'>CP 192</span><span class='iv iv-good'>84%</span><span class='ivs'>12/12/14</span></div>
+            </div></div><div class='mon trade-friend'>
+            <div class='mon-main'>
+              <div class='mon-name'>Houndour</div>
+              <div class='mon-stats'><span class='cp'>CP 860</span><span class='iv iv-good'>84%</span><span class='ivs'>15/15/8</span></div>
+            </div></div><div class='mon trade-friend'>
+            <div class='mon-main'>
+              <div class='mon-name'>Sneasel</div>
+              <div class='mon-stats'><span class='cp'>CP 1140</span><span class='iv iv-good'>84%</span><span class='ivs'>12/15/11</span></div>
+            </div></div><div class='mon trade-friend'>
+            <div class='mon-main'>
+              <div class='mon-name'>Woobat</div>
+              <div class='mon-stats'><span class='cp'>CP 417</span><span class='iv iv-good'>84%</span><span class='ivs'>12/12/14</span></div>
+            </div></div></div><div class='reason-group'><div class='reason-title'>IV bom (87%) — pode virar Lucky em troca (4)</div><div class='mon trade-friend'>
+            <div class='mon-main'>
+              <div class='mon-name'>Combee</div>
+              <div class='mon-stats'><span class='cp'>CP 203</span><span class='iv iv-good'>87%</span><span class='ivs'>14/10/15</span></div>
+            </div></div><div class='mon trade-friend'>
+            <div class='mon-main'>
+              <div class='mon-name'>Feebas</div>
+              <div class='mon-stats'><span class='cp'>CP 108</span><span class='iv iv-good'>87%</span><span class='ivs'>12/12/15</span></div>
+            </div></div><div class='mon trade-friend'>
+            <div class='mon-main'>
+              <div class='mon-name'>Lileep</div>
+              <div class='mon-stats'><span class='cp'>CP 962</span><span class='iv iv-good'>87%</span><span class='ivs'>12/12/15</span></div>
+            </div></div><div class='mon trade-friend'>
+            <div class='mon-main'>
+              <div class='mon-name'>Pancham</div>
+              <div class='mon-stats'><span class='cp'>CP 830</span><span class='iv iv-good'>87%</span><span class='ivs'>14/12/13</span></div>
+            </div></div></div><div class='reason-group'><div class='reason-title'>Regional — outros jogadores procuram (4)</div><div class='mon trade-friend'>
+            <div class='mon-main'>
+              <div class='mon-name'>Heracross</div>
+              <div class='mon-stats'><span class='cp'>CP 1361</span><span class='iv iv-low'>76%</span><span class='ivs'>7/12/15</span></div>
+            </div></div><div class='mon trade-friend'>
+            <div class='mon-main'>
+              <div class='mon-name'>Throh</div>
+              <div class='mon-stats'><span class='cp'>CP 2088</span><span class='iv iv-low'>60%</span><span class='ivs'>12/9/6</span></div>
+            </div></div><div class='mon trade-friend'>
+            <div class='mon-main'>
+              <div class='mon-name'>Heracross</div>
+              <div class='mon-stats'><span class='cp'>CP 2593</span><span class='iv iv-low'>51%</span><span class='ivs'>9/5/9</span></div>
+            </div></div><div class='mon trade-friend'>
+            <div class='mon-main'>
+              <div class='mon-name'>Heracross</div>
+              <div class='mon-stats'><span class='cp'>CP 2518</span><span class='iv iv-low'>47%</span><span class='ivs'>9/5/7</span></div>
+            </div></div></div><div class='reason-group'><div class='reason-title'>Evolui GRÁTIS via troca → Accelgor (2)</div><div class='mon trade-friend'>
+            <div class='mon-main'>
+              <div class='mon-name'>Shelmet</div>
+              <div class='mon-stats'><span class='cp'>CP 511</span><span class='iv iv-low'>58%</span><span class='ivs'>5/10/11</span></div>
+            </div></div><div class='mon trade-friend'>
+            <div class='mon-main'>
+              <div class='mon-name'>Shelmet</div>
+              <div class='mon-stats'><span class='cp'>CP 409</span><span class='iv iv-low'>56%</span><span class='ivs'>11/7/7</span></div>
+            </div></div></div><div class='reason-group'><div class='reason-title'>Lendário/Mítico duplicado — troca de Lucky (1)</div><div class='mon trade-friend'>
+            <div class='mon-main'>
+              <div class='mon-name'>Hisuian Voltorb</div>
+              <div class='mon-stats'><span class='cp'>CP 414</span><span class='iv iv-good'>84%</span><span class='ivs'>11/14/13</span></div>
+            </div></div></div><div class='reason-group'><div class='reason-title'>Evolui GRÁTIS via troca → Machamp (1)</div><div class='mon trade-friend'>
+            <div class='mon-main'>
+              <div class='mon-name'>Machoke</div>
+              <div class='mon-stats'><span class='cp'>CP 1705</span><span class='iv iv-low'>56%</span><span class='ivs'>10/10/5</span></div>
+            </div></div></div>
+</section>
+
+<section id="transfer">
+  <h2>❌ TRANSFERIR pro Professor (130 candidatos)</h2>
+  <div class="info-box warning">
+    <h3>⚠️ Por que TRANSFERIR?</h3>
+    <p>Cada Pokémon transferido te dá <strong>1 candy</strong> da espécie (3 candies se for Pokémon-XL durante eventos).</p>
+    <p style="margin-top:6px;">Lista abaixo: duplicatas com IV baixo (&lt;80%), sem valor de troca. Você pode transferir <strong>em massa</strong>: pressione e segure um Pokémon na lista → "Transferir vários".</p>
+    <p style="margin-top:6px;"><strong>Antes de transferir, confira:</strong> nenhum deles é Lucky, Shiny, ou está sendo usado no seu time atual.</p>
+  </div>
+  <p class="section-desc">Agrupado por espécie para facilitar a transferência em massa.</p>
+  <div class='dup-group'><div class='dup-name'>Alola Geodude (2)</div><div class='dup-item transfer'>
+            <span class='dup-stats'>CP 709 · IV 49% · 0/11/11</span>
+        </div><div class='dup-item transfer'>
+            <span class='dup-stats'>CP 812 · IV 76% · 13/6/15</span>
+        </div></div><div class='dup-group'><div class='dup-name'>Alola Grimer (2)</div><div class='dup-item transfer'>
+            <span class='dup-stats'>CP 928 · IV 78% · 10/11/14</span>
+        </div><div class='dup-item transfer'>
+            <span class='dup-stats'>CP 751 · IV 78% · 11/14/10</span>
+        </div></div><div class='dup-group'><div class='dup-name'>Alola Meowth (1)</div><div class='dup-item transfer'>
+            <span class='dup-stats'>CP 554 · IV 69% · 14/10/7</span>
+        </div></div><div class='dup-group'><div class='dup-name'>Alola Vulpix (1)</div><div class='dup-item transfer'>
+            <span class='dup-stats'>CP 477 · IV 78% · 12/12/11</span>
+        </div></div><div class='dup-group'><div class='dup-name'>Arcanine (1)</div><div class='dup-item transfer'>
+            <span class='dup-stats'>CP 2221 · IV 62% · 10/10/8</span>
+        </div></div><div class='dup-group'><div class='dup-name'>Aron (2)</div><div class='dup-item transfer'>
+            <span class='dup-stats'>CP 406 · IV 51% · 9/0/14</span>
+        </div><div class='dup-item transfer'>
+            <span class='dup-stats'>CP 1129 · IV 64% · 14/6/9</span>
+        </div></div><div class='dup-group'><div class='dup-name'>Axew (1)</div><div class='dup-item transfer'>
+            <span class='dup-stats'>CP 462 · IV 53% · 9/10/5</span>
+        </div></div><div class='dup-group'><div class='dup-name'>Bayleef (1)</div><div class='dup-item transfer'>
+            <span class='dup-stats'>CP 990 · IV 64% · 15/5/9</span>
+        </div></div><div class='dup-group'><div class='dup-name'>Bellsprout (1)</div><div class='dup-item transfer'>
+            <span class='dup-stats'>CP 346 · IV 36% · 4/4/8</span>
+        </div></div><div class='dup-group'><div class='dup-name'>Bulbasaur (1)</div><div class='dup-item transfer'>
+            <span class='dup-stats'>CP 765 · IV 67% · 9/15/6</span>
+        </div></div><div class='dup-group'><div class='dup-name'>Buneary (1)</div><div class='dup-item transfer'>
+            <span class='dup-stats'>CP 514 · IV 78% · 12/11/12</span>
+        </div></div><div class='dup-group'><div class='dup-name'>Bunnelby (1)</div><div class='dup-item transfer'>
+            <span class='dup-stats'>CP 295 · IV 67% · 10/7/13</span>
+        </div></div><div class='dup-group'><div class='dup-name'>Cacnea (1)</div><div class='dup-item transfer'>
+            <span class='dup-stats'>CP 243 · IV 44% · 5/4/11</span>
+        </div></div><div class='dup-group'><div class='dup-name'>Charmander (2)</div><div class='dup-item transfer'>
+            <span class='dup-stats'>CP 651 · IV 53% · 8/14/2</span>
+        </div><div class='dup-item transfer'>
+            <span class='dup-stats'>CP 532 · IV 76% · 14/10/10</span>
+        </div></div><div class='dup-group'><div class='dup-name'>Cleffa (1)</div><div class='dup-item transfer'>
+            <span class='dup-stats'>CP 358 · IV 78% · 11/13/11</span>
+        </div></div><div class='dup-group'><div class='dup-name'>Combee (1)</div><div class='dup-item transfer'>
+            <span class='dup-stats'>CP 254 · IV 71% · 10/12/10</span>
+        </div></div><div class='dup-group'><div class='dup-name'>Cottonee (1)</div><div class='dup-item transfer'>
+            <span class='dup-stats'>CP 449 · IV 71% · 8/13/11</span>
+        </div></div><div class='dup-group'><div class='dup-name'>Cubone (1)</div><div class='dup-item transfer'>
+            <span class='dup-stats'>CP 462 · IV 67% · 12/10/8</span>
+        </div></div><div class='dup-group'><div class='dup-name'>Cyndaquil (1)</div><div class='dup-item transfer'>
+            <span class='dup-stats'>CP 523 · IV 73% · 10/12/11</span>
+        </div></div><div class='dup-group'><div class='dup-name'>Dedenne (1)</div><div class='dup-item transfer'>
+            <span class='dup-stats'>CP 1498 · IV 53% · 8/7/9</span>
+        </div></div><div class='dup-group'><div class='dup-name'>Deino (1)</div><div class='dup-item transfer'>
+            <span class='dup-stats'>CP 194 · IV 13% · 3/3/0</span>
+        </div></div><div class='dup-group'><div class='dup-name'>Delibird (1)</div><div class='dup-item transfer'>
+            <span class='dup-stats'>CP 489 · IV 22% · 0/8/2</span>
+        </div></div><div class='dup-group'><div class='dup-name'>Dewpider (1)</div><div class='dup-item transfer'>
+            <span class='dup-stats'>CP 122 · IV 16% · 1/5/1</span>
+        </div></div><div class='dup-group'><div class='dup-name'>Doduo (1)</div><div class='dup-item transfer'>
+            <span class='dup-stats'>CP 308 · IV 51% · 11/7/5</span>
+        </div></div><div class='dup-group'><div class='dup-name'>Drifloon (1)</div><div class='dup-item transfer'>
+            <span class='dup-stats'>CP 761 · IV 22% · 1/5/4</span>
+        </div></div><div class='dup-group'><div class='dup-name'>Drilbur (1)</div><div class='dup-item transfer'>
+            <span class='dup-stats'>CP 732 · IV 67% · 10/10/10</span>
+        </div></div><div class='dup-group'><div class='dup-name'>Drowzee (1)</div><div class='dup-item transfer'>
+            <span class='dup-stats'>CP 200 · IV 49% · 3/15/4</span>
+        </div></div><div class='dup-group'><div class='dup-name'>Dunsparce (1)</div><div class='dup-item transfer'>
+            <span class='dup-stats'>CP 814 · IV 69% · 10/8/13</span>
+        </div></div><div class='dup-group'><div class='dup-name'>Durant (1)</div><div class='dup-item transfer'>
+            <span class='dup-stats'>CP 810 · IV 78% · 15/15/5</span>
+        </div></div><div class='dup-group'><div class='dup-name'>Duskull (4)</div><div class='dup-item transfer'>
+            <span class='dup-stats'>CP 132 · IV 44% · 6/9/5</span>
+        </div><div class='dup-item transfer'>
+            <span class='dup-stats'>CP 145 · IV 53% · 14/3/7</span>
+        </div><div class='dup-item transfer'>
+            <span class='dup-stats'>CP 141 · IV 62% · 10/13/5</span>
+        </div><div class='dup-item transfer'>
+            <span class='dup-stats'>CP 387 · IV 78% · 15/10/10</span>
+        </div></div><div class='dup-group'><div class='dup-name'>Eevee (3)</div><div class='dup-item transfer'>
+            <span class='dup-stats'>CP 461 · IV 18% · 7/1/0</span>
+        </div><div class='dup-item transfer'>
+            <span class='dup-stats'>CP 373 · IV 49% · 5/6/11</span>
+        </div><div class='dup-item transfer'>
+            <span class='dup-stats'>CP 317 · IV 73% · 12/10/11</span>
+        </div></div><div class='dup-group'><div class='dup-name'>Ekans (1)</div><div class='dup-item transfer'>
+            <span class='dup-stats'>CP 651 · IV 51% · 6/13/4</span>
+        </div></div><div class='dup-group'><div class='dup-name'>Fletchling (1)</div><div class='dup-item transfer'>
+            <span class='dup-stats'>CP 266 · IV 67% · 7/10/13</span>
+        </div></div><div class='dup-group'><div class='dup-name'>Froakie (1)</div><div class='dup-item transfer'>
+            <span class='dup-stats'>CP 206 · IV 71% · 7/15/10</span>
+        </div></div><div class='dup-group'><div class='dup-name'>Galarian Meowth (1)</div><div class='dup-item transfer'>
+            <span class='dup-stats'>CP 770 · IV 64% · 13/8/8</span>
+        </div></div><div class='dup-group'><div class='dup-name'>Galarian Ponyta (2)</div><div class='dup-item transfer'>
+            <span class='dup-stats'>CP 1100 · IV 42% · 12/6/1</span>
+        </div><div class='dup-item transfer'>
+            <span class='dup-stats'>CP 931 · IV 53% · 7/12/5</span>
+        </div></div><div class='dup-group'><div class='dup-name'>Galarian Slowpoke (1)</div><div class='dup-item transfer'>
+            <span class='dup-stats'>CP 406 · IV 62% · 3/15/10</span>
+        </div></div><div class='dup-group'><div class='dup-name'>Gastly (1)</div><div class='dup-item transfer'>
+            <span class='dup-stats'>CP 993 · IV 76% · 7/12/15</span>
+        </div></div><div class='dup-group'><div class='dup-name'>Glameow (3)</div><div class='dup-item transfer'>
+            <span class='dup-stats'>CP 296 · IV 29% · 11/2/0</span>
+        </div><div class='dup-item transfer'>
+            <span class='dup-stats'>CP 406 · IV 58% · 12/1/13</span>
+        </div><div class='dup-item transfer'>
+            <span class='dup-stats'>CP 373 · IV 71% · 14/5/13</span>
+        </div></div><div class='dup-group'><div class='dup-name'>Grimer (1)</div><div class='dup-item transfer'>
+            <span class='dup-stats'>CP 972 · IV 56% · 11/7/7</span>
+        </div></div><div class='dup-group'><div class='dup-name'>Grookey (1)</div><div class='dup-item transfer'>
+            <span class='dup-stats'>CP 576 · IV 69% · 10/11/10</span>
+        </div></div><div class='dup-group'><div class='dup-name'>Growlithe (1)</div><div class='dup-item transfer'>
+            <span class='dup-stats'>CP 674 · IV 18% · 0/5/3</span>
+        </div></div><div class='dup-group'><div class='dup-name'>Helioptile (2)</div><div class='dup-item transfer'>
+            <span class='dup-stats'>CP 176 · IV 36% · 1/13/2</span>
+        </div><div class='dup-item transfer'>
+            <span class='dup-stats'>CP 179 · IV 40% · 2/13/3</span>
+        </div></div><div class='dup-group'><div class='dup-name'>Hitmonchan (1)</div><div class='dup-item transfer'>
+            <span class='dup-stats'>CP 1585 · IV 67% · 15/13/2</span>
+        </div></div><div class='dup-group'><div class='dup-name'>Jigglypuff (1)</div><div class='dup-item transfer'>
+            <span class='dup-stats'>CP 111 · IV 58% · 11/15/0</span>
+        </div></div><div class='dup-group'><div class='dup-name'>Joltik (1)</div><div class='dup-item transfer'>
+            <span class='dup-stats'>CP 485 · IV 51% · 6/3/14</span>
+        </div></div><div class='dup-group'><div class='dup-name'>Lechonk (1)</div><div class='dup-item transfer'>
+            <span class='dup-stats'>CP 180 · IV 78% · 14/15/6</span>
+        </div></div><div class='dup-group'><div class='dup-name'>Lickitung (2)</div><div class='dup-item transfer'>
+            <span class='dup-stats'>CP 231 · IV 29% · 0/9/4</span>
+        </div><div class='dup-item transfer'>
+            <span class='dup-stats'>CP 205 · IV 38% · 7/3/7</span>
+        </div></div><div class='dup-group'><div class='dup-name'>Lileep (1)</div><div class='dup-item transfer'>
+            <span class='dup-stats'>CP 712 · IV 78% · 14/10/11</span>
+        </div></div><div class='dup-group'><div class='dup-name'>Lillipup (1)</div><div class='dup-item transfer'>
+            <span class='dup-stats'>CP 156 · IV 62% · 2/12/14</span>
+        </div></div><div class='dup-group'><div class='dup-name'>Litten (3)</div><div class='dup-item transfer'>
+            <span class='dup-stats'>CP 300 · IV 27% · 11/0/1</span>
+        </div><div class='dup-item transfer'>
+            <span class='dup-stats'>CP 377 · IV 58% · 14/5/7</span>
+        </div><div class='dup-item transfer'>
+            <span class='dup-stats'>CP 565 · IV 78% · 15/10/10</span>
+        </div></div><div class='dup-group'><div class='dup-name'>Litwick (1)</div><div class='dup-item transfer'>
+            <span class='dup-stats'>CP 191 · IV 27% · 7/3/2</span>
+        </div></div><div class='dup-group'><div class='dup-name'>Loudred (1)</div><div class='dup-item transfer'>
+            <span class='dup-stats'>CP 893 · IV 76% · 13/7/14</span>
+        </div></div><div class='dup-group'><div class='dup-name'>Minccino (2)</div><div class='dup-item transfer'>
+            <span class='dup-stats'>CP 205 · IV 60% · 11/15/1</span>
+        </div><div class='dup-item transfer'>
+            <span class='dup-stats'>CP 518 · IV 73% · 15/7/11</span>
+        </div></div><div class='dup-group'><div class='dup-name'>Natu (4)</div><div class='dup-item transfer'>
+            <span class='dup-stats'>CP 328 · IV 9% · 1/2/1</span>
+        </div><div class='dup-item transfer'>
+            <span class='dup-stats'>CP 240 · IV 31% · 6/5/3</span>
+        </div><div class='dup-item transfer'>
+            <span class='dup-stats'>CP 562 · IV 40% · 0/6/12</span>
+        </div><div class='dup-item transfer'>
+            <span class='dup-stats'>CP 780 · IV 78% · 13/11/11</span>
+        </div></div><div class='dup-group'><div class='dup-name'>Nosepass (1)</div><div class='dup-item transfer'>
+            <span class='dup-stats'>CP 599 · IV 71% · 4/15/13</span>
+        </div></div><div class='dup-group'><div class='dup-name'>Oddish (1)</div><div class='dup-item transfer'>
+            <span class='dup-stats'>CP 287 · IV 62% · 7/14/7</span>
+        </div></div><div class='dup-group'><div class='dup-name'>Omanyte (1)</div><div class='dup-item transfer'>
+            <span class='dup-stats'>CP 504 · IV 38% · 4/7/6</span>
+        </div></div><div class='dup-group'><div class='dup-name'>Onix (1)</div><div class='dup-item transfer'>
+            <span class='dup-stats'>CP 446 · IV 78% · 11/10/14</span>
+        </div></div><div class='dup-group'><div class='dup-name'>Oshawott (1)</div><div class='dup-item transfer'>
+            <span class='dup-stats'>CP 557 · IV 71% · 10/12/10</span>
+        </div></div><div class='dup-group'><div class='dup-name'>Pikachu (2)</div><div class='dup-item transfer'>
+            <span class='dup-stats'>CP 173 · IV 29% · 2/1/10</span>
+        </div><div class='dup-item transfer'>
+            <span class='dup-stats'>CP 110 · IV 42% · 10/2/7</span>
+        </div></div><div class='dup-group'><div class='dup-name'>Pompom Oricorio (1)</div><div class='dup-item transfer'>
+            <span class='dup-stats'>CP 1389 · IV 51% · 7/12/4</span>
+        </div></div><div class='dup-group'><div class='dup-name'>Ralts (3)</div><div class='dup-item transfer'>
+            <span class='dup-stats'>CP 324 · IV 56% · 6/7/12</span>
+        </div><div class='dup-item transfer'>
+            <span class='dup-stats'>CP 211 · IV 60% · 5/14/8</span>
+        </div><div class='dup-item transfer'>
+            <span class='dup-stats'>CP 174 · IV 62% · 7/12/9</span>
+        </div></div><div class='dup-group'><div class='dup-name'>Rhyhorn (1)</div><div class='dup-item transfer'>
+            <span class='dup-stats'>CP 528 · IV 51% · 14/6/3</span>
+        </div></div><div class='dup-group'><div class='dup-name'>Rufflet (1)</div><div class='dup-item transfer'>
+            <span class='dup-stats'>CP 288 · IV 29% · 1/7/5</span>
+        </div></div><div class='dup-group'><div class='dup-name'>Sableye (1)</div><div class='dup-item transfer'>
+            <span class='dup-stats'>CP 604 · IV 78% · 11/14/10</span>
+        </div></div><div class='dup-group'><div class='dup-name'>Scorbunny (3)</div><div class='dup-item transfer'>
+            <span class='dup-stats'>CP 770 · IV 51% · 1/13/9</span>
+        </div><div class='dup-item transfer'>
+            <span class='dup-stats'>CP 826 · IV 67% · 4/13/13</span>
+        </div><div class='dup-item transfer'>
+            <span class='dup-stats'>CP 590 · IV 76% · 10/12/12</span>
+        </div></div><div class='dup-group'><div class='dup-name'>Scraggy (1)</div><div class='dup-item transfer'>
+            <span class='dup-stats'>CP 415 · IV 76% · 15/15/4</span>
+        </div></div><div class='dup-group'><div class='dup-name'>Scyther (3)</div><div class='dup-item transfer'>
+            <span class='dup-stats'>CP 1744 · IV 33% · 3/10/2</span>
+        </div><div class='dup-item transfer'>
+            <span class='dup-stats'>CP 1658 · IV 58% · 4/15/7</span>
+        </div><div class='dup-item transfer'>
+            <span class='dup-stats'>CP 950 · IV 60% · 11/6/10</span>
+        </div></div><div class='dup-group'><div class='dup-name'>Sewaddle (3)</div><div class='dup-item transfer'>
+            <span class='dup-stats'>CP 282 · IV 56% · 13/9/3</span>
+        </div><div class='dup-item transfer'>
+            <span class='dup-stats'>CP 514 · IV 67% · 10/10/10</span>
+        </div><div class='dup-item transfer'>
+            <span class='dup-stats'>CP 232 · IV 69% · 11/12/8</span>
+        </div></div><div class='dup-group'><div class='dup-name'>Shuppet (1)</div><div class='dup-item transfer'>
+            <span class='dup-stats'>CP 409 · IV 73% · 13/10/10</span>
+        </div></div><div class='dup-group'><div class='dup-name'>Skiddo (3)</div><div class='dup-item transfer'>
+            <span class='dup-stats'>CP 119 · IV 49% · 10/11/1</span>
+        </div><div class='dup-item transfer'>
+            <span class='dup-stats'>CP 530 · IV 67% · 11/6/13</span>
+        </div><div class='dup-item transfer'>
+            <span class='dup-stats'>CP 87 · IV 67% · 14/7/9</span>
+        </div></div><div class='dup-group'><div class='dup-name'>Snivy (1)</div><div class='dup-item transfer'>
+            <span class='dup-stats'>CP 540 · IV 53% · 9/13/2</span>
+        </div></div><div class='dup-group'><div class='dup-name'>Spheal (2)</div><div class='dup-item transfer'>
+            <span class='dup-stats'>CP 190 · IV 40% · 8/10/0</span>
+        </div><div class='dup-item transfer'>
+            <span class='dup-stats'>CP 204 · IV 60% · 14/13/0</span>
+        </div></div><div class='dup-group'><div class='dup-name'>Squirtle (3)</div><div class='dup-item transfer'>
+            <span class='dup-stats'>CP 708 · IV 51% · 6/7/10</span>
+        </div><div class='dup-item transfer'>
+            <span class='dup-stats'>CP 510 · IV 76% · 12/10/12</span>
+        </div><div class='dup-item transfer'>
+            <span class='dup-stats'>CP 515 · IV 78% · 13/12/10</span>
+        </div></div><div class='dup-group'><div class='dup-name'>Starly (2)</div><div class='dup-item transfer'>
+            <span class='dup-stats'>CP 201 · IV 51% · 15/7/1</span>
+        </div><div class='dup-item transfer'>
+            <span class='dup-stats'>CP 495 · IV 62% · 10/8/10</span>
+        </div></div><div class='dup-group'><div class='dup-name'>Starmie (1)</div><div class='dup-item transfer'>
+            <span class='dup-stats'>CP 1903 · IV 67% · 2/14/14</span>
+        </div></div><div class='dup-group'><div class='dup-name'>Stunky (1)</div><div class='dup-item transfer'>
+            <span class='dup-stats'>CP 462 · IV 71% · 11/10/11</span>
+        </div></div><div class='dup-group'><div class='dup-name'>Sudowoodo (2)</div><div class='dup-item transfer'>
+            <span class='dup-stats'>CP 370 · IV 24% · 4/0/7</span>
+        </div><div class='dup-item transfer'>
+            <span class='dup-stats'>CP 759 · IV 73% · 9/15/9</span>
+        </div></div><div class='dup-group'><div class='dup-name'>Swinub (1)</div><div class='dup-item transfer'>
+            <span class='dup-stats'>CP 133 · IV 27% · 1/9/2</span>
+        </div></div><div class='dup-group'><div class='dup-name'>Swirlix (1)</div><div class='dup-item transfer'>
+            <span class='dup-stats'>CP 431 · IV 27% · 6/2/4</span>
+        </div></div><div class='dup-group'><div class='dup-name'>Taillow (1)</div><div class='dup-item transfer'>
+            <span class='dup-stats'>CP 138 · IV 27% · 2/6/4</span>
+        </div></div><div class='dup-group'><div class='dup-name'>Tangela (1)</div><div class='dup-item transfer'>
+            <span class='dup-stats'>CP 833 · IV 51% · 11/9/3</span>
+        </div></div><div class='dup-group'><div class='dup-name'>Togetic (1)</div><div class='dup-item transfer'>
+            <span class='dup-stats'>CP 646 · IV 73% · 9/11/13</span>
+        </div></div><div class='dup-group'><div class='dup-name'>Torchic (1)</div><div class='dup-item transfer'>
+            <span class='dup-stats'>CP 583 · IV 71% · 10/11/11</span>
+        </div></div><div class='dup-group'><div class='dup-name'>Turtwig (1)</div><div class='dup-item transfer'>
+            <span class='dup-stats'>CP 632 · IV 69% · 10/11/10</span>
+        </div></div><div class='dup-group'><div class='dup-name'>Vaporeon (1)</div><div class='dup-item transfer'>
+            <span class='dup-stats'>CP 2546 · IV 64% · 5/9/15</span>
+        </div></div><div class='dup-group'><div class='dup-name'>Venonat (1)</div><div class='dup-item transfer'>
+            <span class='dup-stats'>CP 428 · IV 42% · 9/5/5</span>
+        </div></div><div class='dup-group'><div class='dup-name'>Weepinbell (1)</div><div class='dup-item transfer'>
+            <span class='dup-stats'>CP 1282 · IV 73% · 14/13/6</span>
+        </div></div><div class='dup-group'><div class='dup-name'>Wingull (1)</div><div class='dup-item transfer'>
+            <span class='dup-stats'>CP 174 · IV 62% · 15/0/13</span>
+        </div></div><div class='dup-group'><div class='dup-name'>Wobbuffet (1)</div><div class='dup-item transfer'>
+            <span class='dup-stats'>CP 194 · IV 58% · 5/9/12</span>
+        </div></div><div class='dup-group'><div class='dup-name'>Wooloo (1)</div><div class='dup-item transfer'>
+            <span class='dup-stats'>CP 544 · IV 58% · 12/2/12</span>
+        </div></div><div class='dup-group'><div class='dup-name'>Xatu (1)</div><div class='dup-item transfer'>
+            <span class='dup-stats'>CP 1482 · IV 78% · 13/14/8</span>
+        </div></div><div class='dup-group'><div class='dup-name'>Yamask (1)</div><div class='dup-item transfer'>
+            <span class='dup-stats'>CP 438 · IV 51% · 5/12/6</span>
+        </div></div>
+</section>
+
+</div>
+
+<footer>
+  Análise gerada a partir do export Calcy IV do dia 26/05/2026.<br>
+  Sempre confira seu time atual antes de transferir.
+</footer>
+
+</body></html>
