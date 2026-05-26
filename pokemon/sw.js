@@ -1,4 +1,4 @@
-const CACHE = 'pokemon-leo-v1';
+const CACHE = 'pokemon-leo-v2';
 const ASSETS = [
   './index.html',
   './manifest.json',
