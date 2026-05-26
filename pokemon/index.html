@@ -1,6 +1,12 @@
 <!DOCTYPE html>
 <html lang="pt-BR"><head><meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Pokémon Leo">
+<meta name="theme-color" content="#0a0e14">
+<link rel="manifest" href="./manifest.json">
+<link rel="apple-touch-icon" href="./icons/icon-180.png">
 <title>Análise Pokémon - Leo</title>
 <style>
 :root {
@@ -26,14 +32,14 @@ html { scroll-behavior: smooth; }
 body {
   font-family: -apple-system, 'SF Pro Display', 'Segoe UI', Roboto, sans-serif;
   background: var(--bg); color: var(--text); line-height: 1.5;
-  padding: 0; margin: 0; padding-bottom: 80px;
+  padding: 0; margin: 0; padding-bottom: calc(80px + env(safe-area-inset-bottom));
 }
 .container { max-width: 900px; margin: 0 auto; padding: 16px; }
 
 /* Header */
 header {
   background: linear-gradient(135deg, rgba(245,197,24,0.1), rgba(239,68,68,0.1));
-  padding: 28px 20px;
+  padding: calc(28px + env(safe-area-inset-top)) 20px 28px;
   border-bottom: 1px solid var(--border);
   text-align: center;
 }
@@ -52,7 +58,7 @@ h1 {
 
 /* Sticky nav */
 .tabs {
-  position: sticky; top: 0; z-index: 100;
+  position: sticky; top: env(safe-area-inset-top); z-index: 100;
   background: var(--bg); border-bottom: 1px solid var(--border);
   overflow-x: auto; white-space: nowrap;
   padding: 12px 8px; gap: 8px; display: flex;
@@ -226,7 +232,7 @@ h2 {
 .changelog li { margin: 3px 0; }
 
 footer {
-  margin-top: 40px; padding: 24px 16px;
+  margin-top: 40px; padding: 24px 16px calc(24px + env(safe-area-inset-bottom));
   border-top: 1px solid var(--border);
   text-align: center; color: var(--text-dim); font-size: 11px;
 }
@@ -1057,4 +1063,10 @@ footer {
   Sempre confira seu time atual antes de transferir.
 </footer>
 
+
+<script>
+  if ('serviceWorker' in navigator) {
+    try { navigator.serviceWorker.register('./sw.js'); } catch(e) {}
+  }
+</script>
 </body></html>
