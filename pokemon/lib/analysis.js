@@ -70,5 +70,60 @@
     return list;
   }
 
-  return { ivPct, speciesKey, enrichOne, enrichCollection };
+  function isProtected(e) {
+    return e.isShiny || e.isLucky || e.isShadow || e.isLegendary
+        || e.isCostume || e.isExtremeSize || e.isHundo || e.isNearPerfect;
+  }
+
+  function investReason(e) {
+    if (e.isHundo) return 'Perfeito (15/15/15)';
+    if (e.isNearPerfect) return 'Quase perfeito (' + e.ivPct + '%)';
+    return 'Melhor cópia · IV ' + e.ivPct + '%';
+  }
+
+  function specialReason(e) {
+    if (e.isShiny) return 'Shiny — protegido';
+    if (e.isLegendary) return 'Lendário/mítico';
+    if (e.isLucky) return 'Lucky — protegido';
+    if (e.isShadow) return 'Sombrio — protegido';
+    if (e.isCostume) return 'Fantasia — colecionável';
+    if (e.isExtremeSize) return 'Tamanho ' + e.size + ' — raro';
+    return 'Especial';
+  }
+
+  function computeVerdict(e) {
+    if (isProtected(e)) {
+      if (e.isHundo || e.isNearPerfect || (e.isBestOfSpecies && e.ivPct >= 90))
+        return { verdict: 'INVESTIR', reason: investReason(e) };
+      return { verdict: 'MANTER', reason: specialReason(e) };
+    }
+    if (e.isOnlyCopy || e.isBestOfSpecies) {
+      if (e.isBestOfSpecies && e.ivPct >= 90)
+        return { verdict: 'INVESTIR', reason: investReason(e) };
+      return { verdict: 'MANTER', reason: e.isOnlyCopy ? 'Única cópia da espécie' : 'Melhor cópia (IV ' + e.ivPct + '%)' };
+    }
+    if (e.ivPct < 80)
+      return { verdict: 'TRANSFERIR', reason: 'Duplicata pior · IV ' + e.ivPct + '% · nada especial' };
+    return { verdict: 'MANTER', reason: 'Duplicata ok (IV ' + e.ivPct + '%)' };
+  }
+
+  function computeTags(e) {
+    const tags = [];
+    if (e.isTradeEvo) tags.push('TROCAR_EVO');
+    if (e.isRegional) tags.push('REGIONAL');
+    return tags;
+  }
+
+  function analyze(fileData, getSize, refdata) {
+    const list = enrichCollection(fileData, getSize, refdata);
+    for (const e of list) {
+      const v = computeVerdict(e);
+      e.verdict = v.verdict;
+      e.reason = v.reason;
+      e.tags = computeTags(e);
+    }
+    return list;
+  }
+
+  return { ivPct, speciesKey, enrichOne, enrichCollection, isProtected, computeVerdict, computeTags, analyze };
 });
