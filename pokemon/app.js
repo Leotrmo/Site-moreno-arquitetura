@@ -112,8 +112,60 @@
     card.insertAdjacentHTML('beforeend', detailHtml(mon));
   });
 
-  // placeholders preenchidos nas próximas tasks:
-  function toggleTransferMode() {}
+  const TF_KEY = 'pokemon-transfer-done';
+  function tfGetDone() {
+    try { return new Set(JSON.parse(localStorage.getItem(TF_KEY) || '[]')); }
+    catch { return new Set(); }
+  }
+  function tfSaveDone(set) { localStorage.setItem(TF_KEY, JSON.stringify([...set])); }
+
+  function toggleTransferMode() {
+    const on = state.verdict === 'TRANSFERIR';
+    document.getElementById('transfer-controls').hidden = !on;
+    if (!on) return;
+    const done = tfGetDone();
+    // injeta botão ✓ e estado em cada card visível
+    document.querySelectorAll('#list .pk').forEach(card => {
+      const id = card.dataset.id;
+      if (done.has(id)) card.classList.add('done');
+      if (!card.querySelector('.tf-check')) {
+        const btn = document.createElement('button');
+        btn.className = 'tf-check filter-btn';
+        btn.textContent = '✓ já transferi';
+        btn.addEventListener('click', ev => {
+          ev.stopPropagation();
+          const d = tfGetDone();
+          if (d.has(id)) { d.delete(id); card.classList.remove('done'); }
+          else { d.add(id); card.classList.add('done'); }
+          tfSaveDone(d); tfUpdateProgress();
+        });
+        card.querySelector('.pk-top').appendChild(btn);
+      }
+    });
+    tfUpdateProgress();
+  }
+
+  let tfFilterPend = false;
+  function tfUpdateProgress() {
+    const done = tfGetDone();
+    const cards = [...document.querySelectorAll('#list .pk')];
+    const doneVisible = cards.filter(c => done.has(c.dataset.id)).length;
+    document.getElementById('tf-progress').textContent =
+      doneVisible + ' transferidos · ' + (cards.length - doneVisible) + ' restantes';
+    cards.forEach(c => { c.style.display = (tfFilterPend && done.has(c.dataset.id)) ? 'none' : ''; });
+  }
+
+  document.getElementById('tf-filter').addEventListener('click', function () {
+    tfFilterPend = !tfFilterPend;
+    this.textContent = tfFilterPend ? '👁 Ver todos' : '🔍 Ver pendentes';
+    tfUpdateProgress();
+  });
+  document.getElementById('tf-clear').addEventListener('click', () => {
+    if (!confirm('Limpar todas as marcações de transferência?')) return;
+    tfSaveDone(new Set());
+    document.querySelectorAll('#list .pk.done').forEach(c => c.classList.remove('done'));
+    tfUpdateProgress();
+  });
 
   window.__pokeApp = { boot, applyFilters, getState: () => state, getMons: () => allMons };
   boot();
