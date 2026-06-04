@@ -10,7 +10,12 @@
   }
 
   function speciesKey(mon) {
-    return mon.mon_number + '_' + (mon.mon_form || 'BASE');
+    // No JSON, a mesma espécie às vezes vem com mon_form "X_NORMAL" e às vezes
+    // sem mon_form. Ambos são a forma base e devem agrupar juntos; só formas
+    // especiais (regionais/Hisui/etc.) ganham chave própria.
+    const f = mon.mon_form;
+    if (!f || /_NORMAL$/.test(f)) return mon.mon_number + '_BASE';
+    return mon.mon_number + '_' + f;
   }
 
   function enrichOne(mon, getSize, refdata) {
