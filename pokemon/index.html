@@ -38,11 +38,23 @@ body {
 
 /* Header */
 header {
+  position: relative;
   background: linear-gradient(135deg, rgba(245,197,24,0.1), rgba(239,68,68,0.1));
   padding: calc(28px + env(safe-area-inset-top)) 20px 28px;
   border-bottom: 1px solid var(--border);
   text-align: center;
 }
+.refresh-btn {
+  position: absolute; top: calc(12px + env(safe-area-inset-top)); right: 14px;
+  width: 40px; height: 40px; border-radius: 50%;
+  background: var(--surface-2); border: 1px solid var(--border);
+  color: var(--text); font-size: 18px; line-height: 1; cursor: pointer;
+  display: flex; align-items: center; justify-content: center;
+  -webkit-tap-highlight-color: transparent;
+}
+.refresh-btn:active { background: var(--surface-3); }
+.refresh-btn.spinning { animation: refresh-spin 0.8s linear infinite; opacity: 0.7; }
+@keyframes refresh-spin { to { transform: rotate(360deg); } }
 h1 {
   font-size: 26px; font-weight: 800; margin-bottom: 6px;
   background: linear-gradient(135deg, #f5c518, #ef4444, #ec4899);
@@ -272,6 +284,7 @@ footer {
 </style></head><body>
 
 <header>
+  <button type="button" class="refresh-btn" onclick="forcarAtualizacao(this)" aria-label="Atualizar" title="Atualizar">🔄</button>
   <h1>🎮 Análise da Coleção</h1>
   <div class="subtitle">Leo · atualizado em 04/06/2026</div>
   <div class="total-count">614 Pokémons</div>
@@ -2789,7 +2802,33 @@ footer {
 
 <script>
   if ('serviceWorker' in navigator) {
-    try { navigator.serviceWorker.register('./sw.js'); } catch(e) {}
+    navigator.serviceWorker.register('./sw.js').then(reg => {
+      // Reopening the app (or returning to the tab) checks for a new version.
+      document.addEventListener('visibilitychange', () => {
+        if (document.visibilityState === 'visible') reg.update();
+      });
+      // When an updated service worker takes over, reload once to show fresh data.
+      let reloaded = false;
+      navigator.serviceWorker.addEventListener('controllerchange', () => {
+        if (reloaded) return;
+        reloaded = true;
+        location.reload();
+      });
+    }).catch(() => {});
+  }
+
+  // Manual force-refresh: wipe caches and reload from the network.
+  function forcarAtualizacao(btn) {
+    if (btn) { btn.classList.add('spinning'); btn.disabled = true; }
+    const done = () => location.reload();
+    if ('caches' in window) {
+      caches.keys()
+        .then(keys => Promise.all(keys.map(k => caches.delete(k))))
+        .then(done)
+        .catch(done);
+    } else {
+      done();
+    }
   }
 </script>
 <script src="./sizes.js"></script>
