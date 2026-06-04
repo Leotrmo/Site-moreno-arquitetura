@@ -52,5 +52,23 @@
     };
   }
 
-  return { ivPct, speciesKey, enrichOne };
+  function enrichCollection(fileData, getSize, refdata) {
+    const list = Object.keys(fileData).map(id => {
+      const e = enrichOne(fileData[id], getSize, refdata);
+      e.id = id;
+      return e;
+    });
+    const groups = {};
+    for (const e of list) (groups[e.speciesKey] = groups[e.speciesKey] || []).push(e);
+    for (const key in groups) {
+      const g = groups[key];
+      g.sort((a, b) => (b.ivPct - a.ivPct) || (b.cp - a.cp));
+      g[0].isBestOfSpecies = true;
+      const only = g.length === 1;
+      for (const e of g) e.isOnlyCopy = only;
+    }
+    return list;
+  }
+
+  return { ivPct, speciesKey, enrichOne, enrichCollection };
 });
