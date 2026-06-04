@@ -125,5 +125,21 @@
     return list;
   }
 
-  return { ivPct, speciesKey, enrichOne, enrichCollection, isProtected, computeVerdict, computeTags, analyze };
+  function computeCounts(list) {
+    const c = { total: list.length, INVESTIR:0, MANTER:0, TRANSFERIR:0,
+                hundos:0, shinies:0, shadows:0, purified:0, extremeSizes:0, legendaries:0, luckies:0 };
+    for (const e of list) {
+      c[e.verdict]++;
+      if (e.isHundo) c.hundos++;
+      if (e.isShiny) c.shinies++;
+      if (e.isShadow) c.shadows++;
+      if (e.isPurified) c.purified++;
+      if (e.isExtremeSize) c.extremeSizes++;
+      if (e.isLegendary) c.legendaries++;
+      if (e.isLucky) c.luckies++;
+    }
+    return c;
+  }
+
+  return { ivPct, speciesKey, enrichOne, enrichCollection, isProtected, computeVerdict, computeTags, analyze, computeCounts };
 });
