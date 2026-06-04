@@ -100,6 +100,18 @@
     applyFilters();
   });
 
+  document.getElementById('list').addEventListener('click', e => {
+    const card = e.target.closest('.pk');
+    if (!card) return;
+    if (e.target.closest('.tf-check')) return; // botão de transferir não expande
+    const id = card.dataset.id;
+    const mon = allMons.find(m => m.id === id);
+    if (!mon) return;
+    const existing = card.querySelector('.pk-detail');
+    if (existing) { existing.remove(); return; }
+    card.insertAdjacentHTML('beforeend', detailHtml(mon));
+  });
+
   // placeholders preenchidos nas próximas tasks:
   function toggleTransferMode() {}
 
