@@ -5,6 +5,11 @@
   else Object.assign(root, api);
 })(typeof globalThis !== 'undefined' ? globalThis : this, function () {
 
+  function speciesScalar(getSizeScalar, mon) {
+    if (typeof getSizeScalar !== 'function') return null;
+    return getSizeScalar(mon.mon_number, mon.mon_height, mon.mon_form) || null;
+  }
+
   function ivPct(mon) {
     return Math.round((mon.mon_attack + mon.mon_defence + mon.mon_stamina) / 45 * 100);
   }
@@ -18,9 +23,10 @@
     return mon.mon_number + '_' + f;
   }
 
-  function enrichOne(mon, getSize, refdata) {
+  function enrichOne(mon, getSize, refdata, getSizeScalar) {
     const iv = ivPct(mon);
     const size = getSize(mon.mon_number, mon.mon_height, mon.mon_form);
+    const scalar = speciesScalar(getSizeScalar, mon);
     return {
       raw: mon,
       name: mon.mon_name,
@@ -34,6 +40,7 @@
       weight: mon.mon_weight,
       pvp: mon.mon_pvp_stats || null,
       size: size,
+      sizeScalar: scalar,
       isShiny: mon.mon_isShiny === 'YES',
       isLucky: mon.mon_isLucky === 'YES',
       isShadow: mon.mon_alignment === 'SHADOW',
@@ -41,6 +48,9 @@
       isLegendary: refdata.LEGENDARY.has(mon.mon_number),
       isCostume: !!mon.mon_costume,
       isExtremeSize: size === 'XXS' || size === 'XXL',
+      isXSComfort: size === 'XS' && scalar !== null && scalar < 0.70,
+      isXLComfort: size === 'XL' && scalar !== null && scalar > 1.40,
+      hasSecondCharge: !!mon.mon_move_3,
       isHundo: iv === 100,
       isNearPerfect: iv >= 96,
       isRegional: refdata.REGIONAL.has(mon.mon_number),
