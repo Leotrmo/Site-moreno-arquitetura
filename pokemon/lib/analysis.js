@@ -60,6 +60,7 @@
       id: null,
       isBestOfSpecies: false,
       isOnlyCopy: false,
+      betterCopy: null,
       // preenchidos por analyze:
       verdict: null,
       reason: null,
