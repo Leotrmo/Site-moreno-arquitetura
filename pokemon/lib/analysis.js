@@ -91,7 +91,10 @@
 
   function isProtected(e) {
     return e.isShiny || e.isLucky || e.isShadow || e.isLegendary
-        || e.isCostume || e.isExtremeSize || e.isHundo || e.isNearPerfect;
+        || e.isCostume || e.isExtremeSize || e.isHundo || e.isNearPerfect
+        || e.isXSComfort || e.isXLComfort
+        || e.hasSecondCharge
+        || e.isTradeEvo || e.isRegional;
   }
 
   function investReason(e) {
