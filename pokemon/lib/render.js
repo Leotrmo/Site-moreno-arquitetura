@@ -19,10 +19,10 @@
     if (e.isLucky)    b.push('<span class="badge b-lucky">🍀</span>');
     if (e.isLegendary)b.push('<span class="badge b-legendary">👑</span>');
     if (e.isCostume)  b.push('<span class="badge b-costume">🎭</span>');
-    // Só os extremos XXS/XXL: GO calcula XS/XL com parâmetros por espécie que
-    // o export não traz, então limites fixos erram nas fronteiras. XS/XL viravam
-    // ruído (e não afetam veredito); só XXS/XXL importam e protegem.
     if (e.size === 'XXS' || e.size === 'XXL') b.push('<span class="badge b-size">' + e.size + '</span>');
+    else if (e.isXSComfort) b.push('<span class="badge b-size">XS</span>');
+    else if (e.isXLComfort) b.push('<span class="badge b-size">XL</span>');
+    if (e.hasSecondCharge) b.push('<span class="badge b-2nd">⚡</span>');
     if (e.tags.includes('TROCAR_EVO')) b.push('<span class="badge b-trade">🤝</span>');
     if (e.tags.includes('REGIONAL'))   b.push('<span class="badge b-regional">🌍</span>');
     return b.join('');
