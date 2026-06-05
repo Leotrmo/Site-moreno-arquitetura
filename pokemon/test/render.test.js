@@ -117,3 +117,26 @@ test('compareHtml: 2º carregado — ✔ pra quem tem, ✖ pra quem não tem', (
   // O lado com move_3 deve ter classe win em 2º carregado
   assert.match(html, /2º carr[\s\S]*?\bwin\b/);
 });
+
+const { detailHtml } = require('../lib/render.js');
+
+test('detailHtml inclui comparador quando verdict é TRANSFERIR', () => {
+  const fd = {
+    trash: { mon_name:'Pidgey', mon_number:16, mon_cp:80,  mon_attack:2,  mon_defence:5,  mon_stamina:7,  mon_height:0.3, mon_weight:3.5, mon_isShiny:'NO', mon_isLucky:'NO' },
+    best:  { mon_name:'Pidgey', mon_number:16, mon_cp:300, mon_attack:14, mon_defence:14, mon_stamina:14, mon_height:0.3, mon_weight:3.5, mon_isShiny:'NO', mon_isLucky:'NO' },
+  };
+  const list = analyze(fd, getPokemonSize, refdata, getPokemonSizeScalar);
+  const trash = list.find(e => e.id === 'trash');
+  assert.strictEqual(trash.verdict, 'TRANSFERIR');
+  const html = detailHtml(trash);
+  assert.match(html, /pk-compare/);
+  assert.match(html, /Este vs o melhor/);
+});
+
+test('detailHtml NÃO inclui comparador para MANTER/INVESTIR', () => {
+  const fd = { only: { mon_name:'Bidoof', mon_number:399, mon_cp:90, mon_attack:3, mon_defence:4, mon_stamina:5, mon_height:0.5, mon_weight:9.0, mon_isShiny:'NO', mon_isLucky:'NO' } };
+  const e = analyze(fd, getPokemonSize, refdata, getPokemonSizeScalar)[0];
+  assert.strictEqual(e.verdict, 'MANTER');
+  const html = detailHtml(e);
+  assert.doesNotMatch(html, /pk-compare/);
+});

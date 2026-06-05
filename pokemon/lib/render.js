@@ -59,12 +59,14 @@
   function detailHtml(e) {
     const moves = e.moves.map(esc).join(' · ');
     const pvp = e.pvp ? (e.pvp.pvp_won + '/' + e.pvp.pvp_total + ' vitórias') : '—';
+    const compare = (e.verdict === 'TRANSFERIR' && e.betterCopy) ? compareHtml(e, e.betterCopy) : '';
     return (
       '<div class="pk-detail">' +
         '<div>IVs: <strong>' + e.ivs.atk + '/' + e.ivs.def + '/' + e.ivs.sta + '</strong></div>' +
         '<div>Golpes: ' + (moves || '—') + '</div>' +
         '<div>Altura: ' + e.height.toFixed(2) + ' m · Peso: ' + e.weight.toFixed(1) + ' kg</div>' +
         '<div>Batalhas: ' + pvp + '</div>' +
+        compare +
       '</div>'
     );
   }
