@@ -68,9 +68,9 @@
     };
   }
 
-  function enrichCollection(fileData, getSize, refdata) {
+  function enrichCollection(fileData, getSize, refdata, getSizeScalar) {
     const list = Object.keys(fileData).map(id => {
-      const e = enrichOne(fileData[id], getSize, refdata);
+      const e = enrichOne(fileData[id], getSize, refdata, getSizeScalar);
       e.id = id;
       return e;
     });
@@ -81,7 +81,10 @@
       g.sort((a, b) => (b.ivPct - a.ivPct) || (b.cp - a.cp));
       g[0].isBestOfSpecies = true;
       const only = g.length === 1;
-      for (const e of g) e.isOnlyCopy = only;
+      for (const e of g) {
+        e.isOnlyCopy = only;
+        if (!e.isBestOfSpecies) e.betterCopy = g[0];
+      }
     }
     return list;
   }
@@ -130,8 +133,8 @@
     return tags;
   }
 
-  function analyze(fileData, getSize, refdata) {
-    const list = enrichCollection(fileData, getSize, refdata);
+  function analyze(fileData, getSize, refdata, getSizeScalar) {
+    const list = enrichCollection(fileData, getSize, refdata, getSizeScalar);
     for (const e of list) {
       const v = computeVerdict(e);
       e.verdict = v.verdict;

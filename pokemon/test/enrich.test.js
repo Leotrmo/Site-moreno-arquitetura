@@ -3,7 +3,7 @@ const { test } = require('node:test');
 const assert = require('node:assert');
 const { getPokemonSize, getPokemonSizeScalar } = require('../sizes.js');
 const refdata = require('../lib/refdata.js');
-const { enrichOne } = require('../lib/analysis.js');
+const { enrichOne, analyze } = require('../lib/analysis.js');
 
 const baseMon = (over) => Object.assign({
   mon_name: 'Machop', mon_number: 66, mon_cp: 500,
@@ -79,4 +79,10 @@ test('sizeScalar é exposto no objeto enriquecido', () => {
   const e = enrichOne(baseMon({ mon_height:0.8 }), getPokemonSize, refdata, getPokemonSizeScalar);
   // Machop #66 base 0.8 → scalar 1.0
   assert.strictEqual(e.sizeScalar.toFixed(2), '1.00');
+});
+
+test('analyze propaga sizeScalar via getSizeScalar opcional', () => {
+  const fd = { x: { mon_name:'Xatu', mon_number:178, mon_cp:909, mon_attack:13, mon_defence:11, mon_stamina:12, mon_height:0.95, mon_isShiny:'NO', mon_isLucky:'NO' } };
+  const list = analyze(fd, getPokemonSize, refdata, getPokemonSizeScalar);
+  assert.strictEqual(list[0].isXSComfort, true);
 });
