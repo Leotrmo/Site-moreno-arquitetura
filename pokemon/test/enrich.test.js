@@ -34,3 +34,20 @@ test('lendário vem do refdata', () => {
   assert.strictEqual(enrichOne(baseMon({ mon_number:150 }), getPokemonSize, refdata).isLegendary, true);
   assert.strictEqual(enrichOne(baseMon({ mon_number:66 }), getPokemonSize, refdata).isLegendary, false);
 });
+
+const { getPokemonSizeScalar } = require('../sizes.js');
+
+test('sizeScalar = altura / altura-base', () => {
+  // Xatu #178, base 1.5m
+  assert.strictEqual(getPokemonSizeScalar(178, 0.95).toFixed(3), '0.633');
+  assert.strictEqual(getPokemonSizeScalar(178, 1.17).toFixed(3), '0.780');
+});
+
+test('sizeScalar usa BASE_H_FORMS quando há forma', () => {
+  // SANDSHREW_ALOLA base 0.7m
+  assert.strictEqual(getPokemonSizeScalar(27, 0.35, 'SANDSHREW_ALOLA').toFixed(3), '0.500');
+});
+
+test('sizeScalar retorna null quando espécie desconhecida', () => {
+  assert.strictEqual(getPokemonSizeScalar(99999, 1.0), null);
+});
