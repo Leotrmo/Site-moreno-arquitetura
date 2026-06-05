@@ -130,3 +130,27 @@ test('TRANSFERIR mostra mensagem clara apontando para o melhor', () => {
   assert.strictEqual(t.verdict, 'TRANSFERIR');
   assert.match(t.reason, /Você já tem um Pidgey melhor/);
 });
+
+test('CASO PIVÔ: Xatu XS (80% IV) é mantido; Xatu normal (77.8%) é transferido', () => {
+  // Reproduz exatamente o caso das screenshots:
+  // Xatu 1: PC 909, IV 80% (13/11/12), altura 0.95m → XS comfort
+  // Xatu 2: PC 1482, IV 77.8% (13/14/8), altura 1.17m → XS fronteira (não comfort)
+  const fd = {
+    xatu_xs:     { mon_name:'Xatu', mon_number:178, mon_cp:909,  mon_attack:13, mon_defence:11, mon_stamina:12, mon_height:0.95, mon_isShiny:'NO', mon_isLucky:'NO' },
+    xatu_normal: { mon_name:'Xatu', mon_number:178, mon_cp:1482, mon_attack:13, mon_defence:14, mon_stamina:8,  mon_height:1.17, mon_isShiny:'NO', mon_isLucky:'NO' },
+  };
+  const list = analyze(fd, getPokemonSize, refdata, getPokemonSizeScalar);
+  const xs = list.find(e => e.id === 'xatu_xs');
+  const nm = list.find(e => e.id === 'xatu_normal');
+
+  // Xatu 1 (XS) → MANTER, protegido por XS comfort
+  assert.strictEqual(xs.verdict, 'MANTER');
+  assert.match(xs.reason, /XS/);
+  assert.strictEqual(xs.isXSComfort, true);
+
+  // Xatu 2 (normal) → TRANSFERIR com razão clara apontando o melhor
+  assert.strictEqual(nm.verdict, 'TRANSFERIR');
+  assert.match(nm.reason, /Você já tem um Xatu melhor/);
+  // betterCopy aponta pro xatu_xs
+  assert.strictEqual(nm.betterCopy && nm.betterCopy.id, 'xatu_xs');
+});
