@@ -135,7 +135,7 @@
       return { verdict: 'MANTER', reason: e.isOnlyCopy ? 'Única cópia da espécie' : 'Melhor cópia (IV ' + e.ivPct + '%)' };
     }
     if (e.ivPct < 80)
-      return { verdict: 'TRANSFERIR', reason: 'Duplicata pior · IV ' + e.ivPct + '% · nada especial' };
+      return { verdict: 'TRANSFERIR', reason: 'Você já tem um ' + e.name + ' melhor' };
     return { verdict: 'MANTER', reason: 'Duplicata ok (IV ' + e.ivPct + '%)' };
   }
 

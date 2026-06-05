@@ -120,3 +120,13 @@ test('Regional protege duplicata pior', () => {
   assert.strictEqual(verdictOfFull(fd,'rg').verdict, 'MANTER');
   assert.match(verdictOfFull(fd,'rg').reason, /[Rr]egional/);
 });
+
+test('TRANSFERIR mostra mensagem clara apontando para o melhor', () => {
+  const fd = {
+    best:  { mon_name:'Pidgey', mon_number:16, mon_cp:300, mon_attack:14, mon_defence:14, mon_stamina:14, mon_height:0.3, mon_isShiny:'NO', mon_isLucky:'NO' },
+    trash: { mon_name:'Pidgey', mon_number:16, mon_cp:80,  mon_attack:2,  mon_defence:5,  mon_stamina:7,  mon_height:0.3, mon_isShiny:'NO', mon_isLucky:'NO' },
+  };
+  const t = verdictOfFull(fd,'trash');
+  assert.strictEqual(t.verdict, 'TRANSFERIR');
+  assert.match(t.reason, /Você já tem um Pidgey melhor/);
+});
