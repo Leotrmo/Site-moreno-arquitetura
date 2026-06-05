@@ -19,10 +19,10 @@
     if (e.isLucky)    b.push('<span class="badge b-lucky">🍀</span>');
     if (e.isLegendary)b.push('<span class="badge b-legendary">👑</span>');
     if (e.isCostume)  b.push('<span class="badge b-costume">🎭</span>');
-    // Só os extremos XXS/XXL: GO calcula XS/XL com parâmetros por espécie que
-    // o export não traz, então limites fixos erram nas fronteiras. XS/XL viravam
-    // ruído (e não afetam veredito); só XXS/XXL importam e protegem.
     if (e.size === 'XXS' || e.size === 'XXL') b.push('<span class="badge b-size">' + e.size + '</span>');
+    else if (e.isXSComfort) b.push('<span class="badge b-size">XS</span>');
+    else if (e.isXLComfort) b.push('<span class="badge b-size">XL</span>');
+    if (e.hasSecondCharge) b.push('<span class="badge b-2nd">⚡</span>');
     if (e.tags.includes('TROCAR_EVO')) b.push('<span class="badge b-trade">🤝</span>');
     if (e.tags.includes('REGIONAL'))   b.push('<span class="badge b-regional">🌍</span>');
     return b.join('');
@@ -59,15 +59,102 @@
   function detailHtml(e) {
     const moves = e.moves.map(esc).join(' · ');
     const pvp = e.pvp ? (e.pvp.pvp_won + '/' + e.pvp.pvp_total + ' vitórias') : '—';
+    const compare = (e.verdict === 'TRANSFERIR' && e.betterCopy) ? compareHtml(e, e.betterCopy) : '';
     return (
       '<div class="pk-detail">' +
         '<div>IVs: <strong>' + e.ivs.atk + '/' + e.ivs.def + '/' + e.ivs.sta + '</strong></div>' +
         '<div>Golpes: ' + (moves || '—') + '</div>' +
         '<div>Altura: ' + e.height.toFixed(2) + ' m · Peso: ' + e.weight.toFixed(1) + ' kg</div>' +
         '<div>Batalhas: ' + pvp + '</div>' +
+        compare +
       '</div>'
     );
   }
 
-  return { esc, badgesHtml, cardHtml, detailHtml, ivClass };
+  function cmpRow(label, vThis, vBest, winner) {
+    // winner: 'this' | 'best' | null (neutro). null para linhas que nunca marcam (PC, ataques, badges).
+    const cThis = winner === 'this' ? 'val win' : (winner === 'best' ? 'val lose' : 'val');
+    const cBest = winner === 'best' ? 'val win' : (winner === 'this' ? 'val lose' : 'val');
+    return (
+      '<div class="row-wrap">' +
+        '<div class="row">' +
+          '<span class="lbl">' + esc(label) + '</span>' +
+          '<span class="' + cThis + '">' + vThis + '</span>' +
+          '<span class="vs">vs</span>' +
+          '<span class="' + cBest + '">' + vBest + '</span>' +
+        '</div>' +
+      '</div>'
+    );
+  }
+
+  function winnerByNumber(a, b) {
+    if (a === b) return null;
+    return a > b ? 'this' : 'best';
+  }
+
+  function winnerBySpecialSize(a, b) {
+    // 'XS' | 'XL' | 'XXS' | 'XXL' ganha contra null/normal. Tamanho igual = neutro.
+    const aSpecial = !!a;
+    const bSpecial = !!b;
+    if (aSpecial === bSpecial) return null; // ambos especiais ou ambos normais
+    return aSpecial ? 'this' : 'best';
+  }
+
+  function winnerByBool(a, b) {
+    if (a === b) return null;
+    return a ? 'this' : 'best';
+  }
+
+  function sizeLabel(e) {
+    if (e.size) return e.size;
+    return 'Normal';
+  }
+
+  function badgeListPlain(e) {
+    const parts = [];
+    if (e.isHundo) parts.push('Hundo');
+    if (e.isShiny) parts.push('Shiny');
+    if (e.isLucky) parts.push('Lucky');
+    if (e.isShadow) parts.push('Sombrio');
+    if (e.isLegendary) parts.push('Lendário');
+    if (e.isCostume) parts.push('Fantasia');
+    if (e.isTradeEvo) parts.push('Trade');
+    if (e.isRegional) parts.push('Regional');
+    return parts.length ? parts.join(' · ') : '—';
+  }
+
+  function compareHtml(thisOne, best) {
+    if (!best) return '';
+    const rows = [];
+    rows.push(cmpRow('PC',     thisOne.cp, best.cp, null));
+    rows.push(cmpRow('IV total', thisOne.ivPct + '%', best.ivPct + '%', winnerByNumber(thisOne.ivPct, best.ivPct)));
+    rows.push(cmpRow('Atk',    thisOne.ivs.atk, best.ivs.atk, winnerByNumber(thisOne.ivs.atk, best.ivs.atk)));
+    rows.push(cmpRow('Def',    thisOne.ivs.def, best.ivs.def, winnerByNumber(thisOne.ivs.def, best.ivs.def)));
+    rows.push(cmpRow('HP',     thisOne.ivs.sta, best.ivs.sta, winnerByNumber(thisOne.ivs.sta, best.ivs.sta)));
+    rows.push(cmpRow('Tamanho', esc(sizeLabel(thisOne)), esc(sizeLabel(best)), winnerBySpecialSize(thisOne.size, best.size)));
+    rows.push(cmpRow('2º carr.', thisOne.hasSecondCharge ? 'sim' : 'não', best.hasSecondCharge ? 'sim' : 'não', winnerByBool(thisOne.hasSecondCharge, best.hasSecondCharge)));
+    // Ataques: linha sem marcador
+    const movesThis = thisOne.moves.map(esc).join('<br>') || '—';
+    const movesBest = best.moves.map(esc).join('<br>') || '—';
+    rows.push(
+      '<div class="row-wrap">' +
+        '<div class="row">' +
+          '<span class="lbl">Ataques</span>' +
+          '<span class="val moves">' + movesThis + '</span>' +
+          '<span class="vs">vs</span>' +
+          '<span class="val moves">' + movesBest + '</span>' +
+        '</div>' +
+      '</div>'
+    );
+    rows.push(cmpRow('Badges', badgeListPlain(thisOne), badgeListPlain(best), null));
+    return (
+      '<div class="pk-compare">\n' +
+        '<h4>Este vs o melhor da espécie</h4>\n' +
+        '<div class="row-wrap"><div class="row header"><span class="lbl"></span><span class="val">Este</span><span class="vs"></span><span class="val">Melhor</span></div></div>\n' +
+        rows.join('\n') + '\n' +
+      '</div>'
+    );
+  }
+
+  return { esc, badgesHtml, cardHtml, detailHtml, ivClass, compareHtml };
 });

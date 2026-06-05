@@ -5,6 +5,11 @@
   else Object.assign(root, api);
 })(typeof globalThis !== 'undefined' ? globalThis : this, function () {
 
+  function speciesScalar(getSizeScalar, mon) {
+    if (typeof getSizeScalar !== 'function') return null;
+    return getSizeScalar(mon.mon_number, mon.mon_height, mon.mon_form) || null;
+  }
+
   function ivPct(mon) {
     return Math.round((mon.mon_attack + mon.mon_defence + mon.mon_stamina) / 45 * 100);
   }
@@ -18,9 +23,10 @@
     return mon.mon_number + '_' + f;
   }
 
-  function enrichOne(mon, getSize, refdata) {
+  function enrichOne(mon, getSize, refdata, getSizeScalar) {
     const iv = ivPct(mon);
     const size = getSize(mon.mon_number, mon.mon_height, mon.mon_form);
+    const scalar = speciesScalar(getSizeScalar, mon);
     return {
       raw: mon,
       name: mon.mon_name,
@@ -34,6 +40,7 @@
       weight: mon.mon_weight,
       pvp: mon.mon_pvp_stats || null,
       size: size,
+      sizeScalar: scalar,
       isShiny: mon.mon_isShiny === 'YES',
       isLucky: mon.mon_isLucky === 'YES',
       isShadow: mon.mon_alignment === 'SHADOW',
@@ -41,6 +48,9 @@
       isLegendary: refdata.LEGENDARY.has(mon.mon_number),
       isCostume: !!mon.mon_costume,
       isExtremeSize: size === 'XXS' || size === 'XXL',
+      isXSComfort: size === 'XS' && scalar !== null && scalar < 0.70,
+      isXLComfort: size === 'XL' && scalar !== null && scalar > 1.40,
+      hasSecondCharge: !!mon.mon_move_3,
       isHundo: iv === 100,
       isNearPerfect: iv >= 96,
       isRegional: refdata.REGIONAL.has(mon.mon_number),
@@ -50,6 +60,7 @@
       id: null,
       isBestOfSpecies: false,
       isOnlyCopy: false,
+      betterCopy: null,
       // preenchidos por analyze:
       verdict: null,
       reason: null,
@@ -57,9 +68,9 @@
     };
   }
 
-  function enrichCollection(fileData, getSize, refdata) {
+  function enrichCollection(fileData, getSize, refdata, getSizeScalar) {
     const list = Object.keys(fileData).map(id => {
-      const e = enrichOne(fileData[id], getSize, refdata);
+      const e = enrichOne(fileData[id], getSize, refdata, getSizeScalar);
       e.id = id;
       return e;
     });
@@ -70,14 +81,20 @@
       g.sort((a, b) => (b.ivPct - a.ivPct) || (b.cp - a.cp));
       g[0].isBestOfSpecies = true;
       const only = g.length === 1;
-      for (const e of g) e.isOnlyCopy = only;
+      for (const e of g) {
+        e.isOnlyCopy = only;
+        if (!e.isBestOfSpecies) e.betterCopy = g[0];
+      }
     }
     return list;
   }
 
   function isProtected(e) {
     return e.isShiny || e.isLucky || e.isShadow || e.isLegendary
-        || e.isCostume || e.isExtremeSize || e.isHundo || e.isNearPerfect;
+        || e.isCostume || e.isExtremeSize || e.isHundo || e.isNearPerfect
+        || e.isXSComfort || e.isXLComfort
+        || e.hasSecondCharge
+        || e.isTradeEvo || e.isRegional;
   }
 
   function investReason(e) {
@@ -86,13 +103,23 @@
     return 'Melhor cópia · IV ' + e.ivPct + '%';
   }
 
+  // Prioridade (mais forte → mais fraca): Hundo > Quase-perfeito > Shiny >
+  // Lendário > Lucky > Shadow > Costume > XXS/XXL > XS/XL comfort >
+  // 2º carregado > Trade evo > Regional.
   function specialReason(e) {
-    if (e.isShiny) return 'Shiny — protegido';
-    if (e.isLegendary) return 'Lendário/mítico';
-    if (e.isLucky) return 'Lucky — protegido';
-    if (e.isShadow) return 'Sombrio — protegido';
-    if (e.isCostume) return 'Fantasia — colecionável';
-    if (e.isExtremeSize) return 'Tamanho ' + e.size + ' — raro';
+    if (e.isHundo)        return 'Perfeito (15/15/15)';
+    if (e.isNearPerfect)  return 'Quase perfeito (' + e.ivPct + '%)';
+    if (e.isShiny)        return 'Shiny — protegido';
+    if (e.isLegendary)    return 'Lendário/mítico';
+    if (e.isLucky)        return 'Lucky — protegido';
+    if (e.isShadow)       return 'Sombrio — protegido';
+    if (e.isCostume)      return 'Fantasia — colecionável';
+    if (e.isExtremeSize)  return 'Tamanho ' + e.size + ' — raro';
+    if (e.isXSComfort)    return 'XS — colecionável';
+    if (e.isXLComfort)    return 'XL — colecionável';
+    if (e.hasSecondCharge)return 'Tem 2º carregado — investido';
+    if (e.isTradeEvo)     return 'Trade evolution — guarde pra troca';
+    if (e.isRegional)     return 'Regional — raro de pegar';
     return 'Especial';
   }
 
@@ -108,7 +135,7 @@
       return { verdict: 'MANTER', reason: e.isOnlyCopy ? 'Única cópia da espécie' : 'Melhor cópia (IV ' + e.ivPct + '%)' };
     }
     if (e.ivPct < 80)
-      return { verdict: 'TRANSFERIR', reason: 'Duplicata pior · IV ' + e.ivPct + '% · nada especial' };
+      return { verdict: 'TRANSFERIR', reason: 'Você já tem um ' + e.name + ' melhor' };
     return { verdict: 'MANTER', reason: 'Duplicata ok (IV ' + e.ivPct + '%)' };
   }
 
@@ -119,8 +146,8 @@
     return tags;
   }
 
-  function analyze(fileData, getSize, refdata) {
-    const list = enrichCollection(fileData, getSize, refdata);
+  function analyze(fileData, getSize, refdata, getSizeScalar) {
+    const list = enrichCollection(fileData, getSize, refdata, getSizeScalar);
     for (const e of list) {
       const v = computeVerdict(e);
       e.verdict = v.verdict;

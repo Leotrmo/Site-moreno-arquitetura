@@ -9,7 +9,7 @@
       const data = await res.json();
       document.getElementById('updated').textContent = 'Leo · ' + (data.exportTime || '');
       document.getElementById('total').textContent = (data.pokemonCount || 0) + ' Pokémons';
-      allMons = analyze(data.fileData, getPokemonSize, { LEGENDARY, REGIONAL, TRADE_EVO });
+      allMons = analyze(data.fileData, getPokemonSize, { LEGENDARY, REGIONAL, TRADE_EVO }, getPokemonSizeScalar);
       renderCounts();
       renderChips();
       applyFilters();

@@ -175,15 +175,21 @@ const SIZE_THRESHOLDS = [
  * @param {string} [monForm]  Campo mon_form opcional (ex: "GRIMER_ALOLA")
  * @returns {string|null} 'XXS'|'XS'|'XL'|'XXL' ou null para Normal/desconhecido
  */
-function getPokemonSize(monNumber, monHeight, monForm) {
-  let baseH = null;
+function resolveBaseHeight(monNumber, monForm) {
   if (monForm) {
     const formKey = Object.keys(BASE_H_FORMS).find(k => monForm.includes(k));
-    if (formKey) baseH = BASE_H_FORMS[formKey];
+    if (formKey) return BASE_H_FORMS[formKey];
   }
-  if (baseH === null) baseH = BASE_H[monNumber];
-  if (!baseH) return null;
+  return BASE_H[monNumber] || null;
+}
 
+/**
+ * Calcula a categoria de tamanho de um Pokémon.
+ * @returns {string|null} 'XXS'|'XS'|'XL'|'XXL' ou null para Normal/desconhecido
+ */
+function getPokemonSize(monNumber, monHeight, monForm) {
+  const baseH = resolveBaseHeight(monNumber, monForm);
+  if (!baseH) return null;
   const scalar = monHeight / baseH;
   for (const t of SIZE_THRESHOLDS) {
     if (scalar < t.max) return t.label;
@@ -191,5 +197,14 @@ function getPokemonSize(monNumber, monHeight, monForm) {
   return 'XXL';
 }
 
-// Exporta para uso no browser e em scripts Node
-if (typeof module !== 'undefined') module.exports = { getPokemonSize, BASE_H };
+/**
+ * Calcula o size scalar (altura / altura-base).
+ * @returns {number|null} número ou null se espécie/forma desconhecida.
+ */
+function getPokemonSizeScalar(monNumber, monHeight, monForm) {
+  const baseH = resolveBaseHeight(monNumber, monForm);
+  if (!baseH) return null;
+  return monHeight / baseH;
+}
+
+if (typeof module !== 'undefined') module.exports = { getPokemonSize, getPokemonSizeScalar, BASE_H };
