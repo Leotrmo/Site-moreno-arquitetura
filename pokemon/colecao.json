@@ -1,6 +1,6 @@
 {
   "fileName" : "Pokemons-LeoTrevisan-05-06-2026",
-  "exportTime" : "5 de jun. de 2026, 14:01:30 BRT",
+  "exportTime" : "5 de jun. de 2026, 14:48:20 BRT",
   "pokemonCount" : 624,
   "version" : "1.0",
   "fileData" : {
@@ -3316,21 +3316,6 @@
       "mon_isLucky" : "NO",
       "mon_defence" : 15
     },
-    "3724634366924024412" : {
-      "mon_weight" : 143.51820373535156,
-      "mon_move_1" : "Revólver d'Água",
-      "mon_height" : 2.2313539981842041,
-      "mon_gender" : "MALE",
-      "mon_stamina" : 14,
-      "mon_attack" : 11,
-      "mon_name" : "Lapras",
-      "mon_isShiny" : "NO",
-      "mon_move_2" : "Jato d'Água",
-      "mon_cp" : 1863,
-      "mon_number" : 131,
-      "mon_isLucky" : "NO",
-      "mon_defence" : 12
-    },
     "1140508346362011495" : {
       "mon_weight" : 8.8334083557128906,
       "mon_move_1" : "Desmantelar",
@@ -3346,6 +3331,21 @@
       "mon_number" : 759,
       "mon_isLucky" : "NO",
       "mon_defence" : 6
+    },
+    "3724634366924024412" : {
+      "mon_weight" : 143.51820373535156,
+      "mon_move_1" : "Revólver d'Água",
+      "mon_height" : 2.2313539981842041,
+      "mon_gender" : "MALE",
+      "mon_stamina" : 14,
+      "mon_attack" : 11,
+      "mon_name" : "Lapras",
+      "mon_isShiny" : "NO",
+      "mon_move_2" : "Jato d'Água",
+      "mon_cp" : 1863,
+      "mon_number" : 131,
+      "mon_isLucky" : "NO",
+      "mon_defence" : 12
     },
     "2024950961863847143" : {
       "mon_weight" : 29.928802490234375,
@@ -4085,20 +4085,21 @@
       "mon_isLucky" : "NO",
       "mon_defence" : 10
     },
-    "10073461958558119570" : {
-      "mon_weight" : 12.776935577392578,
-      "mon_move_1" : "Bolha",
-      "mon_height" : 0.78854763507843018,
-      "mon_gender" : "MALE",
-      "mon_stamina" : 14,
+    "8001615916687356901" : {
+      "mon_weight" : 0.2139354944229126,
+      "mon_move_1" : "Abismar",
+      "mon_height" : 0.083751127123832703,
+      "mon_gender" : "GENDERLESS",
+      "mon_form" : "SINISTEA_PHONY",
+      "mon_stamina" : 11,
       "mon_attack" : 12,
-      "mon_name" : "Squirtle",
+      "mon_name" : "Phony Sinistea",
       "mon_isShiny" : "NO",
-      "mon_move_2" : "Aqua Jato",
-      "mon_cp" : 519,
-      "mon_number" : 7,
+      "mon_move_2" : "Bola Sombria",
+      "mon_cp" : 469,
+      "mon_number" : 854,
       "mon_isLucky" : "NO",
-      "mon_defence" : 13
+      "mon_defence" : 14
     },
     "14372480094691260829" : {
       "mon_weight" : 14.762421607971191,
@@ -4131,21 +4132,20 @@
       "mon_isLucky" : "NO",
       "mon_defence" : 15
     },
-    "8001615916687356901" : {
-      "mon_weight" : 0.2139354944229126,
-      "mon_move_1" : "Abismar",
-      "mon_height" : 0.083751127123832703,
-      "mon_gender" : "GENDERLESS",
-      "mon_form" : "SINISTEA_PHONY",
-      "mon_stamina" : 11,
+    "10073461958558119570" : {
+      "mon_weight" : 12.776935577392578,
+      "mon_move_1" : "Bolha",
+      "mon_height" : 0.78854763507843018,
+      "mon_gender" : "MALE",
+      "mon_stamina" : 14,
       "mon_attack" : 12,
-      "mon_name" : "Phony Sinistea",
+      "mon_name" : "Squirtle",
       "mon_isShiny" : "NO",
-      "mon_move_2" : "Bola Sombria",
-      "mon_cp" : 469,
-      "mon_number" : 854,
+      "mon_move_2" : "Aqua Jato",
+      "mon_cp" : 519,
+      "mon_number" : 7,
       "mon_isLucky" : "NO",
-      "mon_defence" : 14
+      "mon_defence" : 13
     },
     "3126935942624175855" : {
       "mon_weight" : 34.481056213378906,
@@ -4857,21 +4857,6 @@
       "mon_isLucky" : "NO",
       "mon_defence" : 11
     },
-    "18156636366940957231" : {
-      "mon_weight" : 4.7478561401367188,
-      "mon_move_1" : "Infestação",
-      "mon_height" : 0.87789100408554077,
-      "mon_gender" : "MALE",
-      "mon_stamina" : 12,
-      "mon_attack" : 8,
-      "mon_name" : "Masquerain",
-      "mon_isShiny" : "NO",
-      "mon_move_2" : "Vento Ominoso",
-      "mon_cp" : 1567,
-      "mon_number" : 284,
-      "mon_isLucky" : "NO",
-      "mon_defence" : 5
-    },
     "6691019484814121592" : {
       "mon_weight" : 0.37727805972099304,
       "mon_move_1" : "Trovoada de Choques",
@@ -4887,6 +4872,21 @@
       "mon_number" : 938,
       "mon_isLucky" : "NO",
       "mon_defence" : 14
+    },
+    "18156636366940957231" : {
+      "mon_weight" : 4.7478561401367188,
+      "mon_move_1" : "Infestação",
+      "mon_height" : 0.87789100408554077,
+      "mon_gender" : "MALE",
+      "mon_stamina" : 12,
+      "mon_attack" : 8,
+      "mon_name" : "Masquerain",
+      "mon_isShiny" : "NO",
+      "mon_move_2" : "Vento Ominoso",
+      "mon_cp" : 1567,
+      "mon_number" : 284,
+      "mon_isLucky" : "NO",
+      "mon_defence" : 5
     },
     "14262439600290893190" : {
       "mon_weight" : 29.406780242919922,
@@ -4920,6 +4920,23 @@
       "mon_number" : 540,
       "mon_isLucky" : "NO",
       "mon_defence" : 9
+    },
+    "2043845284172436229" : {
+      "mon_weight" : 147.29339599609375,
+      "mon_move_1" : "Tapa de Lama",
+      "mon_height" : 1.2825164794921875,
+      "mon_gender" : "GENDERLESS",
+      "mon_form" : "GOLETT_NORMAL",
+      "mon_alignment" : "SHADOW",
+      "mon_stamina" : 10,
+      "mon_attack" : 10,
+      "mon_name" : "Golett",
+      "mon_isShiny" : "NO",
+      "mon_move_2" : "Frustração",
+      "mon_cp" : 630,
+      "mon_number" : 622,
+      "mon_isLucky" : "NO",
+      "mon_defence" : 10
     },
     "1898898803752240103" : {
       "mon_weather_boost" : "OVERCAST",
@@ -6439,21 +6456,6 @@
       "mon_isLucky" : "NO",
       "mon_defence" : 14
     },
-    "11121511392014678117" : {
-      "mon_weight" : 29.006391525268555,
-      "mon_move_1" : "Contra-atacar",
-      "mon_height" : 0.96859496831893921,
-      "mon_gender" : "MALE",
-      "mon_stamina" : 12,
-      "mon_attack" : 15,
-      "mon_name" : "Sudowoodo",
-      "mon_isShiny" : "NO",
-      "mon_move_2" : "Gume de Pedra",
-      "mon_cp" : 1703,
-      "mon_number" : 185,
-      "mon_isLucky" : "NO",
-      "mon_defence" : 8
-    },
     "9756133400555423833" : {
       "mon_weight" : 4.367985725402832,
       "mon_move_1" : "Investida",
@@ -6469,6 +6471,21 @@
       "mon_number" : 19,
       "mon_isLucky" : "NO",
       "mon_defence" : 11
+    },
+    "11121511392014678117" : {
+      "mon_weight" : 29.006391525268555,
+      "mon_move_1" : "Contra-atacar",
+      "mon_height" : 0.96859496831893921,
+      "mon_gender" : "MALE",
+      "mon_stamina" : 12,
+      "mon_attack" : 15,
+      "mon_name" : "Sudowoodo",
+      "mon_isShiny" : "NO",
+      "mon_move_2" : "Gume de Pedra",
+      "mon_cp" : 1703,
+      "mon_number" : 185,
+      "mon_isLucky" : "NO",
+      "mon_defence" : 8
     },
     "15071757655773508139" : {
       "mon_weather_boost" : "OVERCAST",
@@ -6958,23 +6975,6 @@
       "mon_isLucky" : "NO",
       "mon_defence" : 12
     },
-    "13726553697792872418" : {
-      "mon_weather_boost" : "CLEAR",
-      "mon_weight" : 7.2530608177185059,
-      "mon_move_1" : "Tapa de Lama",
-      "mon_height" : 0.42780947685241699,
-      "mon_gender" : "FEMALE",
-      "mon_form" : "CUBONE_NORMAL",
-      "mon_stamina" : 5,
-      "mon_attack" : 9,
-      "mon_name" : "Cubone",
-      "mon_isShiny" : "NO",
-      "mon_move_2" : "Tremor",
-      "mon_cp" : 582,
-      "mon_number" : 104,
-      "mon_isLucky" : "NO",
-      "mon_defence" : 14
-    },
     "12254449083546189347" : {
       "mon_weight" : 7.9559006690979004,
       "mon_move_1" : "Revólver d'Água",
@@ -7374,26 +7374,21 @@
       "mon_isLucky" : "NO",
       "mon_defence" : 14
     },
-    "14161442790722724971" : {
-      "mon_weather_boost" : "PARTLY_CLOUDY",
-      "mon_weight" : 21.209648132324219,
-      "mon_move_1" : "Encantar",
-      "mon_height" : 0.80907803773880005,
-      "mon_pvp_stats" : {
-        "pvp_won" : 1,
-        "pvp_total" : 3
-      },
+    "13953051343655772972" : {
+      "mon_weight" : 5.0590343475341797,
+      "mon_move_1" : "Tiro de Lama",
+      "mon_height" : 0.37481936812400818,
       "mon_gender" : "FEMALE",
-      "mon_form" : "SYLVEON_NORMAL",
-      "mon_stamina" : 14,
-      "mon_attack" : 4,
-      "mon_name" : "Sylveon",
+      "mon_form" : "KRABBY_NORMAL",
+      "mon_stamina" : 9,
+      "mon_attack" : 15,
+      "mon_name" : "Krabby",
       "mon_isShiny" : "NO",
-      "mon_move_2" : "Clarão Deslumbrante",
-      "mon_cp" : 2487,
-      "mon_number" : 700,
+      "mon_move_2" : "Concha Navalha",
+      "mon_cp" : 291,
+      "mon_number" : 98,
       "mon_isLucky" : "NO",
-      "mon_defence" : 14
+      "mon_defence" : 10
     },
     "529762629753785818" : {
       "mon_weight" : 45.241458892822266,
@@ -7444,22 +7439,6 @@
       "mon_isLucky" : "NO",
       "mon_defence" : 5
     },
-    "13953051343655772972" : {
-      "mon_weight" : 5.0590343475341797,
-      "mon_move_1" : "Tiro de Lama",
-      "mon_height" : 0.37481936812400818,
-      "mon_gender" : "FEMALE",
-      "mon_form" : "KRABBY_NORMAL",
-      "mon_stamina" : 9,
-      "mon_attack" : 15,
-      "mon_name" : "Krabby",
-      "mon_isShiny" : "NO",
-      "mon_move_2" : "Concha Navalha",
-      "mon_cp" : 291,
-      "mon_number" : 98,
-      "mon_isLucky" : "NO",
-      "mon_defence" : 10
-    },
     "3182525923414368582" : {
       "mon_weight" : 7.2379226684570312,
       "mon_move_1" : "Chama Furacão",
@@ -7475,6 +7454,22 @@
       "mon_number" : 813,
       "mon_isLucky" : "NO",
       "mon_defence" : 2
+    },
+    "16429188101420326630" : {
+      "mon_weight" : 7.9578762054443359,
+      "mon_move_1" : "Ataque Dissimulado",
+      "mon_height" : 0.55092531442642212,
+      "mon_gender" : "FEMALE",
+      "mon_form" : "HOUNDOUR_NORMAL",
+      "mon_stamina" : 15,
+      "mon_attack" : 11,
+      "mon_name" : "Houndour",
+      "mon_isShiny" : "NO",
+      "mon_move_2" : "Mastigada",
+      "mon_cp" : 508,
+      "mon_number" : 228,
+      "mon_isLucky" : "NO",
+      "mon_defence" : 12
     },
     "3638643126635389893" : {
       "mon_weight" : 2.1542420387268066,
@@ -7658,21 +7653,26 @@
       "mon_isLucky" : "NO",
       "mon_defence" : 5
     },
-    "16429188101420326630" : {
-      "mon_weight" : 7.9578762054443359,
-      "mon_move_1" : "Ataque Dissimulado",
-      "mon_height" : 0.55092531442642212,
+    "14161442790722724971" : {
+      "mon_weather_boost" : "PARTLY_CLOUDY",
+      "mon_weight" : 21.209648132324219,
+      "mon_move_1" : "Encantar",
+      "mon_height" : 0.80907803773880005,
+      "mon_pvp_stats" : {
+        "pvp_won" : 1,
+        "pvp_total" : 3
+      },
       "mon_gender" : "FEMALE",
-      "mon_form" : "HOUNDOUR_NORMAL",
-      "mon_stamina" : 15,
-      "mon_attack" : 11,
-      "mon_name" : "Houndour",
+      "mon_form" : "SYLVEON_NORMAL",
+      "mon_stamina" : 14,
+      "mon_attack" : 4,
+      "mon_name" : "Sylveon",
       "mon_isShiny" : "NO",
-      "mon_move_2" : "Mastigada",
-      "mon_cp" : 508,
-      "mon_number" : 228,
+      "mon_move_2" : "Clarão Deslumbrante",
+      "mon_cp" : 2487,
+      "mon_number" : 700,
       "mon_isLucky" : "NO",
-      "mon_defence" : 12
+      "mon_defence" : 14
     },
     "6600930047812282726" : {
       "mon_weight" : 17.898757934570312,
@@ -8257,22 +8257,6 @@
       "mon_isLucky" : "NO",
       "mon_defence" : 13
     },
-    "12576573672156242881" : {
-      "mon_weight" : 37.674831390380859,
-      "mon_move_1" : "Rasteira",
-      "mon_height" : 0.99962103366851807,
-      "mon_gender" : "MALE",
-      "mon_form" : "THROH_NORMAL",
-      "mon_stamina" : 15,
-      "mon_attack" : 6,
-      "mon_name" : "Throh",
-      "mon_isShiny" : "NO",
-      "mon_move_2" : "Quebra-telha",
-      "mon_cp" : 762,
-      "mon_number" : 538,
-      "mon_isLucky" : "NO",
-      "mon_defence" : 13
-    },
     "11745137610787726943" : {
       "mon_weight" : 8.695744514465332,
       "mon_move_1" : "Soco Enganador",
@@ -8288,6 +8272,22 @@
       "mon_number" : 509,
       "mon_isLucky" : "NO",
       "mon_defence" : 1
+    },
+    "12576573672156242881" : {
+      "mon_weight" : 37.674831390380859,
+      "mon_move_1" : "Rasteira",
+      "mon_height" : 0.99962103366851807,
+      "mon_gender" : "MALE",
+      "mon_form" : "THROH_NORMAL",
+      "mon_stamina" : 15,
+      "mon_attack" : 6,
+      "mon_name" : "Throh",
+      "mon_isShiny" : "NO",
+      "mon_move_2" : "Quebra-telha",
+      "mon_cp" : 762,
+      "mon_number" : 538,
+      "mon_isLucky" : "NO",
+      "mon_defence" : 13
     },
     "108089249826086061" : {
       "mon_weather_boost" : "OVERCAST",
@@ -8351,22 +8351,6 @@
       "mon_isLucky" : "NO",
       "mon_defence" : 2
     },
-    "15573358342284649315" : {
-      "mon_weight" : 75.41827392578125,
-      "mon_move_1" : "Chute Duplo",
-      "mon_height" : 1.8649277687072754,
-      "mon_gender" : "MALE",
-      "mon_form" : "HITMONLEE_NORMAL",
-      "mon_stamina" : 5,
-      "mon_attack" : 10,
-      "mon_name" : "Hitmonlee",
-      "mon_isShiny" : "NO",
-      "mon_move_2" : "Corpo-a-corpo",
-      "mon_cp" : 1973,
-      "mon_number" : 106,
-      "mon_isLucky" : "NO",
-      "mon_defence" : 6
-    },
     "2226274548789018575" : {
       "mon_weight" : 3.7568283081054688,
       "mon_move_1" : "Investida",
@@ -8382,6 +8366,22 @@
       "mon_number" : 684,
       "mon_isLucky" : "NO",
       "mon_defence" : 14
+    },
+    "15573358342284649315" : {
+      "mon_weight" : 75.41827392578125,
+      "mon_move_1" : "Chute Duplo",
+      "mon_height" : 1.8649277687072754,
+      "mon_gender" : "MALE",
+      "mon_form" : "HITMONLEE_NORMAL",
+      "mon_stamina" : 5,
+      "mon_attack" : 10,
+      "mon_name" : "Hitmonlee",
+      "mon_isShiny" : "NO",
+      "mon_move_2" : "Corpo-a-corpo",
+      "mon_cp" : 1973,
+      "mon_number" : 106,
+      "mon_isLucky" : "NO",
+      "mon_defence" : 6
     },
     "15049248227748359710" : {
       "mon_weight" : 57.896781921386719,
@@ -9498,26 +9498,6 @@
       "mon_isLucky" : "NO",
       "mon_defence" : 10
     },
-    "17087793515771042887" : {
-      "mon_weather_boost" : "PARTLY_CLOUDY",
-      "mon_weight" : 152.41874694824219,
-      "mon_move_1" : "Contra-atacar",
-      "mon_height" : 1.8337113857269287,
-      "mon_pvp_stats" : {
-        "pvp_won" : 5,
-        "pvp_total" : 12
-      },
-      "mon_gender" : "FEMALE",
-      "mon_stamina" : 7,
-      "mon_attack" : 12,
-      "mon_name" : "Ursaring",
-      "mon_isShiny" : "NO",
-      "mon_move_2" : "Corpo-a-corpo",
-      "mon_cp" : 2352,
-      "mon_number" : 217,
-      "mon_isLucky" : "NO",
-      "mon_defence" : 13
-    },
     "6963776270065165079" : {
       "mon_weather_boost" : "OVERCAST",
       "mon_weight" : 17.621675491333008,
@@ -9550,6 +9530,22 @@
       "mon_isLucky" : "NO",
       "mon_defence" : 11
     },
+    "13047159943719138204" : {
+      "mon_weight" : 41.720497131347656,
+      "mon_move_1" : "Ataque Dissimulado",
+      "mon_height" : 1.0894919633865356,
+      "mon_gender" : "MALE",
+      "mon_form" : "SNEASEL_NORMAL",
+      "mon_stamina" : 15,
+      "mon_attack" : 12,
+      "mon_name" : "Sneasel",
+      "mon_isShiny" : "NO",
+      "mon_move_2" : "Soco de Gelo",
+      "mon_cp" : 866,
+      "mon_number" : 215,
+      "mon_isLucky" : "NO",
+      "mon_defence" : 15
+    },
     "15628435574935141754" : {
       "mon_weight" : 25.67718505859375,
       "mon_move_1" : "Mirar",
@@ -9567,21 +9563,25 @@
       "mon_isLucky" : "NO",
       "mon_defence" : 13
     },
-    "13047159943719138204" : {
-      "mon_weight" : 41.720497131347656,
-      "mon_move_1" : "Ataque Dissimulado",
-      "mon_height" : 1.0894919633865356,
-      "mon_gender" : "MALE",
-      "mon_form" : "SNEASEL_NORMAL",
-      "mon_stamina" : 15,
+    "17087793515771042887" : {
+      "mon_weather_boost" : "PARTLY_CLOUDY",
+      "mon_weight" : 152.41874694824219,
+      "mon_move_1" : "Contra-atacar",
+      "mon_height" : 1.8337113857269287,
+      "mon_pvp_stats" : {
+        "pvp_won" : 5,
+        "pvp_total" : 12
+      },
+      "mon_gender" : "FEMALE",
+      "mon_stamina" : 7,
       "mon_attack" : 12,
-      "mon_name" : "Sneasel",
+      "mon_name" : "Ursaring",
       "mon_isShiny" : "NO",
-      "mon_move_2" : "Soco de Gelo",
-      "mon_cp" : 866,
-      "mon_number" : 215,
+      "mon_move_2" : "Corpo-a-corpo",
+      "mon_cp" : 2352,
+      "mon_number" : 217,
       "mon_isLucky" : "NO",
-      "mon_defence" : 15
+      "mon_defence" : 13
     },
     "14052991268742132843" : {
       "mon_weight" : 29.623867034912109,
@@ -10233,5 +10233,5 @@
     }
   },
   "fileType" : "pokemon",
-  "exportTimestamp" : 1780678890.4738679
+  "exportTimestamp" : 1780681700.006521
 }
