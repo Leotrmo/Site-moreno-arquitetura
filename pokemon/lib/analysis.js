@@ -103,13 +103,23 @@
     return 'Melhor cópia · IV ' + e.ivPct + '%';
   }
 
+  // Prioridade (mais forte → mais fraca): Hundo > Quase-perfeito > Shiny >
+  // Lendário > Lucky > Shadow > Costume > XXS/XXL > XS/XL comfort >
+  // 2º carregado > Trade evo > Regional.
   function specialReason(e) {
-    if (e.isShiny) return 'Shiny — protegido';
-    if (e.isLegendary) return 'Lendário/mítico';
-    if (e.isLucky) return 'Lucky — protegido';
-    if (e.isShadow) return 'Sombrio — protegido';
-    if (e.isCostume) return 'Fantasia — colecionável';
-    if (e.isExtremeSize) return 'Tamanho ' + e.size + ' — raro';
+    if (e.isHundo)        return 'Perfeito (15/15/15)';
+    if (e.isNearPerfect)  return 'Quase perfeito (' + e.ivPct + '%)';
+    if (e.isShiny)        return 'Shiny — protegido';
+    if (e.isLegendary)    return 'Lendário/mítico';
+    if (e.isLucky)        return 'Lucky — protegido';
+    if (e.isShadow)       return 'Sombrio — protegido';
+    if (e.isCostume)      return 'Fantasia — colecionável';
+    if (e.isExtremeSize)  return 'Tamanho ' + e.size + ' — raro';
+    if (e.isXSComfort)    return 'XS — colecionável';
+    if (e.isXLComfort)    return 'XL — colecionável';
+    if (e.hasSecondCharge)return 'Tem 2º carregado — investido';
+    if (e.isTradeEvo)     return 'Trade evolution — guarde pra troca';
+    if (e.isRegional)     return 'Regional — raro de pegar';
     return 'Especial';
   }
 
