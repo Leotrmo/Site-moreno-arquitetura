@@ -1,6 +1,6 @@
 {
   "fileName" : "Pokemons-LeoTrevisan-05-06-2026",
-  "exportTime" : "5 de jun. de 2026, 17:31:00 BRT",
+  "exportTime" : "5 de jun. de 2026, 18:15:12 BRT",
   "pokemonCount" : 624,
   "version" : "1.0",
   "fileData" : {
@@ -1250,6 +1250,22 @@
       "mon_number" : 677,
       "mon_isLucky" : "NO",
       "mon_defence" : 14
+    },
+    "9626207089239973325" : {
+      "mon_weight" : 135.48037719726562,
+      "mon_move_1" : "Infestação",
+      "mon_height" : 2.9458408355712891,
+      "mon_gender" : "FEMALE",
+      "mon_form" : "ARAQUANID_NORMAL",
+      "mon_stamina" : 5,
+      "mon_attack" : 0,
+      "mon_name" : "Araquanid",
+      "mon_isShiny" : "NO",
+      "mon_move_2" : "Jato de Bolhas",
+      "mon_cp" : 532,
+      "mon_number" : 752,
+      "mon_isLucky" : "NO",
+      "mon_defence" : 5
     },
     "8073082044618800890" : {
       "mon_weight" : 9.0891819000244141,
@@ -5863,21 +5879,6 @@
       "mon_isLucky" : "NO",
       "mon_defence" : 13
     },
-    "7443170129727126447" : {
-      "mon_weight" : 3.8818347454071045,
-      "mon_move_1" : "Investida",
-      "mon_height" : 0.30566829442977905,
-      "mon_gender" : "MALE",
-      "mon_stamina" : 12,
-      "mon_attack" : 10,
-      "mon_name" : "Scorbunny",
-      "mon_isShiny" : "NO",
-      "mon_move_2" : "Lança-chamas",
-      "mon_cp" : 590,
-      "mon_number" : 813,
-      "mon_isLucky" : "NO",
-      "mon_defence" : 12
-    },
     "15804998957507097926" : {
       "mon_weight" : 3.5851860046386719,
       "mon_move_1" : "Ácido",
@@ -5893,6 +5894,24 @@
       "mon_number" : 69,
       "mon_isLucky" : "NO",
       "mon_defence" : 13
+    },
+    "8443505497150080948" : {
+      "mon_weather_boost" : "CLEAR",
+      "mon_weight" : 5.4790105819702148,
+      "mon_move_1" : "Ácido",
+      "mon_height" : 0.48695516586303711,
+      "mon_gender" : "FEMALE",
+      "mon_form" : "ODDISH_NORMAL",
+      "mon_alignment" : "SHADOW",
+      "mon_stamina" : 15,
+      "mon_attack" : 13,
+      "mon_name" : "Oddish",
+      "mon_isShiny" : "NO",
+      "mon_move_2" : "Frustração",
+      "mon_cp" : 439,
+      "mon_number" : 43,
+      "mon_isLucky" : "NO",
+      "mon_defence" : 9
     },
     "6019553935431483637" : {
       "mon_weight" : 15.925493240356445,
@@ -5972,24 +5991,6 @@
       "mon_number" : 255,
       "mon_isLucky" : "NO",
       "mon_defence" : 11
-    },
-    "8443505497150080948" : {
-      "mon_weather_boost" : "CLEAR",
-      "mon_weight" : 5.4790105819702148,
-      "mon_move_1" : "Ácido",
-      "mon_height" : 0.48695516586303711,
-      "mon_gender" : "FEMALE",
-      "mon_form" : "ODDISH_NORMAL",
-      "mon_alignment" : "SHADOW",
-      "mon_stamina" : 15,
-      "mon_attack" : 13,
-      "mon_name" : "Oddish",
-      "mon_isShiny" : "NO",
-      "mon_move_2" : "Frustração",
-      "mon_cp" : 439,
-      "mon_number" : 43,
-      "mon_isLucky" : "NO",
-      "mon_defence" : 9
     },
     "7859949532102100190" : {
       "mon_weight" : 78.012832641601562,
@@ -10227,5 +10228,5 @@
     }
   },
   "fileType" : "pokemon",
-  "exportTimestamp" : 1780691460.288774
+  "exportTimestamp" : 1780694112.0377641
 }
