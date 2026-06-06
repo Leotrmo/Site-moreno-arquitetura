@@ -80,8 +80,9 @@ h1 {
 .chip { background:var(--surface-2); border:1px solid var(--border); border-radius:20px; padding:5px 11px; font-size:12px; cursor:pointer; color:var(--text-dim); }
 .chip.active { color:var(--text); border-color:var(--gold); }
 
-.toolbar { display:flex; gap:8px; margin-bottom:12px; }
-#search { flex:1; background:var(--surface); border:1px solid var(--border); border-radius:10px; padding:10px 12px; color:var(--text); font-size:14px; }
+.toolbar { display:flex; gap:8px; margin-bottom:12px; flex-wrap:wrap; }
+#search { flex:1 1 160px; background:var(--surface); border:1px solid var(--border); border-radius:10px; padding:10px 12px; color:var(--text); font-size:14px; }
+.sort-select { flex:0 0 auto; background:var(--surface-2); border:1px solid var(--border); border-radius:10px; padding:8px 12px; color:var(--text); font-size:13px; cursor:pointer; -webkit-appearance:none; appearance:none; }
 .filt-btn, .filter-btn { background:var(--surface-2); border:1px solid var(--border); border-radius:10px; padding:8px 12px; color:var(--text); font-size:13px; cursor:pointer; }
 
 .pk { background:var(--surface); padding:11px 13px; border-radius:10px; border-left:4px solid var(--border); display:flex; flex-direction:column; gap:6px; cursor:pointer; }
@@ -150,6 +151,7 @@ h1 {
   <!-- Busca + filtros -->
   <div class="toolbar">
     <input type="search" id="search" placeholder="🔎 Buscar por nome…" autocomplete="off">
+    <select id="sort" class="sort-select" aria-label="Ordenar Pokémons"></select>
     <button class="filt-btn" id="clear-filters" hidden>✕ limpar filtros</button>
   </div>
 
@@ -168,6 +170,7 @@ h1 {
 <script src="./lib/refdata.js"></script>
 <script src="./lib/analysis.js"></script>
 <script src="./lib/render.js"></script>
+<script src="./lib/sort.js"></script>
 <script src="./app.js"></script>
 
 <script>

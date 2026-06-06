@@ -1,7 +1,13 @@
 // pokemon/app.js
 (function () {
   let allMons = [];            // lista enriquecida
-  const state = { verdict: null, special: null, query: '' };
+  const SORT_KEY = 'pokemon-sort';
+  const state = { verdict: null, special: null, query: '', sort: loadSort() };
+
+  function loadSort() {
+    const saved = localStorage.getItem(SORT_KEY);
+    return SORT_OPTIONS.some(o => o.key === saved) ? saved : 'recomendado';
+  }
 
   async function boot() {
     try {
@@ -12,6 +18,7 @@
       allMons = analyze(data.fileData, getPokemonSize, { LEGENDARY, REGIONAL, TRADE_EVO }, getPokemonSizeScalar);
       renderCounts();
       renderChips();
+      renderSortOptions();
       applyFilters();
     } catch (err) {
       document.getElementById('updated').textContent = 'erro ao carregar dados';
@@ -62,12 +69,19 @@
     document.getElementById('clear-filters').hidden = !(state.verdict || state.special || state.query);
   }
 
+  function renderSortOptions() {
+    const sel = document.getElementById('sort');
+    sel.innerHTML = SORT_OPTIONS
+      .map(o => '<option value="' + o.key + '">' + o.label + '</option>').join('');
+    sel.value = state.sort;
+  }
+
   function applyFilters() {
     let rows = allMons;
     if (state.verdict) rows = rows.filter(e => e.verdict === state.verdict);
     if (state.special && state._specialFns[state.special]) rows = rows.filter(state._specialFns[state.special]);
     if (state.query) rows = rows.filter(e => e.name.toLowerCase().includes(state.query));
-    rows = rows.slice().sort(sortRows);
+    rows = rows.slice().sort(getSorter(state.sort));
 
     const list = document.getElementById('list');
     list.innerHTML = rows.map(cardHtml).join('');
@@ -75,11 +89,6 @@
 
     syncChips();
     toggleTransferMode();
-  }
-
-  const VERDICT_ORDER = { INVESTIR:0, MANTER:1, TRANSFERIR:2 };
-  function sortRows(a, b) {
-    return (VERDICT_ORDER[a.verdict] - VERDICT_ORDER[b.verdict]) || (b.ivPct - a.ivPct);
   }
 
   // wiring
@@ -92,6 +101,11 @@
   });
   document.getElementById('search').addEventListener('input', e => {
     state.query = e.target.value.trim().toLowerCase();
+    applyFilters();
+  });
+  document.getElementById('sort').addEventListener('change', e => {
+    state.sort = e.target.value;
+    try { localStorage.setItem(SORT_KEY, state.sort); } catch {}
     applyFilters();
   });
   document.getElementById('clear-filters').addEventListener('click', () => {
