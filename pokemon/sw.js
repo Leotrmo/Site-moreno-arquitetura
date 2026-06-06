@@ -1,7 +1,7 @@
-const CACHE = 'pokemon-leo-v6';
+const CACHE = 'pokemon-leo-v7';
 const ASSETS = [
   './index.html', './app.js', './sizes.js',
-  './lib/refdata.js', './lib/analysis.js', './lib/render.js',
+  './lib/refdata.js', './lib/analysis.js', './lib/render.js', './lib/sort.js',
   './colecao.json', './manifest.json',
   './icons/icon-180.png', './icons/icon-192.png', './icons/icon-512.png'
 ];
