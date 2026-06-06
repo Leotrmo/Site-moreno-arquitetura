@@ -1,7 +1,7 @@
 {
   "fileName" : "Pokemons-LeoTrevisan-06-06-2026",
-  "exportTime" : "6 de jun. de 2026, 01:00:28 BRT",
-  "pokemonCount" : 615,
+  "exportTime" : "6 de jun. de 2026, 11:21:56 BRT",
+  "pokemonCount" : 622,
   "version" : "1.0",
   "fileData" : {
     "6704624461195111630" : {
@@ -213,6 +213,22 @@
       "mon_number" : 213,
       "mon_isLucky" : "NO",
       "mon_defence" : 15
+    },
+    "3897087945166251865" : {
+      "mon_weight" : 162.4764404296875,
+      "mon_move_1" : "Projétil de Semente",
+      "mon_height" : 1.9107093811035156,
+      "mon_gender" : "FEMALE",
+      "mon_form" : "MANTINE_NORMAL",
+      "mon_stamina" : 1,
+      "mon_attack" : 12,
+      "mon_name" : "Mantine",
+      "mon_isShiny" : "NO",
+      "mon_move_2" : "Pulso d'Água",
+      "mon_cp" : 1004,
+      "mon_number" : 226,
+      "mon_isLucky" : "NO",
+      "mon_defence" : 7
     },
     "4264202774457525289" : {
       "mon_weight" : 31.792453765869141,
@@ -509,21 +525,21 @@
       "mon_isLucky" : "NO",
       "mon_defence" : 15
     },
-    "12446021618265935897" : {
-      "mon_weight" : 0.62528550624847412,
-      "mon_move_1" : "Investida",
-      "mon_height" : 0.64416676759719849,
-      "mon_gender" : "FEMALE",
-      "mon_form" : "CORSOLA_GALARIAN",
-      "mon_stamina" : 11,
-      "mon_attack" : 13,
-      "mon_name" : "Galarian Corsola",
+    "4792716358566041761" : {
+      "mon_weight" : 54.726890563964844,
+      "mon_move_1" : "Confusão",
+      "mon_height" : 1.4763022661209106,
+      "mon_gender" : "MALE",
+      "mon_form" : "ALAKAZAM_NORMAL",
+      "mon_stamina" : 12,
+      "mon_attack" : 15,
+      "mon_name" : "Alakazam",
       "mon_isShiny" : "NO",
-      "mon_move_2" : "Sombra Noturna",
-      "mon_cp" : 616,
-      "mon_number" : 222,
-      "mon_isLucky" : "NO",
-      "mon_defence" : 10
+      "mon_move_2" : "Bola Sombria",
+      "mon_cp" : 1730,
+      "mon_number" : 65,
+      "mon_isLucky" : "YES",
+      "mon_defence" : 15
     },
     "65653069683665876" : {
       "mon_weight" : 7.8234434127807617,
@@ -542,22 +558,21 @@
       "mon_isLucky" : "NO",
       "mon_defence" : 11
     },
-    "16973575454490393130" : {
-      "mon_weather_boost" : "OVERCAST",
-      "mon_weight" : 90.793075561523438,
-      "mon_move_1" : "Rasteira",
-      "mon_height" : 1.5544795989990234,
-      "mon_gender" : "MALE",
-      "mon_form" : "THROH_NORMAL",
+    "12446021618265935897" : {
+      "mon_weight" : 0.62528550624847412,
+      "mon_move_1" : "Investida",
+      "mon_height" : 0.64416676759719849,
+      "mon_gender" : "FEMALE",
+      "mon_form" : "CORSOLA_GALARIAN",
       "mon_stamina" : 11,
-      "mon_attack" : 12,
-      "mon_name" : "Throh",
+      "mon_attack" : 13,
+      "mon_name" : "Galarian Corsola",
       "mon_isShiny" : "NO",
-      "mon_move_2" : "Pancada Corporal",
-      "mon_cp" : 2133,
-      "mon_number" : 538,
+      "mon_move_2" : "Sombra Noturna",
+      "mon_cp" : 616,
+      "mon_number" : 222,
       "mon_isLucky" : "NO",
-      "mon_defence" : 13
+      "mon_defence" : 10
     },
     "13712629290782062832" : {
       "mon_weather_boost" : "PARTLY_CLOUDY",
@@ -576,21 +591,22 @@
       "mon_isLucky" : "NO",
       "mon_defence" : 14
     },
-    "4792716358566041761" : {
-      "mon_weight" : 54.726890563964844,
-      "mon_move_1" : "Confusão",
-      "mon_height" : 1.4763022661209106,
+    "16973575454490393130" : {
+      "mon_weather_boost" : "OVERCAST",
+      "mon_weight" : 90.793075561523438,
+      "mon_move_1" : "Rasteira",
+      "mon_height" : 1.5544795989990234,
       "mon_gender" : "MALE",
-      "mon_form" : "ALAKAZAM_NORMAL",
-      "mon_stamina" : 12,
-      "mon_attack" : 15,
-      "mon_name" : "Alakazam",
+      "mon_form" : "THROH_NORMAL",
+      "mon_stamina" : 11,
+      "mon_attack" : 12,
+      "mon_name" : "Throh",
       "mon_isShiny" : "NO",
-      "mon_move_2" : "Bola Sombria",
-      "mon_cp" : 1730,
-      "mon_number" : 65,
-      "mon_isLucky" : "YES",
-      "mon_defence" : 15
+      "mon_move_2" : "Pancada Corporal",
+      "mon_cp" : 2133,
+      "mon_number" : 538,
+      "mon_isLucky" : "NO",
+      "mon_defence" : 13
     },
     "403176436580115665" : {
       "mon_weather_boost" : "CLEAR",
@@ -628,22 +644,6 @@
       "mon_isLucky" : "NO",
       "mon_defence" : 12
     },
-    "6616966424681186104" : {
-      "mon_weight" : 5.0168828964233398,
-      "mon_move_1" : "Lançamento de Rocha",
-      "mon_height" : 0.57836270332336426,
-      "mon_gender" : "GENDERLESS",
-      "mon_form" : "DIANCIE_NORMAL",
-      "mon_stamina" : 13,
-      "mon_attack" : 14,
-      "mon_name" : "Diancie",
-      "mon_isShiny" : "NO",
-      "mon_move_2" : "Explosão Lunar",
-      "mon_cp" : 1158,
-      "mon_number" : 719,
-      "mon_isLucky" : "NO",
-      "mon_defence" : 15
-    },
     "11318056829908018986" : {
       "mon_weight" : 11.030660629272461,
       "mon_move_1" : "Borrifada",
@@ -664,6 +664,22 @@
       "mon_isLucky" : "NO",
       "mon_defence" : 11
     },
+    "17609049685362480642" : {
+      "mon_weight" : 29.961362838745117,
+      "mon_move_1" : "Lançamento de Rocha",
+      "mon_height" : 0.47531348466873169,
+      "mon_gender" : "FEMALE",
+      "mon_form" : "GEODUDE_ALOLA",
+      "mon_stamina" : 15,
+      "mon_attack" : 13,
+      "mon_name" : "Alola Geodude",
+      "mon_isShiny" : "NO",
+      "mon_move_2" : "Deslize de Pedras",
+      "mon_cp" : 539,
+      "mon_number" : 74,
+      "mon_isLucky" : "NO",
+      "mon_defence" : 11
+    },
     "2206343541602775674" : {
       "mon_weight" : 3.5907497406005859,
       "mon_move_1" : "Golpe de Ar",
@@ -680,21 +696,21 @@
       "mon_isLucky" : "NO",
       "mon_defence" : 11
     },
-    "17609049685362480642" : {
-      "mon_weight" : 29.961362838745117,
+    "6616966424681186104" : {
+      "mon_weight" : 5.0168828964233398,
       "mon_move_1" : "Lançamento de Rocha",
-      "mon_height" : 0.47531348466873169,
-      "mon_gender" : "FEMALE",
-      "mon_form" : "GEODUDE_ALOLA",
-      "mon_stamina" : 15,
-      "mon_attack" : 13,
-      "mon_name" : "Alola Geodude",
+      "mon_height" : 0.57836270332336426,
+      "mon_gender" : "GENDERLESS",
+      "mon_form" : "DIANCIE_NORMAL",
+      "mon_stamina" : 13,
+      "mon_attack" : 14,
+      "mon_name" : "Diancie",
       "mon_isShiny" : "NO",
-      "mon_move_2" : "Deslize de Pedras",
-      "mon_cp" : 539,
-      "mon_number" : 74,
+      "mon_move_2" : "Explosão Lunar",
+      "mon_cp" : 1158,
+      "mon_number" : 719,
       "mon_isLucky" : "NO",
-      "mon_defence" : 11
+      "mon_defence" : 15
     },
     "4885342605457410399" : {
       "mon_weight" : 6.695253849029541,
@@ -1273,22 +1289,6 @@
       "mon_isLucky" : "NO",
       "mon_defence" : 10
     },
-    "17165926939681294181" : {
-      "mon_weight" : 8.813471794128418,
-      "mon_move_1" : "Tiro de Lama",
-      "mon_height" : 0.43600770831108093,
-      "mon_gender" : "FEMALE",
-      "mon_form" : "OMANYTE_NORMAL",
-      "mon_stamina" : 15,
-      "mon_attack" : 15,
-      "mon_name" : "Omanyte",
-      "mon_isShiny" : "NO",
-      "mon_move_2" : "Jato de Bolhas",
-      "mon_cp" : 877,
-      "mon_number" : 138,
-      "mon_isLucky" : "NO",
-      "mon_defence" : 13
-    },
     "14632662615904373268" : {
       "mon_weight" : 6.0487818717956543,
       "mon_move_1" : "Encantar",
@@ -1302,6 +1302,22 @@
       "mon_move_2" : "Caninos Psíquicos",
       "mon_cp" : 545,
       "mon_number" : 926,
+      "mon_isLucky" : "NO",
+      "mon_defence" : 13
+    },
+    "17165926939681294181" : {
+      "mon_weight" : 8.813471794128418,
+      "mon_move_1" : "Tiro de Lama",
+      "mon_height" : 0.43600770831108093,
+      "mon_gender" : "FEMALE",
+      "mon_form" : "OMANYTE_NORMAL",
+      "mon_stamina" : 15,
+      "mon_attack" : 15,
+      "mon_name" : "Omanyte",
+      "mon_isShiny" : "NO",
+      "mon_move_2" : "Jato de Bolhas",
+      "mon_cp" : 877,
+      "mon_number" : 138,
       "mon_isLucky" : "NO",
       "mon_defence" : 13
     },
@@ -2251,6 +2267,30 @@
       "mon_isLucky" : "NO",
       "mon_defence" : 10
     },
+    "15193258747965026944" : {
+      "mon_weight" : 46.126976013183594,
+      "mon_move_1" : "Revólver d'Água",
+      "mon_npc_stats" : {
+        "npc_total" : 2,
+        "npc_won" : 2
+      },
+      "mon_height" : 1.6068310737609863,
+      "mon_pvp_stats" : {
+        "pvp_won" : 5,
+        "pvp_total" : 10
+      },
+      "mon_gender" : "FEMALE",
+      "mon_form" : "SLOWKING_NORMAL",
+      "mon_stamina" : 15,
+      "mon_attack" : 15,
+      "mon_name" : "Slowking",
+      "mon_isShiny" : "NO",
+      "mon_move_2" : "Escaldada",
+      "mon_cp" : 1417,
+      "mon_number" : 199,
+      "mon_isLucky" : "NO",
+      "mon_defence" : 15
+    },
     "9882456950903317480" : {
       "mon_weight" : 13.790031433105469,
       "mon_move_1" : "Brasa",
@@ -2281,30 +2321,6 @@
       "mon_number" : 1,
       "mon_isLucky" : "NO",
       "mon_defence" : 10
-    },
-    "15193258747965026944" : {
-      "mon_weight" : 46.126976013183594,
-      "mon_move_1" : "Revólver d'Água",
-      "mon_npc_stats" : {
-        "npc_total" : 2,
-        "npc_won" : 2
-      },
-      "mon_height" : 1.6068310737609863,
-      "mon_pvp_stats" : {
-        "pvp_won" : 5,
-        "pvp_total" : 10
-      },
-      "mon_gender" : "FEMALE",
-      "mon_form" : "SLOWKING_NORMAL",
-      "mon_stamina" : 15,
-      "mon_attack" : 15,
-      "mon_name" : "Slowking",
-      "mon_isShiny" : "NO",
-      "mon_move_2" : "Escaldada",
-      "mon_cp" : 1417,
-      "mon_number" : 199,
-      "mon_isLucky" : "NO",
-      "mon_defence" : 15
     },
     "6030693751074140358" : {
       "mon_weight" : 59.125782012939453,
@@ -2377,21 +2393,21 @@
       "mon_isLucky" : "NO",
       "mon_defence" : 15
     },
-    "6799283292277633696" : {
-      "mon_weight" : 37.009166717529297,
-      "mon_move_1" : "Carga de Raio",
-      "mon_height" : 0.85542464256286621,
-      "mon_gender" : "GENDERLESS",
-      "mon_form" : "PORYGON_NORMAL",
-      "mon_stamina" : 0,
-      "mon_attack" : 2,
-      "mon_name" : "Porygon",
+    "16758324012787476754" : {
+      "mon_weight" : 4.5504794120788574,
+      "mon_move_1" : "Arranhão",
+      "mon_height" : 0.55104321241378784,
+      "mon_gender" : "FEMALE",
+      "mon_form" : "GLAMEOW_NORMAL",
+      "mon_stamina" : 13,
+      "mon_attack" : 12,
+      "mon_name" : "Glameow",
       "mon_isShiny" : "NO",
-      "mon_move_2" : "Canhão Zap",
-      "mon_cp" : 732,
-      "mon_number" : 137,
+      "mon_move_2" : "Ás dos Ares",
+      "mon_cp" : 406,
+      "mon_number" : 431,
       "mon_isLucky" : "NO",
-      "mon_defence" : 13
+      "mon_defence" : 1
     },
     "6633879406864454585" : {
       "mon_weather_boost" : "CLEAR",
@@ -2409,21 +2425,21 @@
       "mon_isLucky" : "NO",
       "mon_defence" : 14
     },
-    "16758324012787476754" : {
-      "mon_weight" : 4.5504794120788574,
-      "mon_move_1" : "Arranhão",
-      "mon_height" : 0.55104321241378784,
-      "mon_gender" : "FEMALE",
-      "mon_form" : "GLAMEOW_NORMAL",
-      "mon_stamina" : 13,
-      "mon_attack" : 12,
-      "mon_name" : "Glameow",
+    "6799283292277633696" : {
+      "mon_weight" : 37.009166717529297,
+      "mon_move_1" : "Carga de Raio",
+      "mon_height" : 0.85542464256286621,
+      "mon_gender" : "GENDERLESS",
+      "mon_form" : "PORYGON_NORMAL",
+      "mon_stamina" : 0,
+      "mon_attack" : 2,
+      "mon_name" : "Porygon",
       "mon_isShiny" : "NO",
-      "mon_move_2" : "Ás dos Ares",
-      "mon_cp" : 406,
-      "mon_number" : 431,
+      "mon_move_2" : "Canhão Zap",
+      "mon_cp" : 732,
+      "mon_number" : 137,
       "mon_isLucky" : "NO",
-      "mon_defence" : 1
+      "mon_defence" : 13
     },
     "14228685768706771950" : {
       "mon_weight" : 11.38968563079834,
@@ -3933,22 +3949,6 @@
       "mon_isLucky" : "NO",
       "mon_defence" : 14
     },
-    "12168834820501737458" : {
-      "mon_weight" : 8.5380058288574219,
-      "mon_move_1" : "Projétil de Semente",
-      "mon_height" : 0.46645808219909668,
-      "mon_gender" : "FEMALE",
-      "mon_form" : "CHERRIM_OVERCAST",
-      "mon_stamina" : 10,
-      "mon_attack" : 11,
-      "mon_name" : "Overcast Cherrim",
-      "mon_isShiny" : "NO",
-      "mon_move_2" : "Hiper-raio",
-      "mon_cp" : 1129,
-      "mon_number" : 421,
-      "mon_isLucky" : "NO",
-      "mon_defence" : 15
-    },
     "10386432512991813691" : {
       "mon_weather_boost" : "CLEAR",
       "mon_weight" : 17.442981719970703,
@@ -3973,6 +3973,22 @@
       "mon_number" : 5,
       "mon_isLucky" : "NO",
       "mon_defence" : 10
+    },
+    "12168834820501737458" : {
+      "mon_weight" : 8.5380058288574219,
+      "mon_move_1" : "Projétil de Semente",
+      "mon_height" : 0.46645808219909668,
+      "mon_gender" : "FEMALE",
+      "mon_form" : "CHERRIM_OVERCAST",
+      "mon_stamina" : 10,
+      "mon_attack" : 11,
+      "mon_name" : "Overcast Cherrim",
+      "mon_isShiny" : "NO",
+      "mon_move_2" : "Hiper-raio",
+      "mon_cp" : 1129,
+      "mon_number" : 421,
+      "mon_isLucky" : "NO",
+      "mon_defence" : 15
     },
     "15772324901646305632" : {
       "mon_weight" : 159.29058837890625,
@@ -5415,6 +5431,24 @@
       "mon_isLucky" : "NO",
       "mon_defence" : 12
     },
+    "143451859675539873" : {
+      "mon_weather_boost" : "OVERCAST",
+      "mon_weight" : 23.227428436279297,
+      "mon_move_1" : "Golpe de Caratê",
+      "mon_height" : 0.44115525484085083,
+      "mon_gender" : "MALE",
+      "mon_form" : "MANKEY_NORMAL",
+      "mon_alignment" : "SHADOW",
+      "mon_stamina" : 14,
+      "mon_attack" : 15,
+      "mon_name" : "Mankey",
+      "mon_isShiny" : "NO",
+      "mon_move_2" : "Frustração",
+      "mon_cp" : 410,
+      "mon_number" : 56,
+      "mon_isLucky" : "NO",
+      "mon_defence" : 6
+    },
     "1290530753247724551" : {
       "mon_weight" : 22.674827575683594,
       "mon_move_1" : "Rasteira",
@@ -6509,6 +6543,21 @@
       "mon_isLucky" : "NO",
       "mon_defence" : 15
     },
+    "470884304340126537" : {
+      "mon_weight" : 72.29864501953125,
+      "mon_move_1" : "Poder Oculto",
+      "mon_height" : 0.94720381498336792,
+      "mon_gender" : "GENDERLESS",
+      "mon_stamina" : 14,
+      "mon_attack" : 2,
+      "mon_name" : "Starmie",
+      "mon_isShiny" : "NO",
+      "mon_move_2" : "Gema Poderosa",
+      "mon_cp" : 1903,
+      "mon_number" : 121,
+      "mon_isLucky" : "NO",
+      "mon_defence" : 14
+    },
     "13493483981265518453" : {
       "mon_weight" : 24.485023498535156,
       "mon_move_1" : "Rosnado",
@@ -6527,21 +6576,6 @@
       "mon_number" : 197,
       "mon_isLucky" : "NO",
       "mon_defence" : 12
-    },
-    "470884304340126537" : {
-      "mon_weight" : 72.29864501953125,
-      "mon_move_1" : "Poder Oculto",
-      "mon_height" : 0.94720381498336792,
-      "mon_gender" : "GENDERLESS",
-      "mon_stamina" : 14,
-      "mon_attack" : 2,
-      "mon_name" : "Starmie",
-      "mon_isShiny" : "NO",
-      "mon_move_2" : "Gema Poderosa",
-      "mon_cp" : 1903,
-      "mon_number" : 121,
-      "mon_isLucky" : "NO",
-      "mon_defence" : 14
     },
     "4639058813752101773" : {
       "mon_weight" : 0.7145378589630127,
@@ -6687,6 +6721,23 @@
       "mon_number" : 245,
       "mon_isLucky" : "NO",
       "mon_defence" : 13
+    },
+    "9492689174704665899" : {
+      "mon_weight" : 39.300514221191406,
+      "mon_move_1" : "Tiro de Lama",
+      "mon_height" : 1.2111306190490723,
+      "mon_gender" : "MALE",
+      "mon_form" : "LANDORUS_INCARNATE",
+      "mon_alignment" : "SHADOW",
+      "mon_stamina" : 10,
+      "mon_attack" : 9,
+      "mon_name" : "Incarnate Landorus",
+      "mon_isShiny" : "NO",
+      "mon_move_2" : "Frustração",
+      "mon_cp" : 776,
+      "mon_number" : 645,
+      "mon_isLucky" : "NO",
+      "mon_defence" : 12
     },
     "2055526716251727378" : {
       "mon_weight" : 43.586555480957031,
@@ -7019,38 +7070,6 @@
       "mon_isLucky" : "NO",
       "mon_defence" : 10
     },
-    "3563218171261562884" : {
-      "mon_weight" : 2.9209170341491699,
-      "mon_move_1" : "Arranhão",
-      "mon_height" : 0.24152429401874542,
-      "mon_gender" : "MALE",
-      "mon_form" : "GROOKEY_NORMAL",
-      "mon_stamina" : 13,
-      "mon_attack" : 13,
-      "mon_name" : "Grookey",
-      "mon_isShiny" : "NO",
-      "mon_move_2" : "Nó de Grama",
-      "mon_cp" : 451,
-      "mon_number" : 810,
-      "mon_isLucky" : "NO",
-      "mon_defence" : 13
-    },
-    "1642994053243396935" : {
-      "mon_weight" : 229.32769775390625,
-      "mon_move_1" : "Lançamento de Rocha",
-      "mon_height" : 1.1961134672164917,
-      "mon_gender" : "GENDERLESS",
-      "mon_form" : "LUNATONE_NORMAL",
-      "mon_stamina" : 13,
-      "mon_attack" : 14,
-      "mon_name" : "Lunatone",
-      "mon_isShiny" : "NO",
-      "mon_move_2" : "Explosão Lunar",
-      "mon_cp" : 1671,
-      "mon_number" : 337,
-      "mon_isLucky" : "NO",
-      "mon_defence" : 7
-    },
     "4709132882689669954" : {
       "mon_weight" : 112.92313385009766,
       "mon_move_1" : "Confusão",
@@ -7074,6 +7093,38 @@
       "mon_number" : 97,
       "mon_isLucky" : "NO",
       "mon_defence" : 15
+    },
+    "1642994053243396935" : {
+      "mon_weight" : 229.32769775390625,
+      "mon_move_1" : "Lançamento de Rocha",
+      "mon_height" : 1.1961134672164917,
+      "mon_gender" : "GENDERLESS",
+      "mon_form" : "LUNATONE_NORMAL",
+      "mon_stamina" : 13,
+      "mon_attack" : 14,
+      "mon_name" : "Lunatone",
+      "mon_isShiny" : "NO",
+      "mon_move_2" : "Explosão Lunar",
+      "mon_cp" : 1671,
+      "mon_number" : 337,
+      "mon_isLucky" : "NO",
+      "mon_defence" : 7
+    },
+    "3563218171261562884" : {
+      "mon_weight" : 2.9209170341491699,
+      "mon_move_1" : "Arranhão",
+      "mon_height" : 0.24152429401874542,
+      "mon_gender" : "MALE",
+      "mon_form" : "GROOKEY_NORMAL",
+      "mon_stamina" : 13,
+      "mon_attack" : 13,
+      "mon_name" : "Grookey",
+      "mon_isShiny" : "NO",
+      "mon_move_2" : "Nó de Grama",
+      "mon_cp" : 451,
+      "mon_number" : 810,
+      "mon_isLucky" : "NO",
+      "mon_defence" : 13
     },
     "1525774602608128004" : {
       "mon_weather_boost" : "OVERCAST",
@@ -7138,40 +7189,6 @@
       "mon_isLucky" : "NO",
       "mon_defence" : 14
     },
-    "12028205593057513101" : {
-      "mon_weight" : 1.9966697692871094,
-      "mon_move_1" : "Troca Elétrica",
-      "mon_height" : 0.19632704555988312,
-      "mon_gender" : "FEMALE",
-      "mon_form" : "GEODUDE_ALOLA",
-      "mon_stamina" : 11,
-      "mon_attack" : 0,
-      "mon_name" : "Alola Geodude",
-      "mon_isShiny" : "NO",
-      "mon_move_2" : "Deslize de Pedras",
-      "mon_cp" : 709,
-      "mon_number" : 74,
-      "mon_isLucky" : "NO",
-      "mon_defence" : 11
-    },
-    "10039799841459243962" : {
-      "mon_weather_boost" : "RAINY",
-      "mon_weight" : 8.7074899673461914,
-      "mon_move_1" : "Tiro de Lama",
-      "mon_height" : 0.42038631439208984,
-      "mon_gender" : "MALE",
-      "mon_form" : "OMANYTE_NORMAL",
-      "mon_alignment" : "SHADOW",
-      "mon_stamina" : 6,
-      "mon_attack" : 4,
-      "mon_name" : "Omanyte",
-      "mon_isShiny" : "NO",
-      "mon_move_2" : "Frustração",
-      "mon_cp" : 504,
-      "mon_number" : 138,
-      "mon_isLucky" : "NO",
-      "mon_defence" : 7
-    },
     "3259916873863686410" : {
       "mon_weather_boost" : "RAINY",
       "mon_weight" : 59.482418060302734,
@@ -7196,6 +7213,40 @@
       "mon_number" : 214,
       "mon_isLucky" : "NO",
       "mon_defence" : 12
+    },
+    "10039799841459243962" : {
+      "mon_weather_boost" : "RAINY",
+      "mon_weight" : 8.7074899673461914,
+      "mon_move_1" : "Tiro de Lama",
+      "mon_height" : 0.42038631439208984,
+      "mon_gender" : "MALE",
+      "mon_form" : "OMANYTE_NORMAL",
+      "mon_alignment" : "SHADOW",
+      "mon_stamina" : 6,
+      "mon_attack" : 4,
+      "mon_name" : "Omanyte",
+      "mon_isShiny" : "NO",
+      "mon_move_2" : "Frustração",
+      "mon_cp" : 504,
+      "mon_number" : 138,
+      "mon_isLucky" : "NO",
+      "mon_defence" : 7
+    },
+    "12028205593057513101" : {
+      "mon_weight" : 1.9966697692871094,
+      "mon_move_1" : "Troca Elétrica",
+      "mon_height" : 0.19632704555988312,
+      "mon_gender" : "FEMALE",
+      "mon_form" : "GEODUDE_ALOLA",
+      "mon_stamina" : 11,
+      "mon_attack" : 0,
+      "mon_name" : "Alola Geodude",
+      "mon_isShiny" : "NO",
+      "mon_move_2" : "Deslize de Pedras",
+      "mon_cp" : 709,
+      "mon_number" : 74,
+      "mon_isLucky" : "NO",
+      "mon_defence" : 11
     },
     "2138441003100414520" : {
       "mon_weight" : 163.19615173339844,
@@ -7246,20 +7297,21 @@
       "mon_isLucky" : "NO",
       "mon_defence" : 12
     },
-    "12899639733085440762" : {
-      "mon_weight" : 28.863515853881836,
-      "mon_move_1" : "Rosnado",
-      "mon_height" : 1.0216847658157349,
-      "mon_gender" : "MALE",
-      "mon_stamina" : 7,
-      "mon_attack" : 12,
-      "mon_name" : "Crawdaunt",
+    "16429188101420326630" : {
+      "mon_weight" : 7.9578762054443359,
+      "mon_move_1" : "Ataque Dissimulado",
+      "mon_height" : 0.55092531442642212,
+      "mon_gender" : "FEMALE",
+      "mon_form" : "HOUNDOUR_NORMAL",
+      "mon_stamina" : 15,
+      "mon_attack" : 11,
+      "mon_name" : "Houndour",
       "mon_isShiny" : "NO",
-      "mon_move_2" : "Jato de Bolhas",
-      "mon_cp" : 1538,
-      "mon_number" : 342,
+      "mon_move_2" : "Mastigada",
+      "mon_cp" : 508,
+      "mon_number" : 228,
       "mon_isLucky" : "NO",
-      "mon_defence" : 9
+      "mon_defence" : 12
     },
     "1945389658196720937" : {
       "mon_weight" : 6.4952082633972168,
@@ -7323,21 +7375,26 @@
       "mon_isLucky" : "NO",
       "mon_defence" : 14
     },
-    "16429188101420326630" : {
-      "mon_weight" : 7.9578762054443359,
-      "mon_move_1" : "Ataque Dissimulado",
-      "mon_height" : 0.55092531442642212,
+    "14161442790722724971" : {
+      "mon_weather_boost" : "PARTLY_CLOUDY",
+      "mon_weight" : 21.209648132324219,
+      "mon_move_1" : "Encantar",
+      "mon_height" : 0.80907803773880005,
+      "mon_pvp_stats" : {
+        "pvp_won" : 1,
+        "pvp_total" : 3
+      },
       "mon_gender" : "FEMALE",
-      "mon_form" : "HOUNDOUR_NORMAL",
-      "mon_stamina" : 15,
-      "mon_attack" : 11,
-      "mon_name" : "Houndour",
+      "mon_form" : "SYLVEON_NORMAL",
+      "mon_stamina" : 14,
+      "mon_attack" : 4,
+      "mon_name" : "Sylveon",
       "mon_isShiny" : "NO",
-      "mon_move_2" : "Mastigada",
-      "mon_cp" : 508,
-      "mon_number" : 228,
+      "mon_move_2" : "Clarão Deslumbrante",
+      "mon_cp" : 2487,
+      "mon_number" : 700,
       "mon_isLucky" : "NO",
-      "mon_defence" : 12
+      "mon_defence" : 14
     },
     "529762629753785818" : {
       "mon_weight" : 45.241458892822266,
@@ -7371,22 +7428,6 @@
       "mon_isLucky" : "NO",
       "mon_defence" : 14
     },
-    "3182525923414368582" : {
-      "mon_weight" : 7.2379226684570312,
-      "mon_move_1" : "Chama Furacão",
-      "mon_height" : 0.35612699389457703,
-      "mon_gender" : "MALE",
-      "mon_form" : "SCORBUNNY_NORMAL",
-      "mon_stamina" : 4,
-      "mon_attack" : 2,
-      "mon_name" : "Scorbunny",
-      "mon_isShiny" : "NO",
-      "mon_move_2" : "Ataque de Chamas",
-      "mon_cp" : 120,
-      "mon_number" : 813,
-      "mon_isLucky" : "NO",
-      "mon_defence" : 2
-    },
     "16051662523030870799" : {
       "mon_weather_boost" : "OVERCAST",
       "mon_weight" : 4.1342058181762695,
@@ -7404,26 +7445,36 @@
       "mon_isLucky" : "NO",
       "mon_defence" : 5
     },
-    "14161442790722724971" : {
-      "mon_weather_boost" : "PARTLY_CLOUDY",
-      "mon_weight" : 21.209648132324219,
-      "mon_move_1" : "Encantar",
-      "mon_height" : 0.80907803773880005,
-      "mon_pvp_stats" : {
-        "pvp_won" : 1,
-        "pvp_total" : 3
-      },
-      "mon_gender" : "FEMALE",
-      "mon_form" : "SYLVEON_NORMAL",
-      "mon_stamina" : 14,
-      "mon_attack" : 4,
-      "mon_name" : "Sylveon",
+    "3182525923414368582" : {
+      "mon_weight" : 7.2379226684570312,
+      "mon_move_1" : "Chama Furacão",
+      "mon_height" : 0.35612699389457703,
+      "mon_gender" : "MALE",
+      "mon_form" : "SCORBUNNY_NORMAL",
+      "mon_stamina" : 4,
+      "mon_attack" : 2,
+      "mon_name" : "Scorbunny",
       "mon_isShiny" : "NO",
-      "mon_move_2" : "Clarão Deslumbrante",
-      "mon_cp" : 2487,
-      "mon_number" : 700,
+      "mon_move_2" : "Ataque de Chamas",
+      "mon_cp" : 120,
+      "mon_number" : 813,
       "mon_isLucky" : "NO",
-      "mon_defence" : 14
+      "mon_defence" : 2
+    },
+    "12899639733085440762" : {
+      "mon_weight" : 28.863515853881836,
+      "mon_move_1" : "Rosnado",
+      "mon_height" : 1.0216847658157349,
+      "mon_gender" : "MALE",
+      "mon_stamina" : 7,
+      "mon_attack" : 12,
+      "mon_name" : "Crawdaunt",
+      "mon_isShiny" : "NO",
+      "mon_move_2" : "Jato de Bolhas",
+      "mon_cp" : 1538,
+      "mon_number" : 342,
+      "mon_isLucky" : "NO",
+      "mon_defence" : 9
     },
     "3638643126635389893" : {
       "mon_weight" : 2.1542420387268066,
@@ -7525,22 +7576,21 @@
       "mon_isLucky" : "NO",
       "mon_defence" : 4
     },
-    "16576195151936902926" : {
-      "mon_weight" : 11.268882751464844,
-      "mon_move_1" : "Brasa",
-      "mon_height" : 0.46314799785614014,
+    "8364449666680949162" : {
+      "mon_weight" : 1.6711565256118774,
+      "mon_move_1" : "Confusão",
+      "mon_height" : 0.32321706414222717,
       "mon_gender" : "MALE",
-      "mon_form" : "FENNEKIN_NORMAL",
-      "mon_alignment" : "SHADOW",
-      "mon_stamina" : 8,
-      "mon_attack" : 6,
-      "mon_name" : "Fennekin",
+      "mon_form" : "WOOBAT_NORMAL",
+      "mon_stamina" : 13,
+      "mon_attack" : 13,
+      "mon_name" : "Woobat",
       "mon_isShiny" : "NO",
-      "mon_move_2" : "Frustração",
-      "mon_cp" : 200,
-      "mon_number" : 653,
+      "mon_move_2" : "Cortador de Ar",
+      "mon_cp" : 556,
+      "mon_number" : 527,
       "mon_isLucky" : "NO",
-      "mon_defence" : 4
+      "mon_defence" : 11
     },
     "10638378050377900479" : {
       "mon_weight" : 5.062014102935791,
@@ -7555,22 +7605,6 @@
       "mon_move_2" : "Hiperpresa",
       "mon_cp" : 386,
       "mon_number" : 19,
-      "mon_isLucky" : "NO",
-      "mon_defence" : 11
-    },
-    "8364449666680949162" : {
-      "mon_weight" : 1.6711565256118774,
-      "mon_move_1" : "Confusão",
-      "mon_height" : 0.32321706414222717,
-      "mon_gender" : "MALE",
-      "mon_form" : "WOOBAT_NORMAL",
-      "mon_stamina" : 13,
-      "mon_attack" : 13,
-      "mon_name" : "Woobat",
-      "mon_isShiny" : "NO",
-      "mon_move_2" : "Cortador de Ar",
-      "mon_cp" : 556,
-      "mon_number" : 527,
       "mon_isLucky" : "NO",
       "mon_defence" : 11
     },
@@ -7591,6 +7625,23 @@
       "mon_isLucky" : "NO",
       "mon_defence" : 12
     },
+    "16576195151936902926" : {
+      "mon_weight" : 11.268882751464844,
+      "mon_move_1" : "Brasa",
+      "mon_height" : 0.46314799785614014,
+      "mon_gender" : "MALE",
+      "mon_form" : "FENNEKIN_NORMAL",
+      "mon_alignment" : "SHADOW",
+      "mon_stamina" : 8,
+      "mon_attack" : 6,
+      "mon_name" : "Fennekin",
+      "mon_isShiny" : "NO",
+      "mon_move_2" : "Frustração",
+      "mon_cp" : 200,
+      "mon_number" : 653,
+      "mon_isLucky" : "NO",
+      "mon_defence" : 4
+    },
     "11848645440369953093" : {
       "mon_weight" : 24.508659362792969,
       "mon_move_1" : "Lançamento de Rocha",
@@ -7606,6 +7657,22 @@
       "mon_number" : 74,
       "mon_isLucky" : "NO",
       "mon_defence" : 5
+    },
+    "7051216565675112404" : {
+      "mon_weight" : 9.5907230377197266,
+      "mon_move_1" : "Ataque Rápido",
+      "mon_height" : 0.34604725241661072,
+      "mon_gender" : "MALE",
+      "mon_form" : "EEVEE_NORMAL",
+      "mon_stamina" : 11,
+      "mon_attack" : 15,
+      "mon_name" : "Eevee",
+      "mon_isShiny" : "NO",
+      "mon_move_2" : "Ataque Veloz",
+      "mon_cp" : 451,
+      "mon_number" : 133,
+      "mon_isLucky" : "NO",
+      "mon_defence" : 14
     },
     "2889910326593243973" : {
       "mon_weight" : 23.438739776611328,
@@ -7848,6 +7915,22 @@
       "mon_number" : 694,
       "mon_isLucky" : "NO",
       "mon_defence" : 13
+    },
+    "10901723925155889600" : {
+      "mon_weight" : 7.2265605926513672,
+      "mon_move_1" : "Chicote de Vinha",
+      "mon_height" : 0.65656274557113647,
+      "mon_gender" : "MALE",
+      "mon_form" : "BULBASAUR_NORMAL",
+      "mon_stamina" : 11,
+      "mon_attack" : 10,
+      "mon_name" : "Bulbasaur",
+      "mon_isShiny" : "NO",
+      "mon_move_2" : "Bomba de Sementes",
+      "mon_cp" : 453,
+      "mon_number" : 1,
+      "mon_isLucky" : "NO",
+      "mon_defence" : 15
     },
     "7290253355891429972" : {
       "mon_weight" : 9.0174808502197266,
@@ -8268,22 +8351,6 @@
       "mon_isLucky" : "NO",
       "mon_defence" : 2
     },
-    "2226274548789018575" : {
-      "mon_weight" : 3.7568283081054688,
-      "mon_move_1" : "Investida",
-      "mon_height" : 0.45342731475830078,
-      "mon_gender" : "FEMALE",
-      "mon_form" : "SWIRLIX_NORMAL",
-      "mon_stamina" : 4,
-      "mon_attack" : 4,
-      "mon_name" : "Swirlix",
-      "mon_isShiny" : "NO",
-      "mon_move_2" : "Bola de Energia",
-      "mon_cp" : 799,
-      "mon_number" : 684,
-      "mon_isLucky" : "NO",
-      "mon_defence" : 14
-    },
     "15573358342284649315" : {
       "mon_weight" : 75.41827392578125,
       "mon_move_1" : "Chute Duplo",
@@ -8299,6 +8366,22 @@
       "mon_number" : 106,
       "mon_isLucky" : "NO",
       "mon_defence" : 6
+    },
+    "2226274548789018575" : {
+      "mon_weight" : 3.7568283081054688,
+      "mon_move_1" : "Investida",
+      "mon_height" : 0.45342731475830078,
+      "mon_gender" : "FEMALE",
+      "mon_form" : "SWIRLIX_NORMAL",
+      "mon_stamina" : 4,
+      "mon_attack" : 4,
+      "mon_name" : "Swirlix",
+      "mon_isShiny" : "NO",
+      "mon_move_2" : "Bola de Energia",
+      "mon_cp" : 799,
+      "mon_number" : 684,
+      "mon_isLucky" : "NO",
+      "mon_defence" : 14
     },
     "15049248227748359710" : {
       "mon_weight" : 57.896781921386719,
@@ -8503,6 +8586,22 @@
       "mon_isLucky" : "NO",
       "mon_defence" : 10
     },
+    "6486199851876936809" : {
+      "mon_weight" : 3.7981529235839844,
+      "mon_move_1" : "Folha Navalha",
+      "mon_height" : 0.23820735514163971,
+      "mon_gender" : "FEMALE",
+      "mon_form" : "SMOLIV_NORMAL",
+      "mon_stamina" : 0,
+      "mon_attack" : 3,
+      "mon_name" : "Smoliv",
+      "mon_isShiny" : "NO",
+      "mon_move_2" : "Bomba de Sementes",
+      "mon_cp" : 51,
+      "mon_number" : 928,
+      "mon_isLucky" : "NO",
+      "mon_defence" : 6
+    },
     "11731659886189700595" : {
       "mon_weight" : 6.2247705459594727,
       "mon_move_1" : "Revólver d'Água",
@@ -8678,6 +8777,22 @@
       "mon_number" : 36,
       "mon_isLucky" : "NO",
       "mon_defence" : 11
+    },
+    "2099153921682484536" : {
+      "mon_weight" : 7.0224123001098633,
+      "mon_move_1" : "Picada",
+      "mon_height" : 0.35582920908927917,
+      "mon_gender" : "MALE",
+      "mon_form" : "COMBEE_NORMAL",
+      "mon_stamina" : 14,
+      "mon_attack" : 15,
+      "mon_name" : "Combee",
+      "mon_isShiny" : "NO",
+      "mon_move_2" : "Zumbido de Inseto",
+      "mon_cp" : 209,
+      "mon_number" : 415,
+      "mon_isLucky" : "NO",
+      "mon_defence" : 13
     },
     "13754200104337725406" : {
       "mon_weight" : 2.9020247459411621,
@@ -9420,21 +9535,21 @@
       "mon_isLucky" : "NO",
       "mon_defence" : 11
     },
-    "6963776270065165079" : {
-      "mon_weather_boost" : "OVERCAST",
-      "mon_weight" : 17.621675491333008,
-      "mon_move_1" : "Ácido",
-      "mon_height" : 1.7468589544296265,
-      "mon_gender" : "MALE",
-      "mon_stamina" : 14,
-      "mon_attack" : 14,
-      "mon_name" : "Victreebel",
+    "8971792736081506248" : {
+      "mon_weight" : 52.389949798583984,
+      "mon_move_1" : "Ataque Rápido",
+      "mon_height" : 1.0797295570373535,
+      "mon_gender" : "FEMALE",
+      "mon_form" : "BLITZLE_NORMAL",
+      "mon_stamina" : 4,
+      "mon_attack" : 9,
+      "mon_name" : "Blitzle",
       "mon_isShiny" : "NO",
-      "mon_move_2" : "Lâmina de Folha",
-      "mon_cp" : 1953,
-      "mon_number" : 71,
+      "mon_move_2" : "Relâmpago",
+      "mon_cp" : 311,
+      "mon_number" : 522,
       "mon_isLucky" : "NO",
-      "mon_defence" : 8
+      "mon_defence" : 9
     },
     "15628435574935141754" : {
       "mon_weight" : 25.67718505859375,
@@ -9453,21 +9568,21 @@
       "mon_isLucky" : "NO",
       "mon_defence" : 13
     },
-    "8971792736081506248" : {
-      "mon_weight" : 52.389949798583984,
-      "mon_move_1" : "Ataque Rápido",
-      "mon_height" : 1.0797295570373535,
-      "mon_gender" : "FEMALE",
-      "mon_form" : "BLITZLE_NORMAL",
-      "mon_stamina" : 4,
-      "mon_attack" : 9,
-      "mon_name" : "Blitzle",
+    "6963776270065165079" : {
+      "mon_weather_boost" : "OVERCAST",
+      "mon_weight" : 17.621675491333008,
+      "mon_move_1" : "Ácido",
+      "mon_height" : 1.7468589544296265,
+      "mon_gender" : "MALE",
+      "mon_stamina" : 14,
+      "mon_attack" : 14,
+      "mon_name" : "Victreebel",
       "mon_isShiny" : "NO",
-      "mon_move_2" : "Relâmpago",
-      "mon_cp" : 311,
-      "mon_number" : 522,
+      "mon_move_2" : "Lâmina de Folha",
+      "mon_cp" : 1953,
+      "mon_number" : 71,
       "mon_isLucky" : "NO",
-      "mon_defence" : 9
+      "mon_defence" : 8
     },
     "14052991268742132843" : {
       "mon_weight" : 29.623867034912109,
@@ -9961,22 +10076,6 @@
       "mon_isLucky" : "NO",
       "mon_defence" : 13
     },
-    "2169730470268319634" : {
-      "mon_weight" : 13.253912925720215,
-      "mon_move_1" : "Revólver d'Água",
-      "mon_height" : 0.58823084831237793,
-      "mon_gender" : "FEMALE",
-      "mon_form" : "PANPOUR_NORMAL",
-      "mon_stamina" : 4,
-      "mon_attack" : 2,
-      "mon_name" : "Panpour",
-      "mon_isShiny" : "NO",
-      "mon_move_2" : "Mastigada",
-      "mon_cp" : 609,
-      "mon_number" : 515,
-      "mon_isLucky" : "NO",
-      "mon_defence" : 0
-    },
     "13630922959838882559" : {
       "mon_weight" : 18.229127883911133,
       "mon_move_1" : "Bolha",
@@ -9992,22 +10091,37 @@
       "mon_isLucky" : "NO",
       "mon_defence" : 15
     },
-    "16300492121491658013" : {
-      "mon_weight" : 140.86399841308594,
-      "mon_move_1" : "Tapa de Lama",
-      "mon_height" : 1.1370059251785278,
-      "mon_gender" : "GENDERLESS",
-      "mon_form" : "GOLETT_NORMAL",
-      "mon_alignment" : "SHADOW",
-      "mon_stamina" : 9,
-      "mon_attack" : 7,
-      "mon_name" : "Golett",
+    "13579010982366747072" : {
+      "mon_weather_boost" : "OVERCAST",
+      "mon_weight" : 72.048896789550781,
+      "mon_move_1" : "Golpe Envenenado",
+      "mon_height" : 1.7707611322402954,
+      "mon_gender" : "FEMALE",
+      "mon_stamina" : 10,
+      "mon_attack" : 8,
+      "mon_name" : "Tentacruel",
       "mon_isShiny" : "NO",
-      "mon_move_2" : "Frustração",
-      "mon_cp" : 620,
-      "mon_number" : 622,
+      "mon_move_2" : "Nevasca",
+      "mon_cp" : 1754,
+      "mon_number" : 73,
       "mon_isLucky" : "NO",
-      "mon_defence" : 12
+      "mon_defence" : 10
+    },
+    "2169730470268319634" : {
+      "mon_weight" : 13.253912925720215,
+      "mon_move_1" : "Revólver d'Água",
+      "mon_height" : 0.58823084831237793,
+      "mon_gender" : "FEMALE",
+      "mon_form" : "PANPOUR_NORMAL",
+      "mon_stamina" : 4,
+      "mon_attack" : 2,
+      "mon_name" : "Panpour",
+      "mon_isShiny" : "NO",
+      "mon_move_2" : "Mastigada",
+      "mon_cp" : 609,
+      "mon_number" : 515,
+      "mon_isLucky" : "NO",
+      "mon_defence" : 0
     },
     "5330548243280724348" : {
       "mon_weight" : 17.265497207641602,
@@ -10042,21 +10156,22 @@
       "mon_isLucky" : "NO",
       "mon_defence" : 13
     },
-    "13579010982366747072" : {
-      "mon_weather_boost" : "OVERCAST",
-      "mon_weight" : 72.048896789550781,
-      "mon_move_1" : "Golpe Envenenado",
-      "mon_height" : 1.7707611322402954,
-      "mon_gender" : "FEMALE",
-      "mon_stamina" : 10,
-      "mon_attack" : 8,
-      "mon_name" : "Tentacruel",
+    "16300492121491658013" : {
+      "mon_weight" : 140.86399841308594,
+      "mon_move_1" : "Tapa de Lama",
+      "mon_height" : 1.1370059251785278,
+      "mon_gender" : "GENDERLESS",
+      "mon_form" : "GOLETT_NORMAL",
+      "mon_alignment" : "SHADOW",
+      "mon_stamina" : 9,
+      "mon_attack" : 7,
+      "mon_name" : "Golett",
       "mon_isShiny" : "NO",
-      "mon_move_2" : "Nevasca",
-      "mon_cp" : 1754,
-      "mon_number" : 73,
+      "mon_move_2" : "Frustração",
+      "mon_cp" : 620,
+      "mon_number" : 622,
       "mon_isLucky" : "NO",
-      "mon_defence" : 10
+      "mon_defence" : 12
     },
     "11880733917598103056" : {
       "mon_weather_boost" : "OVERCAST",
@@ -10102,5 +10217,5 @@
     }
   },
   "fileType" : "pokemon",
-  "exportTimestamp" : 1780718428.1499629
+  "exportTimestamp" : 1780755716.8198419
 }
