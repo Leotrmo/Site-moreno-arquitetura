@@ -133,6 +133,24 @@ test('detailHtml inclui comparador quando verdict é TRANSFERIR', () => {
   assert.match(html, /Este vs o melhor/);
 });
 
+test('badge e dica de troca aparecem para candidato a troca de IV', () => {
+  // Bidoof única cópia IV baixo → tradeBoost
+  const fd = { only: { mon_name:'Bidoof', mon_number:399, mon_cp:90, mon_attack:3, mon_defence:4, mon_stamina:5, mon_height:0.5, mon_isShiny:'NO', mon_isLucky:'NO' } };
+  const e = analyze(fd, getPokemonSize, refdata, getPokemonSizeScalar)[0];
+  assert.ok(e.tradeBoost);
+  const html = cardHtml(e);
+  assert.match(html, /🔁/);
+  assert.match(html, /trade-tip/);
+  assert.match(html, /Melhor Amigo/);
+});
+
+test('sem badge nem dica de troca quando IV já é alto', () => {
+  // Machop hundo (default) → sem tradeBoost
+  const html = cardHtml(oneFull());
+  assert.doesNotMatch(html, /trade-tip/);
+  assert.doesNotMatch(html, /b-tradeiv/);
+});
+
 test('detailHtml NÃO inclui comparador para MANTER/INVESTIR', () => {
   const fd = { only: { mon_name:'Bidoof', mon_number:399, mon_cp:90, mon_attack:3, mon_defence:4, mon_stamina:5, mon_height:0.5, mon_weight:9.0, mon_isShiny:'NO', mon_isLucky:'NO' } };
   const e = analyze(fd, getPokemonSize, refdata, getPokemonSizeScalar)[0];

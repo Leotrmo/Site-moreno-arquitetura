@@ -14,6 +14,39 @@
     return Math.round((mon.mon_attack + mon.mon_defence + mon.mon_stamina) / 45 * 100);
   }
 
+  // Mecânica de troca do Pokémon GO: ao trocar, cada IV (Atk/Def/HP) é
+  // re-sorteado de forma independente e uniforme no intervalo [piso, 15]. O piso
+  // sobe com o nível de amizade — Melhor Amigo usa piso 5 em cada IV.
+  const BEST_FRIEND_FLOOR = 5;
+  // Piso garantido após a troca: 3 × 5 / 45 → 33%.
+  const TRADE_MIN_IV_PCT = Math.round(3 * BEST_FRIEND_FLOOR / 45 * 100);
+  // Média esperada: cada IV vira (5 + 15) / 2 = 10 → 3 × 10 / 45 → 67%.
+  const TRADE_EXPECTED_IV_PCT = Math.round(3 * (BEST_FRIEND_FLOOR + 15) / 2 / 45 * 100);
+
+  function canBestFriendTrade(e) {
+    // Sombrios não podem ser trocados no jogo. Shiny, Lucky, Lendário/Mítico e
+    // Fantasia são colecionáveis valiosos demais para re-sortear só por IV.
+    return !e.isShadow && !e.isShiny && !e.isLucky && !e.isLegendary && !e.isCostume;
+  }
+
+  // Vale trocar com Melhor Amigo só os Pokémons que você quer manter e cujo IV
+  // está abaixo da média esperada da troca (~67%). Quem já vai pra TRANSFERIR não
+  // entra — nesse caso você simplesmente transfere.
+  function tradeBoost(e) {
+    if (e.verdict === 'TRANSFERIR') return null;
+    if (!canBestFriendTrade(e)) return null;
+    if (e.ivPct >= TRADE_EXPECTED_IV_PCT) return null;
+    const guaranteed = e.ivPct < TRADE_MIN_IV_PCT;
+    return {
+      expectedPct: TRADE_EXPECTED_IV_PCT,
+      minPct: TRADE_MIN_IV_PCT,
+      guaranteed,
+      reason: guaranteed
+        ? 'Troca Melhor Amigo: ganho garantido (mín. ' + TRADE_MIN_IV_PCT + '% > ' + e.ivPct + '%)'
+        : 'Troca Melhor Amigo: IV médio esperado ~' + TRADE_EXPECTED_IV_PCT + '%',
+    };
+  }
+
   function speciesKey(mon) {
     // No JSON, a mesma espécie às vezes vem com mon_form "X_NORMAL" e às vezes
     // sem mon_form. Ambos são a forma base e devem agrupar juntos; só formas
@@ -65,6 +98,7 @@
       verdict: null,
       reason: null,
       tags: [],
+      tradeBoost: null,
     };
   }
 
@@ -153,13 +187,14 @@
       e.verdict = v.verdict;
       e.reason = v.reason;
       e.tags = computeTags(e);
+      e.tradeBoost = tradeBoost(e);
     }
     return list;
   }
 
   function computeCounts(list) {
     const c = { total: list.length, INVESTIR:0, MANTER:0, TRANSFERIR:0,
-                hundos:0, shinies:0, shadows:0, purified:0, extremeSizes:0, legendaries:0, luckies:0 };
+                hundos:0, shinies:0, shadows:0, purified:0, extremeSizes:0, legendaries:0, luckies:0, tradeBoost:0 };
     for (const e of list) {
       c[e.verdict]++;
       if (e.isHundo) c.hundos++;
@@ -169,9 +204,11 @@
       if (e.isExtremeSize) c.extremeSizes++;
       if (e.isLegendary) c.legendaries++;
       if (e.isLucky) c.luckies++;
+      if (e.tradeBoost) c.tradeBoost++;
     }
     return c;
   }
 
-  return { ivPct, speciesKey, enrichOne, enrichCollection, isProtected, computeVerdict, computeTags, analyze, computeCounts };
+  return { ivPct, speciesKey, enrichOne, enrichCollection, isProtected, computeVerdict, computeTags, canBestFriendTrade, tradeBoost, analyze, computeCounts,
+           TRADE_MIN_IV_PCT, TRADE_EXPECTED_IV_PCT };
 });
