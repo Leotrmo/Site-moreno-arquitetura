@@ -43,6 +43,7 @@
       ['size', '📏 ' + c.extremeSizes + ' XXS/XXL', e => e.isExtremeSize],
       ['legendary', '👑 ' + c.legendaries + ' Lendários', e => e.isLegendary],
       ['lucky', '🍀 ' + c.luckies + ' Lucky', e => e.isLucky],
+      ['tradeiv', '🔁 ' + c.tradeBoost + ' Trocar p/ IV', e => !!e.tradeBoost],
     ];
     const wrap = document.getElementById('chips');
     wrap.innerHTML = '';
