@@ -35,4 +35,37 @@ function buildMoves(gamemaster) {
   return out;
 }
 
-module.exports = { buildSpecies, buildMoves };
+function _i18nMoveNames(i18nPt) {
+  const data = Array.isArray(i18nPt) ? i18nPt : i18nPt.data;
+  if (!Array.isArray(data)) throw new Error('buildMovesPt: i18n.data ausente');
+  const byNum = {}; // "241" → "Esmagamento de Pedras"
+  for (let i = 0; i < data.length - 1; i += 2) {
+    const m = /^move_name_0*(\d+)$/.exec(data[i]);
+    if (m) byNum[m[1]] = data[i + 1];
+  }
+  return byNum;
+}
+
+function buildMovesPt(gameMaster, i18nPt) {
+  const arr = Array.isArray(gameMaster) ? gameMaster : (gameMaster.template || gameMaster.itemTemplates);
+  if (!Array.isArray(arr)) throw new Error('buildMovesPt: game master sem array de templates');
+  const ptByNum = _i18nMoveNames(i18nPt);
+  const map = {};
+  let total = 0, hit = 0;
+  for (const t of arr) {
+    const tid = t.templateId || (t.data && t.data.templateId) || '';
+    const m = /^COMBAT_V0*(\d+)_MOVE_/.exec(tid);
+    const cm = (t.data && t.data.combatMove) || t.combatMove; // combatMove fica sob entry.data
+    if (!m || !cm || typeof cm.uniqueId !== 'string') continue; // pula uniqueId não-string (12 casos)
+    total++;
+    const num = m[1];
+    const moveId = cm.uniqueId.replace(/_FAST$/, '');
+    const pt = ptByNum[num];
+    if (!pt) continue;
+    hit++;
+    map[normalizeName(pt)] = moveId;
+  }
+  return { map, coverage: total ? hit / total : 0 };
+}
+
+module.exports = { buildSpecies, buildMoves, buildMovesPt };

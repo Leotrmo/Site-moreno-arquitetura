@@ -1,0 +1,6 @@
+[
+  { "templateId": "COMBAT_V0241_MOVE_ROCK_SMASH_FAST", "data": { "combatMove": { "uniqueId": "ROCK_SMASH_FAST", "type": "POKEMON_TYPE_FIGHTING" } } },
+  { "templateId": "COMBAT_V0247_MOVE_ICE_PUNCH", "data": { "combatMove": { "uniqueId": "ICE_PUNCH", "type": "POKEMON_TYPE_ICE" } } },
+  { "templateId": "COMBAT_V0406_MOVE_AURA_WHEEL", "data": { "combatMove": { "uniqueId": 406, "type": "POKEMON_TYPE_ELECTRIC" } } },
+  { "templateId": "POKEMON_SETTINGS_IGNORE_ME", "data": { "pokemonSettings": {} } }
+]
