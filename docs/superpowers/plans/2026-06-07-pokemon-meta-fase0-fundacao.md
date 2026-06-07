@@ -208,7 +208,7 @@ git commit -m "fase0: normalizeName (match.js)"
       "baseStats": { "atk": 118, "def": 96, "hp": 150 },
       "types": ["fighting", "none"], "fastMoves": ["ROCK_SMASH", "LOW_KICK"],
       "chargedMoves": ["CROSS_CHOP", "LOW_SWEEP"], "eliteMoves": ["KARATE_CHOP"],
-      "tags": ["shadoweligible"], "family": { "id": "machop" } },
+      "tags": ["shadoweligible"], "family": { "id": "FAMILY_MACHOP", "evolutions": ["machoke"] } },
     { "dex": 27, "speciesId": "sandshrew", "speciesName": "Sandshrew",
       "baseStats": { "atk": 126, "def": 120, "hp": 137 },
       "types": ["ground", "none"], "fastMoves": ["MUD_SHOT"],
@@ -219,8 +219,9 @@ git commit -m "fase0: normalizeName (match.js)"
       "chargedMoves": ["ICE_PUNCH"], "family": { "id": "sandshrew" } }
   ],
   "moves": [
-    { "moveId": "ROCK_SMASH", "name": "Rock Smash", "type": "fighting", "energyGain": 7, "power": 9 },
-    { "moveId": "CROSS_CHOP", "name": "Cross Chop", "type": "fighting", "energy": 35, "power": 50 }
+    { "moveId": "ROCK_SMASH", "name": "Rock Smash", "type": "fighting", "power": 9, "energy": 0, "energyGain": 7 },
+    { "moveId": "CROSS_CHOP", "name": "Cross Chop", "type": "fighting", "power": 50, "energy": 35, "energyGain": 0 },
+    { "moveId": "TRANSFORM", "name": "Transform", "type": "normal", "power": 0, "energy": 0, "energyGain": 0, "unlisted": true }
   ]
 }
 ```
@@ -239,7 +240,7 @@ test('buildSpecies: chaveado por speciesId, com dex/baseStats/types/family/elite
   assert.strictEqual(s.machop.dex, 66);
   assert.deepStrictEqual(s.machop.baseStats, { atk: 118, def: 96, hp: 150 });
   assert.deepStrictEqual(s.machop.types, ['fighting']);          // "none" removido
-  assert.strictEqual(s.machop.family, 'machop');
+  assert.strictEqual(s.machop.family, 'FAMILY_MACHOP');
   assert.deepStrictEqual(s.machop.eliteMoves, ['KARATE_CHOP']);
   assert.strictEqual(s.machop.shadowEligible, true);
   assert.strictEqual(s.sandshrew.shadowEligible, false);         // sem tag
@@ -312,6 +313,7 @@ test('buildMoves: classifica fast/charge e guarda type + stats PvP', () => {
   const m = buildMoves(gm);
   assert.deepStrictEqual(m.ROCK_SMASH, { type: 'fighting', kind: 'fast', pvp: { power: 9, energy: 7 } });
   assert.deepStrictEqual(m.CROSS_CHOP, { type: 'fighting', kind: 'charge', pvp: { power: 50, energy: 35 } });
+  assert.strictEqual(m.TRANSFORM, undefined); // golpe unlisted é pulado
 });
 ```
 
@@ -328,8 +330,8 @@ function buildMoves(gamemaster) {
     throw new Error('buildMoves: gamemaster.moves ausente');
   const out = {};
   for (const mv of gamemaster.moves) {
-    if (!mv.moveId) continue;
-    const isFast = mv.energyGain != null && mv.energy == null; // fast: gera energia
+    if (!mv.moveId || mv.unlisted) continue;       // pula não-listados (ex.: Transform)
+    const isFast = mv.energyGain > 0;              // fast gera energia; charge gasta (energy > 0)
     out[mv.moveId] = {
       type: mv.type,
       kind: isFast ? 'fast' : 'charge',
@@ -368,20 +370,23 @@ git commit -m "fase0: buildMoves (transform.js)"
 
 ```json
 // pokemon/fixtures/mini-game-master.json
+// Estrutura REAL do PokeMiners: combatMove fica aninhado em entry.data.combatMove.
+// Inclui um uniqueId inteiro (Aura Wheel = 406) para exercitar a guarda typeof string.
 [
-  { "templateId": "COMBAT_V0233_MOVE_ROCK_SMASH", "combatMove": { "uniqueId": "ROCK_SMASH", "type": "POKEMON_TYPE_FIGHTING" } },
-  { "templateId": "COMBAT_V0247_MOVE_ICE_PUNCH", "combatMove": { "uniqueId": "ICE_PUNCH", "type": "POKEMON_TYPE_ICE" } },
-  { "templateId": "COMBAT_V0200_MOVE_ROCK_SMASH_FAST", "combatMove": { "uniqueId": "ROCK_SMASH_FAST", "type": "POKEMON_TYPE_FIGHTING" } },
-  { "templateId": "POKEMON_SETTINGS_IGNORE_ME", "pokemonSettings": {} }
+  { "templateId": "COMBAT_V0241_MOVE_ROCK_SMASH_FAST", "data": { "combatMove": { "uniqueId": "ROCK_SMASH_FAST", "type": "POKEMON_TYPE_FIGHTING" } } },
+  { "templateId": "COMBAT_V0247_MOVE_ICE_PUNCH", "data": { "combatMove": { "uniqueId": "ICE_PUNCH", "type": "POKEMON_TYPE_ICE" } } },
+  { "templateId": "COMBAT_V0406_MOVE_AURA_WHEEL", "data": { "combatMove": { "uniqueId": 406, "type": "POKEMON_TYPE_ELECTRIC" } } },
+  { "templateId": "POKEMON_SETTINGS_IGNORE_ME", "data": { "pokemonSettings": {} } }
 ]
 ```
 
 ```json
 // pokemon/fixtures/mini-i18n-pt.json
+// Chaves move_name_#### com 4 dígitos zero-padded (formato real). Casa pelo número:
+// 0241 = ROCK_SMASH(_FAST), 0247 = ICE_PUNCH.
 { "data": [
-  "move_name_0233", "Esmagamento de Pedras",
+  "move_name_0241", "Esmagamento de Pedras",
   "move_name_0247", "Soco de Gelo",
-  "move_name_0200", "Esmagamento de Pedras",
   "pokemon_name_0001", "Bulbasaur"
 ] }
 ```
@@ -395,8 +400,9 @@ const { buildMovesPt } = require('../build/transform.js');
 
 test('buildMovesPt: nome PT normalizado → uniqueId (sem sufixo _FAST)', () => {
   const { map, coverage } = buildMovesPt(gameMaster, i18nPt);
-  assert.strictEqual(map['esmagamento de pedras'], 'ROCK_SMASH'); // _FAST removido, mesmo nome
+  assert.strictEqual(map['esmagamento de pedras'], 'ROCK_SMASH'); // _FAST removido
   assert.strictEqual(map['soco de gelo'], 'ICE_PUNCH');
+  assert.strictEqual(Object.keys(map).length, 2);                 // uniqueId inteiro (406) não entra
   assert.ok(coverage > 0 && coverage <= 1);
 });
 ```
@@ -427,12 +433,13 @@ function buildMovesPt(gameMaster, i18nPt) {
   const map = {};
   let total = 0, hit = 0;
   for (const t of arr) {
-    const tid = t.templateId || '';
+    const tid = t.templateId || (t.data && t.data.templateId) || '';
     const m = /^COMBAT_V0*(\d+)_MOVE_/.exec(tid);
-    if (!m || !t.combatMove || !t.combatMove.uniqueId) continue;
+    const cm = (t.data && t.data.combatMove) || t.combatMove; // combatMove fica sob entry.data
+    if (!m || !cm || typeof cm.uniqueId !== 'string') continue; // pula uniqueId não-string (12 casos)
     total++;
     const num = m[1];
-    const moveId = t.combatMove.uniqueId.replace(/_FAST$/, '');
+    const moveId = cm.uniqueId.replace(/_FAST$/, '');
     const pt = ptByNum[num];
     if (!pt) continue;
     hit++;
