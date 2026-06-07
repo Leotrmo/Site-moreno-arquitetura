@@ -1,0 +1,33 @@
+# .github/workflows/refresh-meta.yml
+name: Atualizar dados de meta (Pokémon)
+
+on:
+  schedule:
+    - cron: '0 6 * * 1'   # toda segunda 06:00 UTC
+  workflow_dispatch: {}    # botão "Run workflow" manual
+
+permissions:
+  contents: write
+
+jobs:
+  refresh:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+      - name: Gerar datasets
+        working-directory: pokemon
+        run: npm run build
+      - name: Commitar se houve mudança
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          if ! git diff --quiet -- pokemon/data; then
+            git add pokemon/data
+            git commit -m "chore: atualizar dados de meta (automático)"
+            git push
+          else
+            echo "Sem mudanças nos datasets."
+          fi
