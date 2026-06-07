@@ -4,6 +4,7 @@ const assert = require('node:assert');
 const { getPokemonSize, getPokemonSizeScalar } = require('../sizes.js');
 const refdata = require('../lib/refdata.js');
 const { enrichOne, analyze } = require('../lib/analysis.js');
+const { buildSpeciesIndex } = require('../lib/meta/match.js');
 
 const baseMon = (over) => Object.assign({
   mon_name: 'Machop', mon_number: 66, mon_cp: 500,
@@ -85,4 +86,26 @@ test('analyze propaga sizeScalar via getSizeScalar opcional', () => {
   const fd = { x: { mon_name:'Xatu', mon_number:178, mon_cp:909, mon_attack:13, mon_defence:11, mon_stamina:12, mon_height:0.95, mon_isShiny:'NO', mon_isLucky:'NO' } };
   const list = analyze(fd, getPokemonSize, refdata, getPokemonSizeScalar);
   assert.strictEqual(list[0].isXSComfort, true);
+});
+
+test('enrich anexa speciesId e moveIds quando meta é fornecido', () => {
+  const meta = {
+    speciesIndex: buildSpeciesIndex({ machop: { dex: 66, baseStats: {}, types: ['fighting'] } }),
+    movesPt: { 'soco dinamico': 'DYNAMIC_PUNCH', 'lampada quebrada': 'X' },
+  };
+  const mon = { mon_name: 'Machop', mon_number: 66, mon_cp: 500, mon_attack: 15, mon_defence: 15,
+                mon_stamina: 15, mon_height: 0.8, mon_isShiny: 'NO', mon_isLucky: 'NO',
+                mon_move_1: 'Soco Dinâmico' };
+  const e = enrichOne(mon, getPokemonSize, refdata, getPokemonSizeScalar, meta);
+  assert.strictEqual(e.speciesId, 'machop');
+  assert.deepStrictEqual(e.moveIds, ['DYNAMIC_PUNCH']);  // só golpes que casaram
+});
+
+test('enrich sem meta: speciesId/moveIds nulos, resto intacto (não-regressão)', () => {
+  const e = enrichOne({ mon_name: 'Machop', mon_number: 66, mon_cp: 500, mon_attack: 15,
+                        mon_defence: 15, mon_stamina: 15, mon_height: 0.8, mon_isShiny: 'NO',
+                        mon_isLucky: 'NO' }, getPokemonSize, refdata, getPokemonSizeScalar);
+  assert.strictEqual(e.speciesId, null);
+  assert.deepStrictEqual(e.moveIds, []);
+  assert.strictEqual(e.ivPct, 100); // comportamento atual preservado
 });

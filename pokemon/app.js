@@ -9,13 +9,26 @@
     return SORT_OPTIONS.some(o => o.key === saved) ? saved : 'recomendado';
   }
 
+  async function loadMeta() {
+    try {
+      const [species, movesPt] = await Promise.all([
+        fetch('./data/species.json').then(r => r.ok ? r.json() : null),
+        fetch('./data/moves_pt.json').then(r => r.ok ? r.json() : null),
+      ]);
+      if (!species || !movesPt) return null;
+      return { speciesIndex: buildSpeciesIndex(species), movesPt };
+    } catch (e) { console.warn('meta indisponível:', e); return null; }
+  }
+
   async function boot() {
     try {
       const res = await fetch('./colecao.json', { cache: 'no-store' });
       const data = await res.json();
       document.getElementById('updated').textContent = 'Leo · ' + (data.exportTime || '');
       document.getElementById('total').textContent = (data.pokemonCount || 0) + ' Pokémons';
-      allMons = analyze(data.fileData, getPokemonSize, { LEGENDARY, REGIONAL, TRADE_EVO }, getPokemonSizeScalar);
+      const meta = await loadMeta();   // null se datasets ausentes
+      allMons = analyze(data.fileData, getPokemonSize,
+                        { LEGENDARY, REGIONAL, TRADE_EVO }, getPokemonSizeScalar, meta);
       renderCounts();
       renderChips();
       renderSortOptions();

@@ -5,6 +5,10 @@
   else Object.assign(root, api);
 })(typeof globalThis !== 'undefined' ? globalThis : this, function () {
 
+  var PokeMatch = (typeof require === 'function')
+    ? require('./meta/match.js')
+    : (typeof globalThis !== 'undefined' ? globalThis.PokeMatch : null);
+
   function speciesScalar(getSizeScalar, mon) {
     if (typeof getSizeScalar !== 'function') return null;
     return getSizeScalar(mon.mon_number, mon.mon_height, mon.mon_form) || null;
@@ -56,7 +60,7 @@
     return mon.mon_number + '_' + f;
   }
 
-  function enrichOne(mon, getSize, refdata, getSizeScalar) {
+  function enrichOne(mon, getSize, refdata, getSizeScalar, meta) {
     const iv = ivPct(mon);
     const size = getSize(mon.mon_number, mon.mon_height, mon.mon_form);
     const scalar = speciesScalar(getSizeScalar, mon);
@@ -99,12 +103,20 @@
       reason: null,
       tags: [],
       tradeBoost: null,
+      // Fase 0 — casamento com o meta (null/[] quando meta ausente):
+      speciesId: (meta && meta.speciesIndex && PokeMatch)
+        ? PokeMatch.matchSpecies(mon, meta.speciesIndex) : null,
+      moveIds: (meta && meta.movesPt && PokeMatch)
+        ? [mon.mon_move_1, mon.mon_move_2, mon.mon_move_3]
+            .map(function (m) { return PokeMatch.matchMove(m, meta.movesPt); })
+            .filter(Boolean)
+        : [],
     };
   }
 
-  function enrichCollection(fileData, getSize, refdata, getSizeScalar) {
+  function enrichCollection(fileData, getSize, refdata, getSizeScalar, meta) {
     const list = Object.keys(fileData).map(id => {
-      const e = enrichOne(fileData[id], getSize, refdata, getSizeScalar);
+      const e = enrichOne(fileData[id], getSize, refdata, getSizeScalar, meta);
       e.id = id;
       return e;
     });
@@ -180,8 +192,8 @@
     return tags;
   }
 
-  function analyze(fileData, getSize, refdata, getSizeScalar) {
-    const list = enrichCollection(fileData, getSize, refdata, getSizeScalar);
+  function analyze(fileData, getSize, refdata, getSizeScalar, meta) {
+    const list = enrichCollection(fileData, getSize, refdata, getSizeScalar, meta);
     for (const e of list) {
       const v = computeVerdict(e);
       e.verdict = v.verdict;
