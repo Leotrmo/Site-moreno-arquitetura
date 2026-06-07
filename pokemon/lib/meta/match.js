@@ -47,5 +47,11 @@
     return (base[0] || ids[0]);
   }
 
-  return { normalizeName, buildSpeciesIndex, matchSpecies };
+  function matchMove(ptName, movesPt) {
+    if (!ptName) return null;
+    var key = normalizeName(ptName);
+    return Object.prototype.hasOwnProperty.call(movesPt, key) ? movesPt[key] : null;
+  }
+
+  return { normalizeName, buildSpeciesIndex, matchSpecies, matchMove };
 });

@@ -32,3 +32,16 @@ test('matchSpecies: desconhecido → null (degrada gracioso)', () => {
   const idx = buildSpeciesIndex(speciesJson);
   assert.strictEqual(matchSpecies({ mon_number: 99999 }, idx), null);
 });
+
+const { matchMove } = require('../lib/meta/match.js');
+const movesPt = { 'esmagamento de pedras': 'ROCK_SMASH', 'soco de gelo': 'ICE_PUNCH' };
+
+test('matchMove: nome PT (com variação de caixa/acentos) → moveId', () => {
+  assert.strictEqual(matchMove('Esmagamento de Pedras', movesPt), 'ROCK_SMASH');
+  assert.strictEqual(matchMove('soco de  gelo', movesPt), 'ICE_PUNCH');
+});
+
+test('matchMove: golpe sem casar → null', () => {
+  assert.strictEqual(matchMove('Golpe Inexistente', movesPt), null);
+  assert.strictEqual(matchMove(undefined, movesPt), null);
+});
