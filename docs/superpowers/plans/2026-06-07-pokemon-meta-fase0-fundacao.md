@@ -960,13 +960,13 @@ E adicionar a função `loadMeta` logo acima de `boot`:
 
 - [ ] **Step 2: Carregar `match.js` no `index.html`**
 
-Em `pokemon/index.html`, adicionar a tag de script de `match.js` ANTES de `app.js` e junto dos outros libs. Localizar a linha que carrega `lib/analysis.js` e inserir após ela:
+Em `pokemon/index.html`, adicionar a tag de script de `match.js` **ANTES de `lib/analysis.js`** (crítico: no browser, `analysis.js` captura `globalThis.PokeMatch` no momento em que executa, então `match.js` precisa já ter rodado). Localizar a linha que carrega `lib/refdata.js` e inserir após ela:
 
 ```html
   <script src="lib/meta/match.js"></script>
 ```
 
-(Conferir no `index.html` a ordem: `sizes.js`, `lib/refdata.js`, `lib/analysis.js`, `lib/meta/match.js`, `lib/render.js`, `app.js`.)
+Ordem final esperada: `sizes.js`, `lib/refdata.js`, `lib/meta/match.js`, `lib/analysis.js`, `lib/render.js`, `app.js`.
 
 - [ ] **Step 3: Verificação manual no navegador**
 
