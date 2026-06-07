@@ -1,0 +1,22 @@
+{
+  "pokemon": [
+    { "dex": 66, "speciesId": "machop", "speciesName": "Machop",
+      "baseStats": { "atk": 118, "def": 96, "hp": 150 },
+      "types": ["fighting", "none"], "fastMoves": ["ROCK_SMASH", "LOW_KICK"],
+      "chargedMoves": ["CROSS_CHOP", "LOW_SWEEP"], "eliteMoves": ["KARATE_CHOP"],
+      "tags": ["shadoweligible"], "family": { "id": "FAMILY_MACHOP", "evolutions": ["machoke"] } },
+    { "dex": 27, "speciesId": "sandshrew", "speciesName": "Sandshrew",
+      "baseStats": { "atk": 126, "def": 120, "hp": 137 },
+      "types": ["ground", "none"], "fastMoves": ["MUD_SHOT"],
+      "chargedMoves": ["DIG"], "family": { "id": "FAMILY_SANDSHREW" } },
+    { "dex": 27, "speciesId": "sandshrew_alolan", "speciesName": "Sandshrew (Alolan)",
+      "baseStats": { "atk": 125, "def": 129, "hp": 137 },
+      "types": ["ice", "steel"], "fastMoves": ["POWDER_SNOW"],
+      "chargedMoves": ["ICE_PUNCH"], "family": { "id": "FAMILY_SANDSHREW" } }
+  ],
+  "moves": [
+    { "moveId": "ROCK_SMASH", "name": "Rock Smash", "type": "fighting", "power": 9, "energy": 0, "energyGain": 7 },
+    { "moveId": "CROSS_CHOP", "name": "Cross Chop", "type": "fighting", "power": 50, "energy": 35, "energyGain": 0 },
+    { "moveId": "TRANSFORM", "name": "Transform", "type": "normal", "power": 0, "energy": 0, "energyGain": 0, "unlisted": true }
+  ]
+}
