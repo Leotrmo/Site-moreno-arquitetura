@@ -1,8 +1,10 @@
-const CACHE = 'pokemon-leo-v6';
+const CACHE = 'pokemon-leo-v7';
 const ASSETS = [
   './index.html', './app.js', './sizes.js',
-  './lib/refdata.js', './lib/analysis.js', './lib/render.js',
+  './lib/refdata.js', './lib/analysis.js', './lib/render.js', './lib/meta/match.js',
   './colecao.json', './manifest.json',
+  './data/species.json', './data/moves.json', './data/moves_pt.json',
+  './data/pvp_ranks.json', './data/meta.json',
   './icons/icon-180.png', './icons/icon-192.png', './icons/icon-512.png'
 ];
 
@@ -25,7 +27,7 @@ self.addEventListener('fetch', e => {
   const url = new URL(req.url);
 
   const isHTML = req.mode === 'navigate' || (req.headers.get('accept') || '').includes('text/html');
-  const isData = url.pathname.endsWith('/colecao.json') || url.pathname.endsWith('colecao.json');
+  const isData = url.pathname.endsWith('colecao.json') || url.pathname.includes('/data/');
 
   if (isHTML || isData) {
     // Network-first: sempre tenta o mais novo; cai no cache se offline.
