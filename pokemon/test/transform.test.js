@@ -2,7 +2,7 @@
 const { test } = require('node:test');
 const assert = require('node:assert');
 const gm = require('../fixtures/mini-gamemaster.json');
-const { buildSpecies } = require('../build/transform.js');
+const { buildSpecies, buildMoves } = require('../build/transform.js');
 
 test('buildSpecies: chaveado por speciesId, com dex/baseStats/types/family/eliteMoves/shadowEligible', () => {
   const s = buildSpecies(gm);
@@ -18,4 +18,11 @@ test('buildSpecies: chaveado por speciesId, com dex/baseStats/types/family/elite
 
 test('buildSpecies: falha alto se faltar o array pokemon', () => {
   assert.throws(() => buildSpecies({}), /pokemon/);
+});
+
+test('buildMoves: classifica fast/charge e guarda type + stats PvP', () => {
+  const m = buildMoves(gm);
+  assert.deepStrictEqual(m.ROCK_SMASH, { type: 'fighting', kind: 'fast', pvp: { power: 9, energy: 7 } });
+  assert.deepStrictEqual(m.CROSS_CHOP, { type: 'fighting', kind: 'charge', pvp: { power: 50, energy: 35 } });
+  assert.strictEqual(m.TRANSFORM, undefined); // golpe unlisted é pulado
 });
