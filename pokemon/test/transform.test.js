@@ -4,7 +4,8 @@ const assert = require('node:assert');
 const gm = require('../fixtures/mini-gamemaster.json');
 const gameMaster = require('../fixtures/mini-game-master.json');
 const i18nPt = require('../fixtures/mini-i18n-pt.json');
-const { buildSpecies, buildMoves, buildMovesPt } = require('../build/transform.js');
+const ranks = require('../fixtures/mini-rankings.json');
+const { buildSpecies, buildMoves, buildMovesPt, buildPvpRanks } = require('../build/transform.js');
 
 test('buildSpecies: chaveado por speciesId, com dex/baseStats/types/family/eliteMoves/shadowEligible', () => {
   const s = buildSpecies(gm);
@@ -35,4 +36,12 @@ test('buildMovesPt: nome PT normalizado → uniqueId (sem sufixo _FAST)', () => 
   assert.strictEqual(map['soco de gelo'], 'ICE_PUNCH');
   assert.strictEqual(Object.keys(map).length, 2);                 // uniqueId inteiro (406) não entra
   assert.ok(coverage > 0 && coverage <= 1);
+});
+
+test('buildPvpRanks: junta as 3 ligas por speciesId, com rank 1-based e corte Top N', () => {
+  const r = buildPvpRanks({ great: ranks, ultra: [], master: [] }, { great: 2, ultra: 2, master: 2 });
+  assert.deepStrictEqual(r.medicham.great, { rank: 1, score: 94, moveset: ['COUNTER', 'ICE_PUNCH', 'POWER_UP_PUNCH'] });
+  assert.strictEqual(r.azumarill.great.rank, 2);
+  assert.strictEqual(r.machop, undefined);       // fora do Top 2 e sem outras ligas → não entra
+  assert.strictEqual(r.medicham.ultra, null);    // ausente na liga ultra
 });

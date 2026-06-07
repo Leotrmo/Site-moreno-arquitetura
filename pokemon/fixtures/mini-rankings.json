@@ -1,0 +1,5 @@
+[
+  { "speciesId": "medicham", "score": 94, "moveset": ["COUNTER", "ICE_PUNCH", "POWER_UP_PUNCH"] },
+  { "speciesId": "azumarill", "score": 92, "moveset": ["BUBBLE", "ICE_BEAM", "PLAY_ROUGH"] },
+  { "speciesId": "machop",   "score": 51, "moveset": ["KARATE_CHOP", "CROSS_CHOP"] }
+]

@@ -68,4 +68,22 @@ function buildMovesPt(gameMaster, i18nPt) {
   return { map, coverage: total ? hit / total : 0 };
 }
 
-module.exports = { buildSpecies, buildMoves, buildMovesPt };
+const LEAGUES = ['great', 'ultra', 'master'];
+
+function buildPvpRanks(rankingsByLeague, topN) {
+  const out = {};
+  for (const lg of LEAGUES) {
+    const arr = rankingsByLeague[lg] || [];
+    if (!Array.isArray(arr)) throw new Error('buildPvpRanks: ranking ' + lg + ' não é array');
+    const cut = topN[lg];
+    for (let i = 0; i < arr.length && i < cut; i++) {
+      const e = arr[i];
+      if (!e.speciesId) continue;
+      (out[e.speciesId] = out[e.speciesId] || { great: null, ultra: null, master: null });
+      out[e.speciesId][lg] = { rank: i + 1, score: e.score, moveset: e.moveset || [] };
+    }
+  }
+  return out;
+}
+
+module.exports = { buildSpecies, buildMoves, buildMovesPt, buildPvpRanks, LEAGUES };
