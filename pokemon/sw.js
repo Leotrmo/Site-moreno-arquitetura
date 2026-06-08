@@ -1,10 +1,10 @@
-const CACHE = 'pokemon-leo-v8';
+const CACHE = 'pokemon-leo-v9';
 const ASSETS = [
   './index.html', './app.js', './sizes.js',
-  './lib/refdata.js', './lib/analysis.js', './lib/render.js', './lib/sort.js', './lib/meta/match.js',
+  './lib/refdata.js', './lib/analysis.js', './lib/render.js', './lib/sort.js', './lib/meta/match.js', './lib/meta/pvp.js',
   './colecao.json', './manifest.json',
   './data/species.json', './data/moves.json', './data/moves_pt.json',
-  './data/pvp_ranks.json', './data/meta.json',
+  './data/pvp_ranks.json', './data/cpm.json', './data/meta.json',
   './icons/icon-180.png', './icons/icon-192.png', './icons/icon-512.png'
 ];
 
