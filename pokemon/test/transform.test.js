@@ -64,3 +64,26 @@ test('expandCpm: inteiros + meios-níveis via fórmula sqrt, ascendente até max
 test('expandCpm: falha alto se o array de CPM for curto demais p/ o maxLevel', () => {
   assert.throws(() => expandCpm([0.094, 0.16639787], 10), /cpMultiplier/);
 });
+
+test('buildSpecies: inclui fastMoves e chargedMoves do pool da espécie', () => {
+  const gm = { pokemon: [{
+    dex: 66, speciesId: 'machop', baseStats: { atk:137, def:82, hp:172 },
+    types: ['fighting','none'], family: { id:'FAMILY_MACHOP' },
+    fastMoves: ['KARATE_CHOP','LOW_KICK','ROCK_SMASH'],
+    chargedMoves: ['BRICK_BREAK','CROSS_CHOP','LOW_SWEEP'],
+    eliteMoves: ['LOW_KICK'], tags: ['shadoweligible'],
+  }] };
+  const out = require('../build/transform.js').buildSpecies(gm);
+  assert.deepStrictEqual(out.machop.fastMoves, ['KARATE_CHOP','LOW_KICK','ROCK_SMASH']);
+  assert.deepStrictEqual(out.machop.chargedMoves, ['BRICK_BREAK','CROSS_CHOP','LOW_SWEEP']);
+  // não-regressão: campos antigos intactos
+  assert.deepStrictEqual(out.machop.baseStats, { atk:137, def:82, hp:172 });
+  assert.deepStrictEqual(out.machop.types, ['fighting']);
+});
+
+test('buildSpecies: pools ausentes viram arrays vazios (não quebra)', () => {
+  const gm = { pokemon: [{ dex: 1, speciesId: 'x', baseStats:{atk:1,def:1,hp:1}, types:['grass'] }] };
+  const out = require('../build/transform.js').buildSpecies(gm);
+  assert.deepStrictEqual(out.x.fastMoves, []);
+  assert.deepStrictEqual(out.x.chargedMoves, []);
+});

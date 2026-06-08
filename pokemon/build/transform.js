@@ -13,6 +13,8 @@ function buildSpecies(gamemaster) {
       types: (p.types || []).filter(t => t && t !== 'none'),
       family: p.family ? p.family.id : null,
       eliteMoves: p.eliteMoves || [],
+      fastMoves: p.fastMoves || [],
+      chargedMoves: p.chargedMoves || [],
       shadowEligible: Array.isArray(p.tags) && p.tags.includes('shadoweligible'),
     };
   }
