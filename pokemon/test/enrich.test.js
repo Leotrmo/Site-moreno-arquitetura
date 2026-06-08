@@ -145,3 +145,49 @@ test('analyze SEM meta: e.pvpMeta null, sem tags pvp_*, veredito intacto (não-r
   assert.ok(!e.tags.some(t => t.indexOf('pvp_') === 0));
   assert.strictEqual(e.verdict, 'MANTER'); // única cópia → MANTER, como antes
 });
+
+const pveRanksJson = require('../data/pve_ranks.json');
+
+function fullMetaPve() {
+  const { buildSpeciesIndex } = require('../lib/meta/match.js');
+  return { speciesIndex: buildSpeciesIndex(speciesJson), movesPt: {},
+           pvpRanks: pvpRanksJson, cpm: realCpm, pveRanks: pveRanksJson };
+}
+
+// Acha, no dataset gerado, o dex de uma ESPÉCIE-BASE (sem sufixo de forma) com um dado role.
+function baseDexWithRole(role) {
+  for (const id in pveRanksJson) {
+    if (id.indexOf('_') >= 0) continue;
+    if ((pveRanksJson[id].roles || []).includes(role) && speciesJson[id]) return speciesJson[id].dex;
+  }
+  return null;
+}
+
+test('analyze com meta PvE: um atacante de raid real ganha e.pveMeta e tag raid', () => {
+  const dex = baseDexWithRole('raid');
+  assert.ok(dex, 'existe ao menos um atacante de raid (base) no dataset');
+  const fd = { z: { mon_name:'X', mon_number:dex, mon_cp:3000, mon_attack:15, mon_defence:15, mon_stamina:15,
+                    mon_height:1, mon_isShiny:'NO', mon_isLucky:'NO' } };
+  const e = analyze(fd, getPokemonSize, refdata, getPokemonSizeScalar, fullMetaPve())[0];
+  assert.ok(e.pveMeta, 'e.pveMeta presente');
+  assert.ok(e.tags.includes('raid'), 'tem tag raid');
+});
+
+test('analyze com meta: defensor bulky protege duplicata de IV baixo (proteção gym_def)', () => {
+  const fd = {
+    best: { mon_name:'Blissey', mon_number:242, mon_cp:3000, mon_attack:15, mon_defence:15, mon_stamina:15, mon_height:1.5, mon_isShiny:'NO', mon_isLucky:'NO' },
+    dupe: { mon_name:'Blissey', mon_number:242, mon_cp:2000, mon_attack:0,  mon_defence:13, mon_stamina:13, mon_height:1.5, mon_isShiny:'NO', mon_isLucky:'NO' },
+  };
+  const list = analyze(fd, getPokemonSize, refdata, getPokemonSizeScalar, fullMetaPve());
+  const dupe = list.find(e => e.cp === 2000);
+  assert.ok(dupe.pveMeta && dupe.pveMeta.gymDef, 'duplicata é gym_def');
+  assert.notStrictEqual(dupe.verdict, 'TRANSFERIR');   // protegida pela meta PvE
+});
+
+test('analyze SEM meta: e.pveMeta null, sem tags PvE (não-regressão)', () => {
+  const fd = { z: { mon_name:'Blissey', mon_number:242, mon_cp:3000, mon_attack:15, mon_defence:15, mon_stamina:15,
+                    mon_height:1.5, mon_isShiny:'NO', mon_isLucky:'NO' } };
+  const e = analyze(fd, getPokemonSize, refdata, getPokemonSizeScalar)[0];
+  assert.strictEqual(e.pveMeta, null);
+  assert.ok(!e.tags.some(t => ['raid','pve','gym_atk','gym_def'].includes(t)));
+});
