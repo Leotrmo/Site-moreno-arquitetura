@@ -9,6 +9,10 @@
     ? require('./meta/match.js')
     : (typeof globalThis !== 'undefined' ? globalThis.PokeMatch : null);
 
+  var PokePvp = (typeof require === 'function')
+    ? require('./meta/pvp.js')
+    : (typeof globalThis !== 'undefined' ? globalThis.PokePvp : null);
+
   function speciesScalar(getSizeScalar, mon) {
     if (typeof getSizeScalar !== 'function') return null;
     return getSizeScalar(mon.mon_number, mon.mon_height, mon.mon_form) || null;
@@ -111,6 +115,10 @@
             .map(function (m) { return PokeMatch.matchMove(m, meta.movesPt); })
             .filter(Boolean)
         : [],
+      // Fase 1 — avaliação PvP (preenchida por analyze quando há meta).
+      // ATENÇÃO: chamar de pvpMeta, não pvp — pvp já existe (mon_pvp_stats).
+      pvpMeta: null,
+      action: null,
     };
   }
 
@@ -135,12 +143,17 @@
     return list;
   }
 
+  function isPvpMeta(e) {
+    return !!(e.pvpMeta && (e.pvpMeta.great.isMeta || e.pvpMeta.ultra.isMeta || e.pvpMeta.master.isMeta));
+  }
+
   function isProtected(e) {
     return e.isShiny || e.isLucky || e.isShadow || e.isLegendary
         || e.isCostume || e.isExtremeSize || e.isHundo || e.isNearPerfect
         || e.isXSComfort || e.isXLComfort
         || e.hasSecondCharge
-        || e.isTradeEvo || e.isRegional;
+        || e.isTradeEvo || e.isRegional
+        || isPvpMeta(e);
   }
 
   function investReason(e) {
@@ -189,12 +202,14 @@
     const tags = [];
     if (e.isTradeEvo) tags.push('TROCAR_EVO');
     if (e.isRegional) tags.push('REGIONAL');
+    if (e.pvpMeta && PokePvp) for (const t of PokePvp.pvpTags(e.pvpMeta, e.ivPct)) tags.push(t);
     return tags;
   }
 
   function analyze(fileData, getSize, refdata, getSizeScalar, meta) {
     const list = enrichCollection(fileData, getSize, refdata, getSizeScalar, meta);
     for (const e of list) {
+      e.pvpMeta = (meta && meta.cpm && meta.pvpRanks && PokePvp) ? PokePvp.evalMon(e, meta) : null;
       const v = computeVerdict(e);
       e.verdict = v.verdict;
       e.reason = v.reason;
@@ -206,7 +221,8 @@
 
   function computeCounts(list) {
     const c = { total: list.length, INVESTIR:0, MANTER:0, TRANSFERIR:0,
-                hundos:0, shinies:0, shadows:0, purified:0, extremeSizes:0, legendaries:0, luckies:0, tradeBoost:0 };
+                hundos:0, shinies:0, shadows:0, purified:0, extremeSizes:0, legendaries:0, luckies:0, tradeBoost:0,
+                pvpGreat:0, pvpUltra:0, pvpMaster:0 };
     for (const e of list) {
       c[e.verdict]++;
       if (e.isHundo) c.hundos++;
@@ -217,10 +233,13 @@
       if (e.isLegendary) c.legendaries++;
       if (e.isLucky) c.luckies++;
       if (e.tradeBoost) c.tradeBoost++;
+      if (e.tags.includes('pvp_great'))  c.pvpGreat++;
+      if (e.tags.includes('pvp_ultra'))  c.pvpUltra++;
+      if (e.tags.includes('pvp_master')) c.pvpMaster++;
     }
     return c;
   }
 
-  return { ivPct, speciesKey, enrichOne, enrichCollection, isProtected, computeVerdict, computeTags, canBestFriendTrade, tradeBoost, analyze, computeCounts,
+  return { ivPct, speciesKey, enrichOne, enrichCollection, isProtected, isPvpMeta, computeVerdict, computeTags, canBestFriendTrade, tradeBoost, analyze, computeCounts,
            TRADE_MIN_IV_PCT, TRADE_EXPECTED_IV_PCT };
 });

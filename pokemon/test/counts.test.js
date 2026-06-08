@@ -1,7 +1,7 @@
 // pokemon/test/counts.test.js
 const { test } = require('node:test');
 const assert = require('node:assert');
-const { getPokemonSize } = require('../sizes.js');
+const { getPokemonSize, getPokemonSizeScalar } = require('../sizes.js');
 const refdata = require('../lib/refdata.js');
 const { analyze, computeCounts } = require('../lib/analysis.js');
 
@@ -20,4 +20,25 @@ test('contagens por veredito e por destaque', () => {
   assert.strictEqual(c.TRANSFERIR, 1);
   assert.strictEqual(c.hundos, 1);
   assert.strictEqual(c.shinies, 1);
+});
+
+const realCpm = require('../data/cpm.json');
+const speciesJson = require('../data/species.json');
+const pvpRanksJson = require('../data/pvp_ranks.json');
+const { buildSpeciesIndex } = require('../lib/meta/match.js');
+
+test('contagens incluem pvpGreat/pvpUltra/pvpMaster', () => {
+  const meta = { speciesIndex: buildSpeciesIndex(speciesJson), movesPt: {}, pvpRanks: pvpRanksJson, cpm: realCpm };
+  const fd = { z: { mon_name:'Azumarill', mon_number:184, mon_cp:1498, mon_attack:0, mon_defence:15, mon_stamina:15,
+                    mon_height:0.5, mon_isShiny:'NO', mon_isLucky:'NO' } };
+  const c = computeCounts(analyze(fd, getPokemonSize, refdata, getPokemonSizeScalar, meta));
+  assert.strictEqual(c.pvpGreat, 1);
+  assert.ok('pvpUltra' in c && 'pvpMaster' in c);
+});
+
+test('contagens sem meta: pvp* ficam 0 (não-regressão)', () => {
+  const c = computeCounts(analyze(fd, getPokemonSize, refdata)); // fd do topo do arquivo
+  assert.strictEqual(c.pvpGreat, 0);
+  assert.strictEqual(c.pvpUltra, 0);
+  assert.strictEqual(c.pvpMaster, 0);
 });

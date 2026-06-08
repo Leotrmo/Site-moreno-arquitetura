@@ -109,3 +109,39 @@ test('enrich sem meta: speciesId/moveIds nulos, resto intacto (não-regressão)'
   assert.deepStrictEqual(e.moveIds, []);
   assert.strictEqual(e.ivPct, 100); // comportamento atual preservado
 });
+
+const realCpm = require('../data/cpm.json');
+const speciesJson = require('../data/species.json');
+const pvpRanksJson = require('../data/pvp_ranks.json');
+
+function fullMeta() {
+  const { buildSpeciesIndex } = require('../lib/meta/match.js');
+  return { speciesIndex: buildSpeciesIndex(speciesJson), movesPt: {}, pvpRanks: pvpRanksJson, cpm: realCpm };
+}
+
+test('analyze com meta: Azumarill 0/15/15 ganha e.pvpMeta e tag pvp_great', () => {
+  const fd = { z: { mon_name:'Azumarill', mon_number:184, mon_cp:1498, mon_attack:0, mon_defence:15, mon_stamina:15,
+                    mon_height:0.5, mon_isShiny:'NO', mon_isLucky:'NO' } };
+  const e = analyze(fd, getPokemonSize, refdata, getPokemonSizeScalar, fullMeta())[0];
+  assert.ok(e.pvpMeta, 'e.pvpMeta presente');
+  assert.strictEqual(e.pvpMeta.great.isMeta, true);
+  assert.ok(e.tags.includes('pvp_great'));
+});
+
+test('analyze com meta: espécie meta nunca cai em TRANSFERIR (proteção)', () => {
+  const fd = {
+    best: { mon_name:'Azumarill', mon_number:184, mon_cp:1498, mon_attack:0, mon_defence:15, mon_stamina:15, mon_height:0.5, mon_isShiny:'NO', mon_isLucky:'NO' },
+    dupe: { mon_name:'Azumarill', mon_number:184, mon_cp:600,  mon_attack:2, mon_defence:3,  mon_stamina:4,  mon_height:0.5, mon_isShiny:'NO', mon_isLucky:'NO' },
+  };
+  const list = analyze(fd, getPokemonSize, refdata, getPokemonSizeScalar, fullMeta());
+  assert.ok(list.every(e => e.verdict !== 'TRANSFERIR'));
+});
+
+test('analyze SEM meta: e.pvpMeta null, sem tags pvp_*, veredito intacto (não-regressão)', () => {
+  const fd = { z: { mon_name:'Azumarill', mon_number:184, mon_cp:600, mon_attack:2, mon_defence:3, mon_stamina:4,
+                    mon_height:0.5, mon_isShiny:'NO', mon_isLucky:'NO' } };
+  const e = analyze(fd, getPokemonSize, refdata, getPokemonSizeScalar)[0];
+  assert.strictEqual(e.pvpMeta, null);
+  assert.ok(!e.tags.some(t => t.indexOf('pvp_') === 0));
+  assert.strictEqual(e.verdict, 'MANTER'); // única cópia → MANTER, como antes
+});
