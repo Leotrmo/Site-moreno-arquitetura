@@ -106,7 +106,19 @@ test('evalMon: Azumarill 0/15/15 com moveset recomendado → great isMeta, moves
   assert.strictEqual(r.great.movesetOk, true);
   assert.strictEqual(r.great.ivRank, 1);          // 0/15/15 lidera Grande
   assert.strictEqual(r.great.spPct, 1);
-  assert.strictEqual(typeof r.master.ivRank, 'number');
+  // otimização: ligas fora do meta não calculam rankInfo → ivRank null
+  if (r.master.isMeta) assert.strictEqual(typeof r.master.ivRank, 'number');
+  else assert.strictEqual(r.master.ivRank, null);
+});
+
+test('evalMon: liga fora do meta → ivRank/spPct null (sem calcular distribuição)', () => {
+  // magikarp não é meta de nenhuma liga
+  const e = { speciesId: 'magikarp', ivs: { atk: 15, def: 15, sta: 15 }, moveIds: [] };
+  const r = evalMon(e, metaObj());
+  assert.strictEqual(r.great.isMeta, false);
+  assert.strictEqual(r.great.ivRank, null);
+  assert.strictEqual(r.great.spPct, null);
+  assert.strictEqual(r.great.movesetOk, false);
 });
 
 test('pvpTags: aplica THRESHOLDS (great por spPct/ivRank; master por ivPct)', () => {

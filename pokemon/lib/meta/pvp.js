@@ -105,16 +105,21 @@
     var out = {};
     LEAGUES.forEach(function (lg) {
       var rankEntry = ranks[lg] || null;     // null = espécie fora do Top N daquela liga
+      if (!rankEntry) {
+        // Fora do meta: não calcula a distribuição dos 4096 (ivRank/spPct nunca são usados aqui).
+        out[lg] = { isMeta: false, speciesRank: null, ivRank: null, spPct: null, movesetOk: false };
+        return;
+      }
       var info = rankInfo({
         baseStats: sp.baseStats, ivs: e.ivs, cap: CP_CAPS[lg],
         cpmList: meta.cpm, cacheKey: e.speciesId + '|' + lg,
       });
       out[lg] = {
-        isMeta: !!rankEntry,
-        speciesRank: rankEntry ? rankEntry.rank : null,
+        isMeta: true,
+        speciesRank: rankEntry.rank,
         ivRank: info.ivRank,
         spPct: info.spPct,
-        movesetOk: rankEntry ? movesetOk(e.moveIds, rankEntry.moveset) : false,
+        movesetOk: movesetOk(e.moveIds, rankEntry.moveset),
       };
     });
     return out;
