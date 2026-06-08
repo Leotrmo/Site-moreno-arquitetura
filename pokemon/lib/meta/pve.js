@@ -18,6 +18,21 @@
     return Math.floor(0.5 * power * (atk / PVE.DEF_REF) * stab) + 1;
   }
 
+  // DPS do ciclo: n golpes rápidos por carregado (n = custo do carregado / ganho do rápido).
+  // fast/charged = objetos de golpe com { type, pve:{power,energy,durationMs} }. types = tipos da espécie (STAB).
+  function cycleDps(fast, charged, base, types) {
+    if (!fast || !charged || !fast.pve || !charged.pve) return 0;
+    if (!(fast.pve.energy > 0)) return 0;                 // sem geração de energia → ciclo indefinido
+    var atk = effAtk(base);
+    var sF = types.indexOf(fast.type) >= 0 ? PVE.STAB : 1;
+    var sC = types.indexOf(charged.type) >= 0 ? PVE.STAB : 1;
+    var dF = dmgPerHit(fast.pve.power, atk, sF), tF = fast.pve.durationMs / 1000;
+    var dC = dmgPerHit(charged.pve.power, atk, sC), tC = charged.pve.durationMs / 1000;
+    var n = charged.pve.energy / fast.pve.energy;
+    var cycleTime = n * tF + tC;
+    return cycleTime > 0 ? (n * dF + dC) / cycleTime : 0;
+  }
+
   return { PVE, RAID_TOP, PVE_TOP, GYM_ATK_TOP, GYM_ATK_COVERAGE_MIN, GYM_DEF_TOP, GYM_DEF_IV_MIN,
-           effAtk, effDef, effHp, dmgPerHit };
+           effAtk, effDef, effHp, dmgPerHit, cycleDps };
 });
