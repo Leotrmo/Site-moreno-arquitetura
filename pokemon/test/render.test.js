@@ -194,3 +194,19 @@ test('cardHtml: sem ação → sem linha pk-action (não-regressão)', () => {
   const html = cardHtml(pvpStub({ action: null, tags: [] }));
   assert.doesNotMatch(html, /pk-action/);
 });
+
+test('detailHtml: bloco Competitivo aparece quando há liga meta', () => {
+  const e = pvpStub({ verdict:'INVESTIR', moves:['Bolha','Raio de Gelo'], height:0.5, weight:28.5,
+                      ivs:{atk:0,def:15,sta:15}, pvp_recommended:{ great:['BUBBLE','ICE_BEAM','PLAY_ROUGH'] } });
+  const html = detailHtml(e);
+  assert.match(html, /Competitivo/);
+  assert.match(html, /Liga Grande/);
+  assert.match(html, /rank 13/);
+});
+
+test('detailHtml: sem pvp meta → sem bloco Competitivo (não-regressão)', () => {
+  const e = pvpStub({ verdict:'MANTER', moves:['x'], height:0.5, weight:1, ivs:{atk:1,def:1,sta:1},
+                      tags:[], action:null, pvpMeta:{ great:{isMeta:false}, ultra:{isMeta:false}, master:{isMeta:false} } });
+  const html = detailHtml(e);
+  assert.doesNotMatch(html, /Competitivo/);
+});
