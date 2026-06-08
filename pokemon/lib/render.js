@@ -26,6 +26,9 @@
     if (e.tags.includes('TROCAR_EVO')) b.push('<span class="badge b-trade">🤝</span>');
     if (e.tags.includes('REGIONAL'))   b.push('<span class="badge b-regional">🌍</span>');
     if (e.tradeBoost) b.push('<span class="badge b-tradeiv">🔁 IV</span>');
+    if (e.tags.includes('pvp_great'))  b.push('<span class="badge b-pvp">⚔️G</span>');
+    if (e.tags.includes('pvp_ultra'))  b.push('<span class="badge b-pvp">⚔️U</span>');
+    if (e.tags.includes('pvp_master')) b.push('<span class="badge b-pvp">⚔️M</span>');
     return b.join('');
   }
 
@@ -53,21 +56,42 @@
           badgesHtml(e) +
         '</div>' +
         '<div class="reason">' + esc(e.reason) + '</div>' +
+        (e.action ? '<div class="pk-action">⚔️ ' + esc(e.action.reason) + '</div>' : '') +
         (e.tradeBoost ? '<div class="trade-tip">🔁 ' + esc(e.tradeBoost.reason) + '</div>' : '') +
       '</div>'
     );
+  }
+
+  const LEAGUE_LABEL = { great: 'Liga Grande', ultra: 'Liga Ultra', master: 'Liga Mestre' };
+
+  function competitiveHtml(e) {
+    if (!e.pvpMeta) return '';
+    const rows = [];
+    ['great', 'ultra', 'master'].forEach(function (lg) {
+      const L = e.pvpMeta[lg];
+      if (!L || !L.isMeta) return;
+      const sp = Math.round(L.spPct * 100);
+      const mv = L.movesetOk ? 'moveset recomendado ✓' : 'falta o moveset recomendado';
+      rows.push('<div class="comp-row"><strong>' + LEAGUE_LABEL[lg] + '</strong> — rank ' +
+                L.speciesRank + ' da espécie · seu IV PvP ' + sp + '% (rank ' + L.ivRank +
+                '/4096) · ' + mv + '</div>');
+    });
+    if (!rows.length) return '';
+    return '<div class="pk-competitive"><h4>Competitivo</h4>' + rows.join('') + '</div>';
   }
 
   function detailHtml(e) {
     const moves = e.moves.map(esc).join(' · ');
     const pvp = e.pvp ? (e.pvp.pvp_won + '/' + e.pvp.pvp_total + ' vitórias') : '—';
     const compare = (e.verdict === 'TRANSFERIR' && e.betterCopy) ? compareHtml(e, e.betterCopy) : '';
+    const competitive = competitiveHtml(e);
     return (
       '<div class="pk-detail">' +
         '<div>IVs: <strong>' + e.ivs.atk + '/' + e.ivs.def + '/' + e.ivs.sta + '</strong></div>' +
         '<div>Golpes: ' + (moves || '—') + '</div>' +
         '<div>Altura: ' + e.height.toFixed(2) + ' m · Peso: ' + e.weight.toFixed(1) + ' kg</div>' +
         '<div>Batalhas: ' + pvp + '</div>' +
+        competitive +
         compare +
       '</div>'
     );

@@ -86,4 +86,25 @@ function buildPvpRanks(rankingsByLeague, topN) {
   return out;
 }
 
-module.exports = { buildSpecies, buildMoves, buildMovesPt, buildPvpRanks, LEAGUES };
+// Expande os CPMs inteiros do GAME_MASTER (índice i = nível i+1) numa lista
+// ascendente {level, cpm} com meios-níveis, do nível 1 até maxLevel (passo 0.5).
+// Meio-nível usa a fórmula do jogo: cpm(L+0.5) = sqrt((cpm(L)² + cpm(L+1)²)/2).
+function expandCpm(cpMultiplier, maxLevel) {
+  if (!Array.isArray(cpMultiplier) || cpMultiplier.length < maxLevel)
+    throw new Error('expandCpm: cpMultiplier curto demais (precisa de ' + maxLevel + ' níveis)');
+  var out = [];
+  for (var L = 1; L <= maxLevel; L += 0.5) {
+    var cpm;
+    if (Number.isInteger(L)) {
+      cpm = cpMultiplier[L - 1];                 // índice 0 = nível 1
+    } else {
+      var lo = cpMultiplier[Math.floor(L) - 1];
+      var hi = cpMultiplier[Math.floor(L)];      // próximo inteiro
+      cpm = Math.sqrt((lo * lo + hi * hi) / 2);
+    }
+    out.push({ level: L, cpm: cpm });
+  }
+  return out;
+}
+
+module.exports = { buildSpecies, buildMoves, buildMovesPt, buildPvpRanks, LEAGUES, expandCpm };

@@ -106,6 +106,8 @@ h1 {
 .b-tradeiv { background:rgba(6,182,212,.2); color:var(--lucky); }
 .reason { font-size:11.5px; color:var(--text-dim); }
 .trade-tip { font-size:11.5px; color:var(--lucky); font-weight:600; }
+.b-pvp { background:rgba(245,197,24,.2); color:var(--gold); }
+.pk-action { font-size:11.5px; color:var(--gold); font-weight:600; }
 .pk-detail { font-size:12px; color:var(--text-dim); display:flex; flex-direction:column; gap:3px; padding-top:6px; border-top:1px solid var(--border); }
 
 /* Comparador (card TRANSFERIR expandido) */
@@ -120,6 +122,9 @@ h1 {
 .pk-compare .lose { color:var(--red); }
 .pk-compare .moves { font-weight:400; font-size:11px; line-height:1.3; }
 .pk-compare .header { color:var(--text-dim); font-size:10px; text-transform:uppercase; letter-spacing:.4px; }
+.pk-competitive { margin-top:10px; background:var(--surface-2); border:1px solid var(--border); border-radius:10px; padding:10px; }
+.pk-competitive h4 { font-size:11px; text-transform:uppercase; letter-spacing:.4px; color:var(--gold); margin-bottom:8px; font-weight:700; }
+.pk-competitive .comp-row { font-size:12px; color:var(--text); padding:3px 0; }
 
 .pk.done { opacity:.5; }
 .pk .tf-check { margin-left:8px; }
@@ -171,6 +176,7 @@ h1 {
 <script src="./sizes.js"></script>
 <script src="./lib/refdata.js"></script>
 <script src="./lib/meta/match.js"></script>
+<script src="./lib/meta/pvp.js"></script>
 <script src="./lib/analysis.js"></script>
 <script src="./lib/render.js"></script>
 <script src="./lib/sort.js"></script>

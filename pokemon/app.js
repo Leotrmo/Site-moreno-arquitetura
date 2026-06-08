@@ -11,12 +11,14 @@
 
   async function loadMeta() {
     try {
-      const [species, movesPt] = await Promise.all([
+      const [species, movesPt, pvpRanks, cpm] = await Promise.all([
         fetch('./data/species.json').then(r => r.ok ? r.json() : null),
         fetch('./data/moves_pt.json').then(r => r.ok ? r.json() : null),
+        fetch('./data/pvp_ranks.json').then(r => r.ok ? r.json() : null),
+        fetch('./data/cpm.json').then(r => r.ok ? r.json() : null),
       ]);
       if (!species || !movesPt) return null;
-      return { speciesIndex: buildSpeciesIndex(species), movesPt };
+      return { speciesIndex: buildSpeciesIndex(species), movesPt, pvpRanks: pvpRanks || null, cpm: cpm || null };
     } catch (e) { console.warn('meta indisponível:', e); return null; }
   }
 
@@ -57,6 +59,9 @@
       ['legendary', '👑 ' + c.legendaries + ' Lendários', e => e.isLegendary],
       ['lucky', '🍀 ' + c.luckies + ' Lucky', e => e.isLucky],
       ['tradeiv', '🔁 ' + c.tradeBoost + ' Trocar p/ IV', e => !!e.tradeBoost],
+      ['pvp_great',  '⚔️ Grande ' + c.pvpGreat,  e => e.tags.includes('pvp_great')],
+      ['pvp_ultra',  '⚔️ Ultra ' + c.pvpUltra,   e => e.tags.includes('pvp_ultra')],
+      ['pvp_master', '⚔️ Mestre ' + c.pvpMaster,  e => e.tags.includes('pvp_master')],
     ];
     const wrap = document.getElementById('chips');
     wrap.innerHTML = '';

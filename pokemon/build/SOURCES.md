@@ -231,3 +231,33 @@ O número em `move_name_0241` corresponde ao número em `COMBAT_V0241_MOVE_ROCK_
 1. **12 entradas com `uniqueId` numérico** no PokeMiners GM (não string): Aura Wheel Electric (406), Aura Wheel Dark (407), Dynamax Cannon (482), e 9 outros. O código de transformação deve fazer `typeof uniqueId === 'string'` antes de usar `endsWith('_FAST')`.
 2. **`cpMultipliers`/`cpms` ausente** no PvPoke gamemaster — se futuramente necessário, precisará de outra fonte.
 3. **TRANSFORM** tem `energy === 0` e `energyGain === 0` com `unlisted: true` — caso especial que não é fast nem charged.
+
+---
+
+## 5. PokeMiners — CPMs (Fase 1)
+
+URL: a mesma do Game Master (seção 3).
+
+Template: `PLAYER_LEVEL_SETTINGS` → `data.playerLevel.cpMultiplier` — array de **80 floats**.
+
+### Mapeamento decodificado (índice → nível)
+- Índices **0–54** = CPM dos níveis inteiros **1–55** (índice `i` = nível `i+1`).
+  - `cpMultiplier[0]  = 0.094`      → L1
+  - `cpMultiplier[39] = 0.7903`     → L40
+  - `cpMultiplier[49] = 0.8403`     → L50
+  - `cpMultiplier[50] = 0.8453`     → L51 (Melhor-Amigo)
+- Índices **55–79** = padding repetido (`0.8653`). **Ignorar.**
+- **Meios-níveis não são armazenados.** Fórmula do jogo:
+  `cpm(L+0.5) = sqrt((cpm(L)² + cpm(L+1)²) / 2)`.
+  Verificado: L1.5 = `sqrt((0.094² + 0.16639787²)/2) = 0.13513743`.
+
+### Fórmulas (padrão Pokémon GO)
+- **CP** = `max(10, floor( (atk+iv_atk) * sqrt(def+iv_def) * sqrt(sta+iv_sta) * cpm² / 10 ))`
+- **Stat product** (nível N) = `((atk+iv_atk)*cpm) * ((def+iv_def)*cpm) * floor((sta+iv_sta)*cpm)`
+
+### (e) Confirmação
+| Pergunta | Resposta |
+|---|---|
+| PvPoke gamemaster tem CPM? | **NÃO** (confirmado na Fase 0, seção 1). Usar PokeMiners. |
+| Array tem meios-níveis? | **NÃO** — só inteiros 1–55 + padding. Meios-níveis via fórmula sqrt. |
+| Padding no fim? | **SIM** — índices 55–79 repetem `0.8653`. |

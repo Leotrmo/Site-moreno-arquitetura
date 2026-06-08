@@ -1,9 +1,9 @@
 // pokemon/test/verdict.test.js
 const { test } = require('node:test');
 const assert = require('node:assert');
-const { getPokemonSize } = require('../sizes.js');
+const { getPokemonSize, getPokemonSizeScalar } = require('../sizes.js');
 const refdata = require('../lib/refdata.js');
-const { analyze } = require('../lib/analysis.js');
+const { analyze, computeAction } = require('../lib/analysis.js');
 
 function verdictOf(fileData, id) {
   const list = analyze(fileData, getPokemonSize, refdata);
@@ -55,8 +55,6 @@ test('XXL protege; XL não impede transferir', () => {
   };
   assert.strictEqual(verdictOf(fd,'xxl').verdict, 'MANTER'); // protegido por XXL apesar de IV baixo
 });
-
-const { getPokemonSizeScalar } = require('../sizes.js');
 
 function verdictOfFull(fileData, id) {
   const list = analyze(fileData, getPokemonSize, refdata, getPokemonSizeScalar);
@@ -153,4 +151,60 @@ test('CASO PIVÔ: Xatu XS (80% IV) é mantido; Xatu normal (77.8%) é transferid
   assert.match(nm.reason, /Você já tem um Xatu melhor/);
   // betterCopy aponta pro xatu_xs
   assert.strictEqual(nm.betterCopy && nm.betterCopy.id, 'xatu_xs');
+});
+
+// ---------------------------------------------------------------------------
+// Fase 1 — computeAction (Fortalecer / Ensinar-TM)
+// ---------------------------------------------------------------------------
+
+function pvpMon(over) {
+  return Object.assign({
+    ivPct: 67, tags: ['pvp_great'],
+    pvpMeta: {
+      great:  { isMeta: true, speciesRank: 13, ivRank: 1, spPct: 1, movesetOk: true },
+      ultra:  { isMeta: false, speciesRank: null, ivRank: 999, spPct: 0.5, movesetOk: false },
+      master: { isMeta: false, speciesRank: null, ivRank: 999, spPct: 0.5, movesetOk: false },
+    },
+  }, over || {});
+}
+
+test('computeAction: cópia boa + moveset ok → FORTALECER (Liga Grande)', () => {
+  const a = computeAction(pvpMon());
+  assert.strictEqual(a.kind, 'FORTALECER');
+  assert.strictEqual(a.league, 'great');
+  assert.match(a.reason, /Fortalecer/);
+  assert.match(a.reason, /Grande/);
+});
+
+test('computeAction: cópia boa + moveset ruim → ENSINAR_TM', () => {
+  const a = computeAction(pvpMon({
+    pvpMeta: {
+      great:  { isMeta: true, speciesRank: 13, ivRank: 1, spPct: 1, movesetOk: false },
+      ultra:  { isMeta: false, speciesRank: null, ivRank: 999, spPct: 0.5, movesetOk: false },
+      master: { isMeta: false, speciesRank: null, ivRank: 999, spPct: 0.5, movesetOk: false },
+    },
+  }));
+  assert.strictEqual(a.kind, 'ENSINAR_TM');
+  assert.match(a.reason, /Ensinar|TM/);
+});
+
+test('computeAction: sem tag pvp_* → null', () => {
+  assert.strictEqual(computeAction({ ivPct: 50, tags: [], pvpMeta: null }), null);
+});
+
+test('analyze: mon FORTALECER recebe veredito INVESTIR e e.action', () => {
+  const fd = { z: { mon_name:'Azumarill', mon_number:184, mon_cp:1498, mon_attack:0, mon_defence:15, mon_stamina:15,
+                    mon_height:0.5, mon_isShiny:'NO', mon_isLucky:'NO', mon_move_1:'Bolha', mon_move_2:'Raio Congelante', mon_move_3:'Jogo Duro' } };
+  const meta = (function () {
+    const { buildSpeciesIndex } = require('../lib/meta/match.js');
+    return {
+      speciesIndex: buildSpeciesIndex(require('../data/species.json')),
+      movesPt: { 'bolha':'BUBBLE', 'raio congelante':'ICE_BEAM', 'jogo duro':'PLAY_ROUGH' },
+      pvpRanks: require('../data/pvp_ranks.json'),
+      cpm: require('../data/cpm.json'),
+    };
+  })();
+  const e = analyze(fd, getPokemonSize, refdata, getPokemonSizeScalar, meta)[0];
+  assert.ok(e.action && e.action.kind === 'FORTALECER');
+  assert.strictEqual(e.verdict, 'INVESTIR');
 });
