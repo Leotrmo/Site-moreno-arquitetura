@@ -22,5 +22,13 @@
     return cp < 10 ? 10 : cp;
   }
 
-  return { CP_CAPS, LEVEL_CAP, THRESHOLDS, cpFor };
+  // Stat product no nível: HP é truncado (igual ao jogo); Atk/Def ficam contínuos.
+  function statProductFor(base, ivs, cpm) {
+    var atk = (base.atk + ivs.atk) * cpm;
+    var def = (base.def + ivs.def) * cpm;
+    var hp  = Math.floor((base.hp + ivs.sta) * cpm);
+    return atk * def * hp;
+  }
+
+  return { CP_CAPS, LEVEL_CAP, THRESHOLDS, cpFor, statProductFor };
 });
