@@ -13,7 +13,7 @@
     master: { ivPct: 98 },
   };
 
-  // CP = max(10, floor( (atk) * sqrt(def) * sqrt(sta) * cpm² / 10 ))
+  // CP = max(10, floor( (atk+iv) * sqrt(def+iv) * sqrt(sta+iv) * cpm² / 10 ))
   function cpFor(base, ivs, cpm) {
     var a = base.atk + ivs.atk;
     var d = base.def + ivs.def;
