@@ -1,0 +1,26 @@
+// pokemon/lib/meta/pvp.js
+(function (root, factory) {
+  const api = factory();
+  if (typeof module !== 'undefined' && module.exports) module.exports = api;
+  else { root.PokePvp = api; }
+})(typeof globalThis !== 'undefined' ? globalThis : this, function () {
+
+  var CP_CAPS    = { great: 1500, ultra: 2500, master: Infinity };
+  var LEVEL_CAP  = 50;
+  var THRESHOLDS = {
+    great:  { spPct: 0.99, ivRank: 50 },
+    ultra:  { spPct: 0.99, ivRank: 50 },
+    master: { ivPct: 98 },
+  };
+
+  // CP = max(10, floor( (atk) * sqrt(def) * sqrt(sta) * cpm² / 10 ))
+  function cpFor(base, ivs, cpm) {
+    var a = base.atk + ivs.atk;
+    var d = base.def + ivs.def;
+    var s = base.hp  + ivs.sta;
+    var cp = Math.floor(a * Math.sqrt(d) * Math.sqrt(s) * cpm * cpm / 10);
+    return cp < 10 ? 10 : cp;
+  }
+
+  return { CP_CAPS, LEVEL_CAP, THRESHOLDS, cpFor };
+});
