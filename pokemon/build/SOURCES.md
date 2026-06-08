@@ -261,3 +261,37 @@ Template: `PLAYER_LEVEL_SETTINGS` → `data.playerLevel.cpMultiplier` — array 
 | PvPoke gamemaster tem CPM? | **NÃO** (confirmado na Fase 0, seção 1). Usar PokeMiners. |
 | Array tem meios-níveis? | **NÃO** — só inteiros 1–55 + padding. Meios-níveis via fórmula sqrt. |
 | Padding no fim? | **SIM** — índices 55–79 repetem `0.8653`. |
+
+---
+
+## 6. PokeMiners — Golpes PvE (Fase 2)
+
+URL: a mesma do Game Master (seção 3).
+
+Templates **`V{NNNN}_MOVE_{NOME}`** (sem prefixo `COMBAT_`) → chave **`data.moveSettings`**. Total: **322** (80 fast + 242 charged). NÃO confundir com os `COMBAT_V####_MOVE_*` (PvP, seção 3).
+
+### Campos de `moveSettings`
+- `movementId` (ex.: `ROCK_SMASH_FAST`) — **fast tem sufixo `_FAST`; charged não**.
+- `pokemonType` (`POKEMON_TYPE_FIGHTING`) — normalizar: tira `POKEMON_TYPE_`, minúsculo.
+- `power`, `durationMs`, `damageWindowStartMs`, `damageWindowEndMs`.
+- `energyDelta`: **positivo p/ fast** (ganho), **negativo p/ charged** (custo). Em `moves.json` guardamos `energy = Math.abs(energyDelta)` (magnitude).
+
+Exemplos reais confirmados ao vivo:
+- Fast `V0241_MOVE_ROCK_SMASH_FAST`: `power 17, durationMs 1500, damageWindowStartMs 750, energyDelta 12, pokemonType POKEMON_TYPE_FIGHTING`.
+- Charged `V0013_MOVE_WRAP`: `power 60, durationMs 3000, damageWindowStartMs 2150, energyDelta -33, pokemonType POKEMON_TYPE_NORMAL`.
+
+### Casamento com `moves.json` (chaves PvPoke)
+`moveId = movementId.replace(/_FAST$/, '')` → `ROCK_SMASH_FAST` → `ROCK_SMASH`; `WRAP` → `WRAP`. Os `fastMoves`/`chargedMoves` do PvPoke usam exatamente esses ids (sem `_FAST`).
+
+### Fórmulas (estimativa de triagem, padrão GamePress "weave", L40 neutro)
+- **Dano/golpe** = `floor(0.5 · power · (Atk / DEF_REF) · STAB) + 1`, com `Atk=(baseAtk+15)·cpm(40)`, `STAB=1.2` se o tipo do golpe ∈ tipos da espécie, alvo neutro (efetividade 1).
+- **DPS (ciclo)** = `(n·Df + Dc) / (n·Tf + Tc)`, `n = energiaCarregado / energiaRápido` (golpes rápidos por carregado), `T*` em segundos.
+- **TDO** = `dps · HP · Def / K` (bulk via Def·HP), `K` constante.
+- **ER** = `dps^0.7 · tdo^0.3` (pondera DPS sobre TDO).
+
+### (f) Confirmação
+| Pergunta | Resposta |
+|---|---|
+| Template PvE vs PvP? | PvE = `V####_MOVE_*` (`moveSettings`); PvP = `COMBAT_V####_MOVE_*` (`combatMove`). |
+| Distinção fast/charged? | **Sufixo `_FAST`** no `movementId`. (energyDelta também: +fast/−charged.) |
+| `durationMs` sempre presente? | **SIM** (0 ausentes em 322). |

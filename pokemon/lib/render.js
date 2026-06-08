@@ -29,6 +29,9 @@
     if (e.tags.includes('pvp_great'))  b.push('<span class="badge b-pvp">⚔️G</span>');
     if (e.tags.includes('pvp_ultra'))  b.push('<span class="badge b-pvp">⚔️U</span>');
     if (e.tags.includes('pvp_master')) b.push('<span class="badge b-pvp">⚔️M</span>');
+    if (e.tags.includes('raid'))    b.push('<span class="badge b-pve">🔥</span>');
+    else if (e.tags.includes('pve')) b.push('<span class="badge b-pve">🔥</span>');
+    if (e.tags.includes('gym_def')) b.push('<span class="badge b-gymdef">🛡️</span>');
     return b.join('');
   }
 
@@ -64,18 +67,42 @@
 
   const LEAGUE_LABEL = { great: 'Liga Grande', ultra: 'Liga Ultra', master: 'Liga Mestre' };
 
+  const TYPE_PT_PVE = { normal:'Normal', fire:'Fogo', water:'Água', electric:'Elétrico', grass:'Planta',
+    ice:'Gelo', fighting:'Lutador', poison:'Venenoso', ground:'Terrestre', flying:'Voador',
+    psychic:'Psíquico', bug:'Inseto', rock:'Pedra', ghost:'Fantasma', dragon:'Dragão',
+    dark:'Sombrio', steel:'Aço', fairy:'Fada' };
+
   function competitiveHtml(e) {
-    if (!e.pvpMeta) return '';
+    if (!e.pvpMeta && !e.pveMeta) return '';
     const rows = [];
-    ['great', 'ultra', 'master'].forEach(function (lg) {
-      const L = e.pvpMeta[lg];
-      if (!L || !L.isMeta) return;
-      const sp = Math.round(L.spPct * 100);
-      const mv = L.movesetOk ? 'moveset recomendado ✓' : 'falta o moveset recomendado';
-      rows.push('<div class="comp-row"><strong>' + LEAGUE_LABEL[lg] + '</strong> — rank ' +
-                L.speciesRank + ' da espécie · seu IV PvP ' + sp + '% (rank ' + L.ivRank +
-                '/4096) · ' + mv + '</div>');
-    });
+    if (e.pvpMeta) {
+      ['great', 'ultra', 'master'].forEach(function (lg) {
+        const L = e.pvpMeta[lg];
+        if (!L || !L.isMeta) return;
+        const sp = Math.round(L.spPct * 100);
+        const mv = L.movesetOk ? 'moveset recomendado ✓' : 'falta o moveset recomendado';
+        rows.push('<div class="comp-row"><strong>' + LEAGUE_LABEL[lg] + '</strong> — rank ' +
+                  L.speciesRank + ' da espécie · seu IV PvP ' + sp + '% (rank ' + L.ivRank +
+                  '/4096) · ' + mv + '</div>');
+      });
+    }
+    if (e.pveMeta) {
+      const pm = e.pveMeta;
+      const t = pm.bestType;
+      const bt = (t && pm.byType && pm.byType[t]) || null;
+      const papeis = [];
+      if (pm.raid) papeis.push('Raid');
+      if (pm.pve) papeis.push('PvE');
+      if (pm.gymAtk) papeis.push('Atq. Ginásio');
+      if (pm.gymDef) papeis.push('Def. Ginásio');
+      if (papeis.length) {
+        const tipoPt = TYPE_PT_PVE[t] || t || '';
+        const rankTxt = bt ? (' — melhor como ' + tipoPt + ' (rank ' + bt.erRank + ' do tipo, DPS rank ' + bt.dpsRank + ')') : '';
+        const mv = pm.movesetOk ? ' · moveset de ataque ✓' : (pm.bestMoveset ? ' · falta moveset de ataque' : '');
+        rows.push('<div class="comp-row"><strong>PvE</strong>: ' + papeis.join(' · ') + rankTxt + mv +
+                  ' <span class="comp-est">(estimativa)</span></div>');
+      }
+    }
     if (!rows.length) return '';
     return '<div class="pk-competitive"><h4>Competitivo</h4>' + rows.join('') + '</div>';
   }

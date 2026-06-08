@@ -13,6 +13,10 @@
     ? require('./meta/pvp.js')
     : (typeof globalThis !== 'undefined' ? globalThis.PokePvp : null);
 
+  var PokePve = (typeof require === 'function')
+    ? require('./meta/pve.js')
+    : (typeof globalThis !== 'undefined' ? globalThis.PokePve : null);
+
   function speciesScalar(getSizeScalar, mon) {
     if (typeof getSizeScalar !== 'function') return null;
     return getSizeScalar(mon.mon_number, mon.mon_height, mon.mon_form) || null;
@@ -118,6 +122,7 @@
       // Fase 1 — avaliação PvP (preenchida por analyze quando há meta).
       // ATENÇÃO: chamar de pvpMeta, não pvp — pvp já existe (mon_pvp_stats).
       pvpMeta: null,
+      pveMeta: null,
       action: null,
     };
   }
@@ -147,13 +152,17 @@
     return !!(e.pvpMeta && (e.pvpMeta.great.isMeta || e.pvpMeta.ultra.isMeta || e.pvpMeta.master.isMeta));
   }
 
+  function isPveMeta(e) {
+    return !!(e.pveMeta && (e.pveMeta.raid || e.pveMeta.pve || e.pveMeta.gymAtk || e.pveMeta.gymDef));
+  }
+
   function isProtected(e) {
     return e.isShiny || e.isLucky || e.isShadow || e.isLegendary
         || e.isCostume || e.isExtremeSize || e.isHundo || e.isNearPerfect
         || e.isXSComfort || e.isXLComfort
         || e.hasSecondCharge
         || e.isTradeEvo || e.isRegional
-        || isPvpMeta(e);
+        || isPvpMeta(e) || isPveMeta(e);
   }
 
   function investReason(e) {
@@ -209,9 +218,29 @@
     return null;
   }
 
+  const TYPE_PT = { normal:'Normal', fire:'Fogo', water:'Água', electric:'Elétrico', grass:'Planta',
+    ice:'Gelo', fighting:'Lutador', poison:'Venenoso', ground:'Terrestre', flying:'Voador',
+    psychic:'Psíquico', bug:'Inseto', rock:'Pedra', ghost:'Fantasma', dragon:'Dragão',
+    dark:'Sombrio', steel:'Aço', fairy:'Fada' };
+
+  // Ação a partir do papel de atacante PvE (raid > gym_atk). null se o mon não é atacante.
+  function _pveAction(e) {
+    if (!e.pveMeta) return null;
+    const role = e.pveMeta.raid ? 'raid' : (e.pveMeta.gymAtk ? 'gym_atk' : null);
+    if (!role) return null;
+    const tipo = TYPE_PT[e.pveMeta.bestType] || e.pveMeta.bestType || 'ataque';
+    const papel = role === 'raid' ? 'Raid' : 'Ataque de Ginásio';
+    if (e.pveMeta.movesetOk) {
+      return { kind: 'FORTALECER', role: role,
+        reason: 'Fortalecer p/ ' + papel + ' (' + tipo + ') — atacante recomendado (estimativa)' };
+    }
+    return { kind: 'ENSINAR_TM', role: role,
+      reason: 'Ensinar/TM p/ ' + papel + ' (' + tipo + ') — falta o moveset de ataque recomendado' };
+  }
+
   function computeAction(e) {
     const lg = _bestPvpLeague(e);
-    if (!lg || !e.pvpMeta) return null;
+    if (!lg || !e.pvpMeta) return _pveAction(e);   // sem ação PvP → tenta PvE
     const L = e.pvpMeta[lg];
     const ligaPt = LEAGUE_PT[lg];
     const ivInfo = 'IV PvP ' + Math.round(L.spPct * 100) + '% (rank ' + L.ivRank + '/4096)';
@@ -228,6 +257,7 @@
     if (e.isTradeEvo) tags.push('TROCAR_EVO');
     if (e.isRegional) tags.push('REGIONAL');
     if (e.pvpMeta && PokePvp) for (const t of PokePvp.pvpTags(e.pvpMeta, e.ivPct)) tags.push(t);
+    if (e.pveMeta && PokePve) for (const t of PokePve.pveTags(e.pveMeta)) tags.push(t);
     return tags;
   }
 
@@ -235,6 +265,7 @@
     const list = enrichCollection(fileData, getSize, refdata, getSizeScalar, meta);
     for (const e of list) {
       e.pvpMeta = (meta && meta.cpm && meta.pvpRanks && PokePvp) ? PokePvp.evalMon(e, meta) : null;
+      e.pveMeta = (meta && meta.pveRanks && PokePve) ? PokePve.evalMon(e, meta) : null;
       e.tags = computeTags(e);
       e.action = computeAction(e);
       const v = computeVerdict(e);
@@ -248,7 +279,8 @@
   function computeCounts(list) {
     const c = { total: list.length, INVESTIR:0, MANTER:0, TRANSFERIR:0,
                 hundos:0, shinies:0, shadows:0, purified:0, extremeSizes:0, legendaries:0, luckies:0, tradeBoost:0,
-                pvpGreat:0, pvpUltra:0, pvpMaster:0 };
+                pvpGreat:0, pvpUltra:0, pvpMaster:0,
+                raid:0, pve:0, gymAtk:0, gymDef:0 };
     for (const e of list) {
       c[e.verdict]++;
       if (e.isHundo) c.hundos++;
@@ -262,10 +294,14 @@
       if (e.tags.includes('pvp_great'))  c.pvpGreat++;
       if (e.tags.includes('pvp_ultra'))  c.pvpUltra++;
       if (e.tags.includes('pvp_master')) c.pvpMaster++;
+      if (e.tags.includes('raid'))    c.raid++;
+      if (e.tags.includes('pve'))     c.pve++;
+      if (e.tags.includes('gym_atk')) c.gymAtk++;
+      if (e.tags.includes('gym_def')) c.gymDef++;
     }
     return c;
   }
 
-  return { ivPct, speciesKey, enrichOne, enrichCollection, isProtected, isPvpMeta, computeVerdict, computeTags, computeAction, canBestFriendTrade, tradeBoost, analyze, computeCounts,
+  return { ivPct, speciesKey, enrichOne, enrichCollection, isProtected, isPvpMeta, isPveMeta, computeVerdict, computeTags, computeAction, canBestFriendTrade, tradeBoost, analyze, computeCounts,
            TRADE_MIN_IV_PCT, TRADE_EXPECTED_IV_PCT };
 });

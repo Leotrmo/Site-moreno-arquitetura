@@ -49,6 +49,11 @@ async function main() {
   console.log('Transformando…');
   const species = T.buildSpecies(gm);
   const moves = T.buildMoves(gm);
+  const movesPveRes = T.buildMovesPve(gameMaster);
+  for (const id in movesPveRes.map) if (moves[id]) moves[id].pve = movesPveRes.map[id];
+  const pveCoverage = Object.keys(moves).length
+    ? Object.keys(moves).filter(id => moves[id].pve).length / Object.keys(moves).length : 0;
+  const pveRanks = T.buildPveRanks(species, moves);
   const movesPtRes = T.buildMovesPt(gameMaster, i18nPt);
   const pvpRanks = T.buildPvpRanks({ great: rGreat, ultra: rUltra, master: rMaster }, TOP_N);
   const cpm = buildCpm(gameMaster);
@@ -66,11 +71,18 @@ async function main() {
     if (!(cpm[i].cpm > cpm[i - 1].cpm))
       throw new Error('validação: cpm não é estritamente crescente em ' + cpm[i].level);
 
+  if (pveCoverage < 0.8)
+    throw new Error('validação: cobertura PvE ' + (pveCoverage * 100).toFixed(1) + '% < 80% — schema mudou?');
+  assertNonEmpty('pveRanks', pveRanks);
+  if (!pveRanks.blissey || !(pveRanks.blissey.defBulkRank <= 5))
+    throw new Error('validação: Blissey deveria estar entre os mais bulky — defBulkRank suspeito');
+
   write('species.json', species);
   write('moves.json', moves);
   write('moves_pt.json', movesPtRes.map);
   write('pvp_ranks.json', pvpRanks);
   write('cpm.json', cpm);
+  write('pve_ranks.json', pveRanks);
   write('meta.json', {
     generatedAt: new Date().toISOString(),
     pvpokeSource: S.PVPOKE_GAMEMASTER,
@@ -78,8 +90,10 @@ async function main() {
       species: Object.keys(species).length, moves: Object.keys(moves).length,
       movesPt: Object.keys(movesPtRes.map).length, pvpRanked: Object.keys(pvpRanks).length,
       cpmLevels: cpm.length,
+      pveRanked: Object.keys(pveRanks).length,
     },
     ptCoverage: Number(movesPtRes.coverage.toFixed(3)),
+    pveCoverage: Number(pveCoverage.toFixed(3)),
     topN: TOP_N,
   });
   console.log('OK.');

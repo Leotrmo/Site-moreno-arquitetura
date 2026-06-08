@@ -42,3 +42,28 @@ test('contagens sem meta: pvp* ficam 0 (não-regressão)', () => {
   assert.strictEqual(c.pvpUltra, 0);
   assert.strictEqual(c.pvpMaster, 0);
 });
+
+const pveRanksJson = require('../data/pve_ranks.json');
+
+test('contagens incluem raid/pve/gymAtk/gymDef', () => {
+  const { buildSpeciesIndex } = require('../lib/meta/match.js');
+  const meta = { speciesIndex: buildSpeciesIndex(speciesJson), movesPt: {}, pvpRanks: pvpRanksJson, cpm: realCpm, pveRanks: pveRanksJson };
+  let dex = null;
+  for (const id in pveRanksJson) {
+    if (id.indexOf('_') < 0 && (pveRanksJson[id].roles || []).includes('raid') && speciesJson[id]) { dex = speciesJson[id].dex; break; }
+  }
+  assert.ok(dex, 'existe atacante de raid base');
+  const fd = { z: { mon_name:'X', mon_number:dex, mon_cp:3000, mon_attack:15, mon_defence:15, mon_stamina:15,
+                    mon_height:1, mon_isShiny:'NO', mon_isLucky:'NO' } };
+  const c = computeCounts(analyze(fd, getPokemonSize, refdata, getPokemonSizeScalar, meta));
+  assert.ok('raid' in c && 'pve' in c && 'gymAtk' in c && 'gymDef' in c);
+  assert.strictEqual(c.raid, 1);
+});
+
+test('contagens sem meta: raid/pve/gymAtk/gymDef ficam 0 (não-regressão)', () => {
+  const c = computeCounts(analyze(fd, getPokemonSize, refdata)); // fd do topo do arquivo
+  assert.strictEqual(c.raid, 0);
+  assert.strictEqual(c.pve, 0);
+  assert.strictEqual(c.gymAtk, 0);
+  assert.strictEqual(c.gymDef, 0);
+});
