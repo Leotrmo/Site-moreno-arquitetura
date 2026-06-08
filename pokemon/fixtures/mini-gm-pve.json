@@ -1,0 +1,9 @@
+[
+  { "templateId": "V0241_MOVE_ROCK_SMASH_FAST", "data": { "templateId": "V0241_MOVE_ROCK_SMASH_FAST",
+    "moveSettings": { "movementId": "ROCK_SMASH_FAST", "pokemonType": "POKEMON_TYPE_FIGHTING",
+      "power": 17, "durationMs": 1500, "damageWindowStartMs": 750, "energyDelta": 12 } } },
+  { "templateId": "V0013_MOVE_WRAP", "data": { "templateId": "V0013_MOVE_WRAP",
+    "moveSettings": { "movementId": "WRAP", "pokemonType": "POKEMON_TYPE_NORMAL",
+      "power": 60, "durationMs": 3000, "damageWindowStartMs": 2150, "energyDelta": -33 } } },
+  { "templateId": "V0001_POKEMON_BULBASAUR", "data": { "templateId": "V0001_POKEMON_BULBASAUR" } }
+]

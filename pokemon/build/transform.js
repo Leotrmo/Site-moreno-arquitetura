@@ -109,4 +109,27 @@ function expandCpm(cpMultiplier, maxLevel) {
   return out;
 }
 
-module.exports = { buildSpecies, buildMoves, buildMovesPt, buildPvpRanks, LEAGUES, expandCpm };
+// Stats PvE de golpe do Game Master do PokeMiners (templates V####_MOVE_*, chave moveSettings).
+// Chaveia pelo moveId do PvPoke: tira o sufixo _FAST. energy = magnitude de energyDelta.
+function buildMovesPve(gameMaster) {
+  const arr = Array.isArray(gameMaster) ? gameMaster : (gameMaster.template || gameMaster.itemTemplates);
+  if (!Array.isArray(arr)) throw new Error('buildMovesPve: game master sem array de templates');
+  const map = {};
+  let count = 0;
+  for (const t of arr) {
+    const tid = t.templateId || (t.data && t.data.templateId) || '';
+    if (!/^V\d{4}_MOVE_/.test(tid)) continue;
+    const ms = t.data && t.data.moveSettings;
+    if (!ms || typeof ms.movementId !== 'string') continue;
+    const moveId = ms.movementId.replace(/_FAST$/, '');
+    map[moveId] = {
+      power: ms.power || 0,
+      energy: Math.abs(ms.energyDelta || 0),
+      durationMs: ms.durationMs || 0,
+    };
+    count++;
+  }
+  return { map, count };
+}
+
+module.exports = { buildSpecies, buildMoves, buildMovesPve, buildMovesPt, buildPvpRanks, LEAGUES, expandCpm };

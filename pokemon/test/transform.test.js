@@ -87,3 +87,14 @@ test('buildSpecies: pools ausentes viram arrays vazios (não quebra)', () => {
   assert.deepStrictEqual(out.x.fastMoves, []);
   assert.deepStrictEqual(out.x.chargedMoves, []);
 });
+
+const miniGmPve = require('../fixtures/mini-gm-pve.json');
+
+test('buildMovesPve: V####_MOVE_* → {power,energy(abs),durationMs}, moveId sem _FAST', () => {
+  const { buildMovesPve } = require('../build/transform.js');
+  const res = buildMovesPve(miniGmPve);
+  assert.deepStrictEqual(res.map.ROCK_SMASH, { power: 17, energy: 12, durationMs: 1500 }); // fast: energyDelta 12
+  assert.deepStrictEqual(res.map.WRAP, { power: 60, energy: 33, durationMs: 3000 });        // charged: |−33| = 33
+  assert.strictEqual(res.map.ROCK_SMASH_FAST, undefined);  // chaveado sem o sufixo _FAST
+  assert.strictEqual(res.count, 2);                         // ignora a entrada não-MOVE
+});
