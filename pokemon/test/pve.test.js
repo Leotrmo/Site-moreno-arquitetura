@@ -45,3 +45,30 @@ test('tdoFor: dps · HP · Def / INCOMING_K', () => {
 test('erFor: dps^0.7 · tdo^0.3 (pondera DPS sobre TDO)', () => {
   assert.ok(Math.abs(erFor(10, 100) - (Math.pow(10, 0.7) * Math.pow(100, 0.3))) < 1e-9);
 });
+
+const { bestMoveset } = require('../lib/meta/pve.js');
+
+test('bestMoveset: melhor combo geral + por tipo (tipo = do carregado)', () => {
+  const species = {
+    baseStats: { atk: 200, def: 100, hp: 100 }, types: ['ice'],
+    fastMoves: ['ICE_SHARD'], chargedMoves: ['AVALANCHE','BODY_SLAM'],
+  };
+  const movesById = {
+    ICE_SHARD: { type: 'ice',    kind: 'fast',   pve: { power: 12, energy: 12, durationMs: 1200 } },
+    AVALANCHE: { type: 'ice',    kind: 'charge', pve: { power: 90, energy: 45, durationMs: 2700 } },
+    BODY_SLAM: { type: 'normal', kind: 'charge', pve: { power: 50, energy: 35, durationMs: 1900 } },
+  };
+  const r = bestMoveset(species, movesById);
+  assert.ok(r.best, 'tem melhor combo');
+  assert.strictEqual(r.byType.ice.moveset[0], 'ICE_SHARD');
+  assert.strictEqual(r.byType.ice.moveset[1], 'AVALANCHE');
+  assert.ok(r.byType.normal, 'tem entrada do tipo normal (Body Slam)');
+  assert.ok(r.byType.ice.er > r.byType.normal.er);
+  assert.strictEqual(r.best.type, 'ice');
+});
+
+test('bestMoveset: sem golpe com dados PvE → null', () => {
+  const species = { baseStats: { atk: 100, def: 100, hp: 100 }, types: ['grass'],
+                    fastMoves: ['VINE_WHIP'], chargedMoves: ['SLUDGE_BOMB'] };
+  assert.strictEqual(bestMoveset(species, {}).best, null);
+});

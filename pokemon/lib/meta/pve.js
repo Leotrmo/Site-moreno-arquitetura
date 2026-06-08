@@ -43,6 +43,34 @@
     return Math.pow(dps, PVE.ER_WEIGHT) * Math.pow(tdo, 1 - PVE.ER_WEIGHT);
   }
 
+  // Um id de golpe é usável em PvE só se existir em movesById COM bloco pve.
+  function _hasPve(id, movesById) {
+    var m = movesById[id];
+    return !!(m && m.pve);
+  }
+
+  // Enumera fastMoves × chargedMoves; devolve { best, byType } por ER.
+  // moveset guarda os IDS (vindos das chaves); byType é chaveado pelo tipo do carregado.
+  function bestMoveset(species, movesById) {
+    var base = species.baseStats, types = species.types || [];
+    var fastIds = (species.fastMoves || []).filter(function (id) { return _hasPve(id, movesById); });
+    var chgIds  = (species.chargedMoves || []).filter(function (id) { return _hasPve(id, movesById); });
+    var byType = {}, best = null;
+    for (var i = 0; i < fastIds.length; i++) {
+      for (var j = 0; j < chgIds.length; j++) {
+        var fId = fastIds[i], cId = chgIds[j];
+        var F = movesById[fId], C = movesById[cId];
+        var dps = cycleDps(F, C, base, types);
+        if (!(dps > 0)) continue;
+        var tdo = tdoFor(dps, base), er = erFor(dps, tdo);
+        var rec = { moveset: [fId, cId], type: C.type, dps: dps, tdo: tdo, er: er };
+        if (!byType[C.type] || er > byType[C.type].er) byType[C.type] = rec;
+        if (!best || er > best.er) best = rec;
+      }
+    }
+    return { best: best, byType: byType };
+  }
+
   return { PVE, RAID_TOP, PVE_TOP, GYM_ATK_TOP, GYM_ATK_COVERAGE_MIN, GYM_DEF_TOP, GYM_DEF_IV_MIN,
-           effAtk, effDef, effHp, dmgPerHit, cycleDps, tdoFor, erFor };
+           effAtk, effDef, effHp, dmgPerHit, cycleDps, tdoFor, erFor, bestMoveset };
 });
