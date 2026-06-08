@@ -83,5 +83,15 @@
     };
   }
 
-  return { CP_CAPS, LEVEL_CAP, THRESHOLDS, cpFor, statProductFor, bestLevelUnderCap, rankInfo };
+  // moveset recomendado = [rápido, carregado1, (carregado2?)]. "ok" = tem o rápido E >=1 carregado.
+  function movesetOk(myMoveIds, recommended) {
+    if (!recommended || recommended.length < 2) return false;
+    var mine = myMoveIds || [];
+    var fast = recommended[0];
+    var charged = recommended.slice(1);
+    if (mine.indexOf(fast) < 0) return false;
+    return charged.some(function (c) { return mine.indexOf(c) >= 0; });
+  }
+
+  return { CP_CAPS, LEVEL_CAP, THRESHOLDS, cpFor, statProductFor, bestLevelUnderCap, rankInfo, movesetOk };
 });

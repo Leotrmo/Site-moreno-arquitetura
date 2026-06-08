@@ -64,3 +64,15 @@ test('rankInfo Liga Grande (cap 1500): hundo NÃO é o ideal; 0/15/15 lidera', (
   assert.ok(hundo.spPct < 1);
   assert.ok(hundo.cp <= 1500);              // respeita o cap
 });
+
+const { movesetOk } = require('../lib/meta/pvp.js');
+
+test('movesetOk: tem o rápido recomendado + ao menos 1 carregado recomendado', () => {
+  const rec = ['COUNTER', 'ICE_PUNCH', 'POWER_UP_PUNCH']; // [rápido, carregado, carregado]
+  assert.strictEqual(movesetOk(['COUNTER', 'ICE_PUNCH'], rec), true);          // rápido + 1 carregado
+  assert.strictEqual(movesetOk(['COUNTER', 'ICE_PUNCH', 'POWER_UP_PUNCH'], rec), true);
+  assert.strictEqual(movesetOk(['COUNTER'], rec), false);                       // falta carregado
+  assert.strictEqual(movesetOk(['ICE_PUNCH', 'POWER_UP_PUNCH'], rec), false);   // falta o rápido
+  assert.strictEqual(movesetOk([], rec), false);
+  assert.strictEqual(movesetOk(['COUNTER', 'ICE_PUNCH'], []), false);           // sem recomendação → false
+});
