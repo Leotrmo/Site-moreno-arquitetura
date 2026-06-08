@@ -33,6 +33,16 @@
     return cycleTime > 0 ? (n * dF + dC) / cycleTime : 0;
   }
 
+  // TDO (Total Damage Output): bulk via Def·HP. K constante → ranking invariante.
+  function tdoFor(dps, base) {
+    return dps * effHp(base) * effDef(base) / PVE.INCOMING_K;
+  }
+  // ER: combina DPS e TDO ponderando DPS (ER_WEIGHT).
+  function erFor(dps, tdo) {
+    if (dps <= 0 || tdo <= 0) return 0;
+    return Math.pow(dps, PVE.ER_WEIGHT) * Math.pow(tdo, 1 - PVE.ER_WEIGHT);
+  }
+
   return { PVE, RAID_TOP, PVE_TOP, GYM_ATK_TOP, GYM_ATK_COVERAGE_MIN, GYM_DEF_TOP, GYM_DEF_IV_MIN,
-           effAtk, effDef, effHp, dmgPerHit, cycleDps };
+           effAtk, effDef, effHp, dmgPerHit, cycleDps, tdoFor, erFor };
 });

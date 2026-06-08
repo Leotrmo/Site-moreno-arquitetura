@@ -33,3 +33,15 @@ test('cycleDps: 0 se o golpe rápido não gera energia (evita divisão por zero)
   const charged = { type: 'normal', pve: { power: 50, energy: 50, durationMs: 2000 } };
   assert.strictEqual(cycleDps(fast, charged, base, ['normal']), 0);
 });
+
+const { tdoFor, erFor } = require('../lib/meta/pve.js');
+
+test('tdoFor: dps · HP · Def / INCOMING_K', () => {
+  const base = { atk: 100, def: 100, hp: 100 };
+  const expected = 10 * (115 * 0.7903) * (115 * 0.7903) / 800;
+  assert.ok(Math.abs(tdoFor(10, base) - expected) < 1e-6);
+});
+
+test('erFor: dps^0.7 · tdo^0.3 (pondera DPS sobre TDO)', () => {
+  assert.ok(Math.abs(erFor(10, 100) - (Math.pow(10, 0.7) * Math.pow(100, 0.3))) < 1e-9);
+});
