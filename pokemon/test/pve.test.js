@@ -72,3 +72,55 @@ test('bestMoveset: sem golpe com dados PvE → null', () => {
                     fastMoves: ['VINE_WHIP'], chargedMoves: ['SLUDGE_BOMB'] };
   assert.strictEqual(bestMoveset(species, {}).best, null);
 });
+
+const { defBulk, evalMon, pveTags } = require('../lib/meta/pve.js');
+
+test('defBulk: (baseDef+ivDef)·(baseHP+ivSta)', () => {
+  assert.strictEqual(defBulk({ atk: 1, def: 100, hp: 200 }, { atk: 0, def: 15, sta: 15 }), 115 * 215);
+});
+
+function metaPve() {
+  return {
+    speciesIndex: { byId: {
+      raider: { baseStats: { atk: 250, def: 120, hp: 150 } },
+      wall:   { baseStats: { atk: 60,  def: 250, hp: 450 } },
+    } },
+    pveRanks: {
+      raider: { bestMoveset: ['ICE_SHARD','AVALANCHE'], bestType: 'ice', roles: ['raid','pve','gym_atk'],
+                byType: { ice: { dps: 18, er: 50, dpsRank: 2, erRank: 3, moveset: ['ICE_SHARD','AVALANCHE'] } },
+                defBulkRank: 300 },
+      wall:   { bestMoveset: ['POUND','BODY_SLAM'], bestType: 'normal', roles: [],
+                byType: {}, defBulkRank: 2 },
+    },
+  };
+}
+
+test('evalMon: sem speciesId ou sem pveRanks → null', () => {
+  assert.strictEqual(evalMon({ speciesId: null, ivs: {}, moveIds: [] }, metaPve()), null);
+  assert.strictEqual(evalMon({ speciesId: 'raider', ivs: {}, moveIds: [] }, { speciesIndex: metaPve().speciesIndex }), null);
+});
+
+test('evalMon: atacante de raid com moveset recomendado → raid/pve/gymAtk + movesetOk', () => {
+  const r = evalMon({ speciesId: 'raider', ivs: { atk: 15, def: 10, sta: 10 },
+                      moveIds: ['ICE_SHARD','AVALANCHE'] }, metaPve());
+  assert.strictEqual(r.raid, true);
+  assert.strictEqual(r.pve, true);
+  assert.strictEqual(r.gymAtk, true);
+  assert.strictEqual(r.gymDef, false);          // não é candidata a defensor (defBulkRank 300)
+  assert.strictEqual(r.movesetOk, true);
+  assert.strictEqual(r.bestType, 'ice');
+});
+
+test('evalMon: muralha bulk-candidata + IV def/HP altos → gymDef true', () => {
+  const hi = evalMon({ speciesId: 'wall', ivs: { atk: 0, def: 15, sta: 14 }, moveIds: [] }, metaPve());
+  assert.strictEqual(hi.gymDef, true);          // defBulkRank 2 <= 50 E def 15>=13 E sta 14>=13
+  const lo = evalMon({ speciesId: 'wall', ivs: { atk: 0, def: 5, sta: 5 }, moveIds: [] }, metaPve());
+  assert.strictEqual(lo.gymDef, false);         // IVs def/HP baixos
+});
+
+test('pveTags: deriva raid/pve/gym_atk/gym_def', () => {
+  assert.deepStrictEqual(
+    pveTags({ raid: true, pve: true, gymAtk: false, gymDef: true }).sort(),
+    ['gym_def', 'pve', 'raid']);
+  assert.deepStrictEqual(pveTags(null), []);
+});

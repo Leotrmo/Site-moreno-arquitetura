@@ -71,6 +71,56 @@
     return { best: best, byType: byType };
   }
 
+  // Bulk defensivo com o IV individual (gym_def depende do SEU Def/HP).
+  function defBulk(base, ivs) {
+    return (base.def + ivs.def) * (base.hp + ivs.sta);
+  }
+
+  // moveset PvE "ok" = o mon tem os dois golpes do bestMoveset recomendado.
+  function pveMovesetOk(myMoveIds, recommended) {
+    if (!recommended || recommended.length < 2) return false;
+    var mine = myMoveIds || [];
+    return recommended.every(function (id) { return mine.indexOf(id) >= 0; });
+  }
+
+  // Avalia o mon em PvE. Retorna null sem speciesId/pveRanks. gymDef usa o IV individual.
+  function evalMon(e, meta) {
+    if (!e || !e.speciesId || !meta || !meta.pveRanks) return null;
+    var entry = meta.pveRanks[e.speciesId];
+    var byId = meta.speciesIndex && meta.speciesIndex.byId;
+    var sp = byId && byId[e.speciesId];
+    if (!entry) return null;                       // espécie sem dados de PvE
+    var roles = entry.roles || [];
+    var gymDef = false;
+    if (sp && sp.baseStats && typeof entry.defBulkRank === 'number'
+        && entry.defBulkRank <= GYM_DEF_TOP
+        && e.ivs && e.ivs.def >= GYM_DEF_IV_MIN && e.ivs.sta >= GYM_DEF_IV_MIN) {
+      gymDef = true;
+    }
+    return {
+      raid: roles.indexOf('raid') >= 0,
+      pve: roles.indexOf('pve') >= 0,
+      gymAtk: roles.indexOf('gym_atk') >= 0,
+      gymDef: gymDef,
+      bestType: entry.bestType || null,
+      bestMoveset: entry.bestMoveset || null,
+      byType: entry.byType || {},
+      movesetOk: pveMovesetOk(e.moveIds, entry.bestMoveset),
+    };
+  }
+
+  // Tags a partir do objeto pveMeta.
+  function pveTags(pveMeta) {
+    if (!pveMeta) return [];
+    var tags = [];
+    if (pveMeta.raid)   tags.push('raid');
+    if (pveMeta.pve)    tags.push('pve');
+    if (pveMeta.gymAtk) tags.push('gym_atk');
+    if (pveMeta.gymDef) tags.push('gym_def');
+    return tags;
+  }
+
   return { PVE, RAID_TOP, PVE_TOP, GYM_ATK_TOP, GYM_ATK_COVERAGE_MIN, GYM_DEF_TOP, GYM_DEF_IV_MIN,
-           effAtk, effDef, effHp, dmgPerHit, cycleDps, tdoFor, erFor, bestMoveset };
+           effAtk, effDef, effHp, dmgPerHit, cycleDps, tdoFor, erFor, bestMoveset,
+           defBulk, evalMon, pveTags };
 });
