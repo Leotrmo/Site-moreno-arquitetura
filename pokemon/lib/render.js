@@ -26,6 +26,9 @@
     if (e.tags.includes('TROCAR_EVO')) b.push('<span class="badge b-trade">🤝</span>');
     if (e.tags.includes('REGIONAL'))   b.push('<span class="badge b-regional">🌍</span>');
     if (e.tradeBoost) b.push('<span class="badge b-tradeiv">🔁 IV</span>');
+    if (e.tags.includes('pvp_great'))  b.push('<span class="badge b-pvp">⚔️G</span>');
+    if (e.tags.includes('pvp_ultra'))  b.push('<span class="badge b-pvp">⚔️U</span>');
+    if (e.tags.includes('pvp_master')) b.push('<span class="badge b-pvp">⚔️M</span>');
     return b.join('');
   }
 
@@ -53,6 +56,7 @@
           badgesHtml(e) +
         '</div>' +
         '<div class="reason">' + esc(e.reason) + '</div>' +
+        (e.action ? '<div class="pk-action">⚔️ ' + esc(e.action.reason) + '</div>' : '') +
         (e.tradeBoost ? '<div class="trade-tip">🔁 ' + esc(e.tradeBoost.reason) + '</div>' : '') +
       '</div>'
     );
