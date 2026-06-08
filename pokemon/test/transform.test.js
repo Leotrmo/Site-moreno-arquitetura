@@ -45,3 +45,22 @@ test('buildPvpRanks: junta as 3 ligas por speciesId, com rank 1-based e corte To
   assert.strictEqual(r.machop, undefined);       // fora do Top 2 e sem outras ligas → não entra
   assert.strictEqual(r.medicham.ultra, null);    // ausente na liga ultra
 });
+
+const wholeCpm = require('../fixtures/mini-cpm-whole.json');
+const { expandCpm } = require('../build/transform.js');
+
+test('expandCpm: inteiros + meios-níveis via fórmula sqrt, ascendente até maxLevel', () => {
+  const list = expandCpm(wholeCpm, 10); // níveis 1..10 em passos de 0.5 → 19 entradas
+  assert.strictEqual(list.length, 19);
+  assert.deepStrictEqual(list[0], { level: 1, cpm: 0.094 });
+  assert.strictEqual(list[2].level, 2);
+  assert.strictEqual(list[2].cpm, 0.16639787);              // L2 inteiro, valor cru
+  // L1.5 = sqrt((L1² + L2²)/2) = 0.13513743...
+  assert.strictEqual(list[1].level, 1.5);
+  assert.ok(Math.abs(list[1].cpm - 0.13513743215803847) < 1e-12);
+  assert.strictEqual(list[list.length - 1].level, 10);      // último = maxLevel
+});
+
+test('expandCpm: falha alto se o array de CPM for curto demais p/ o maxLevel', () => {
+  assert.throws(() => expandCpm([0.094, 0.16639787], 10), /cpMultiplier/);
+});
