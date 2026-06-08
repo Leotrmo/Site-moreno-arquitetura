@@ -218,9 +218,29 @@
     return null;
   }
 
+  const TYPE_PT = { normal:'Normal', fire:'Fogo', water:'Água', electric:'Elétrico', grass:'Planta',
+    ice:'Gelo', fighting:'Lutador', poison:'Venenoso', ground:'Terrestre', flying:'Voador',
+    psychic:'Psíquico', bug:'Inseto', rock:'Pedra', ghost:'Fantasma', dragon:'Dragão',
+    dark:'Sombrio', steel:'Aço', fairy:'Fada' };
+
+  // Ação a partir do papel de atacante PvE (raid > gym_atk). null se o mon não é atacante.
+  function _pveAction(e) {
+    if (!e.pveMeta) return null;
+    const role = e.pveMeta.raid ? 'raid' : (e.pveMeta.gymAtk ? 'gym_atk' : null);
+    if (!role) return null;
+    const tipo = TYPE_PT[e.pveMeta.bestType] || e.pveMeta.bestType || 'ataque';
+    const papel = role === 'raid' ? 'Raid' : 'Ataque de Ginásio';
+    if (e.pveMeta.movesetOk) {
+      return { kind: 'FORTALECER', role: role,
+        reason: 'Fortalecer p/ ' + papel + ' (' + tipo + ') — atacante recomendado (estimativa)' };
+    }
+    return { kind: 'ENSINAR_TM', role: role,
+      reason: 'Ensinar/TM p/ ' + papel + ' (' + tipo + ') — falta o moveset de ataque recomendado' };
+  }
+
   function computeAction(e) {
     const lg = _bestPvpLeague(e);
-    if (!lg || !e.pvpMeta) return null;
+    if (!lg || !e.pvpMeta) return _pveAction(e);   // sem ação PvP → tenta PvE
     const L = e.pvpMeta[lg];
     const ligaPt = LEAGUE_PT[lg];
     const ivInfo = 'IV PvP ' + Math.round(L.spPct * 100) + '% (rank ' + L.ivRank + '/4096)';

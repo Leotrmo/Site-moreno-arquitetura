@@ -208,3 +208,43 @@ test('analyze: mon FORTALECER recebe veredito INVESTIR e e.action', () => {
   assert.ok(e.action && e.action.kind === 'FORTALECER');
   assert.strictEqual(e.verdict, 'INVESTIR');
 });
+
+// ---------------------------------------------------------------------------
+// Fase 2 — computeAction: Fortalecer/Ensinar-TM para atacantes de Raid (PvE)
+// ---------------------------------------------------------------------------
+
+function pveRaider(over) {
+  return Object.assign({
+    ivPct: 80, tags: ['raid','pve'], pvpMeta: null,
+    pveMeta: { raid: true, pve: true, gymAtk: false, gymDef: false, bestType: 'ice',
+               bestMoveset: ['ICE_SHARD','AVALANCHE'], byType: { ice: { dps: 18, er: 50, dpsRank: 2, erRank: 3 } },
+               movesetOk: true },
+  }, over || {});
+}
+
+test('computeAction: atacante de raid + moveset ok → FORTALECER (PvE)', () => {
+  const a = computeAction(pveRaider());
+  assert.strictEqual(a.kind, 'FORTALECER');
+  assert.strictEqual(a.role, 'raid');
+  assert.match(a.reason, /Fortalecer/);
+  assert.match(a.reason, /raid|Raid|Gelo|ice/i);
+});
+
+test('computeAction: atacante de raid + moveset ruim → ENSINAR_TM (PvE)', () => {
+  const a = computeAction(pveRaider({ pveMeta: Object.assign(pveRaider().pveMeta, { movesetOk: false }) }));
+  assert.strictEqual(a.kind, 'ENSINAR_TM');
+  assert.match(a.reason, /Ensinar|TM/);
+});
+
+test('computeAction: PvP tem prioridade sobre PvE', () => {
+  const e = pveRaider({ tags: ['pvp_great','raid'],
+    pvpMeta: { great:{isMeta:true,speciesRank:5,ivRank:1,spPct:1,movesetOk:true},
+               ultra:{isMeta:false}, master:{isMeta:false} } });
+  const a = computeAction(e);
+  assert.strictEqual(a.league, 'great');   // ramo PvP vence
+});
+
+test('computeAction: só pve/gym_def (sem raid/gym_atk) → null (não força INVESTIR)', () => {
+  assert.strictEqual(computeAction({ ivPct: 50, tags: ['pve'], pvpMeta: null,
+    pveMeta: { raid: false, pve: true, gymAtk: false, gymDef: false, movesetOk: false } }), null);
+});
