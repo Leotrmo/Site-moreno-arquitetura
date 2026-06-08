@@ -93,5 +93,46 @@
     return charged.some(function (c) { return mine.indexOf(c) >= 0; });
   }
 
-  return { CP_CAPS, LEVEL_CAP, THRESHOLDS, cpFor, statProductFor, bestLevelUnderCap, rankInfo, movesetOk };
+  var LEAGUES = ['great', 'ultra', 'master'];
+
+  // Avalia o mon nas 3 ligas. Retorna null se faltar speciesId, baseStats, pvpRanks ou cpm.
+  function evalMon(e, meta) {
+    if (!e || !e.speciesId || !meta || !meta.cpm || !meta.pvpRanks) return null;
+    var byId = meta.speciesIndex && meta.speciesIndex.byId;
+    var sp = byId && byId[e.speciesId];
+    if (!sp || !sp.baseStats) return null;
+    var ranks = meta.pvpRanks[e.speciesId] || {};
+    var out = {};
+    LEAGUES.forEach(function (lg) {
+      var rankEntry = ranks[lg] || null;     // null = espécie fora do Top N daquela liga
+      var info = rankInfo({
+        baseStats: sp.baseStats, ivs: e.ivs, cap: CP_CAPS[lg],
+        cpmList: meta.cpm, cacheKey: e.speciesId + '|' + lg,
+      });
+      out[lg] = {
+        isMeta: !!rankEntry,
+        speciesRank: rankEntry ? rankEntry.rank : null,
+        ivRank: info.ivRank,
+        spPct: info.spPct,
+        movesetOk: rankEntry ? movesetOk(e.moveIds, rankEntry.moveset) : false,
+      };
+    });
+    return out;
+  }
+
+  // Tags pvp_* a partir do objeto pvp + IV% simples (master usa ivPct).
+  function pvpTags(pvp, ivPct) {
+    if (!pvp) return [];
+    var tags = [];
+    ['great', 'ultra'].forEach(function (lg) {
+      var L = pvp[lg];
+      if (L && L.isMeta && (L.spPct >= THRESHOLDS[lg].spPct || L.ivRank <= THRESHOLDS[lg].ivRank))
+        tags.push('pvp_' + lg);
+    });
+    var m = pvp.master;
+    if (m && m.isMeta && ivPct >= THRESHOLDS.master.ivPct) tags.push('pvp_master');
+    return tags;
+  }
+
+  return { CP_CAPS, LEVEL_CAP, THRESHOLDS, LEAGUES, cpFor, statProductFor, bestLevelUnderCap, rankInfo, movesetOk, evalMon, pvpTags };
 });

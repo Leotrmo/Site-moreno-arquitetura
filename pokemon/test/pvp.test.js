@@ -76,3 +76,47 @@ test('movesetOk: tem o rápido recomendado + ao menos 1 carregado recomendado', 
   assert.strictEqual(movesetOk([], rec), false);
   assert.strictEqual(movesetOk(['COUNTER', 'ICE_PUNCH'], []), false);           // sem recomendação → false
 });
+
+const { evalMon, pvpTags } = require('../lib/meta/pvp.js');
+const pvpRanks = require('../data/pvp_ranks.json');     // Fase 0
+
+function metaObj() {
+  return {
+    speciesIndex: { byId: species },   // species.json é {speciesId: {baseStats,...}}
+    pvpRanks: pvpRanks,
+    cpm: realCpm,
+  };
+}
+
+test('evalMon: sem speciesId → null (degrada)', () => {
+  assert.strictEqual(evalMon({ speciesId: null, ivs: { atk: 0, def: 0, sta: 0 }, moveIds: [] }, metaObj()), null);
+});
+
+test('evalMon: sem cpm/pvpRanks → null', () => {
+  const e = { speciesId: 'azumarill', ivs: { atk: 0, def: 15, sta: 15 }, moveIds: [] };
+  assert.strictEqual(evalMon(e, { speciesIndex: { byId: species } }), null);
+});
+
+test('evalMon: Azumarill 0/15/15 com moveset recomendado → great isMeta, movesetOk', () => {
+  const e = { speciesId: 'azumarill', ivs: { atk: 0, def: 15, sta: 15 },
+              moveIds: ['BUBBLE', 'ICE_BEAM', 'PLAY_ROUGH'] };  // = moveset recomendado de Great
+  const r = evalMon(e, metaObj());
+  assert.strictEqual(r.great.isMeta, true);
+  assert.strictEqual(r.great.speciesRank, pvpRanks.azumarill.great.rank);
+  assert.strictEqual(r.great.movesetOk, true);
+  assert.strictEqual(r.great.ivRank, 1);          // 0/15/15 lidera Grande
+  assert.strictEqual(r.great.spPct, 1);
+  assert.strictEqual(typeof r.master.ivRank, 'number');
+});
+
+test('pvpTags: aplica THRESHOLDS (great por spPct/ivRank; master por ivPct)', () => {
+  // pvp sintético
+  const pvp = {
+    great:  { isMeta: true,  ivRank: 1,   spPct: 1,    movesetOk: true },
+    ultra:  { isMeta: true,  ivRank: 999, spPct: 0.90, movesetOk: false }, // não passa limiar
+    master: { isMeta: true,  ivRank: 50,  spPct: 0.97, movesetOk: false },
+  };
+  assert.deepStrictEqual(pvpTags(pvp, 100).sort(), ['pvp_great', 'pvp_master']); // ivPct 100>=98
+  assert.deepStrictEqual(pvpTags(pvp, 90).sort(), ['pvp_great']);                // ivPct 90<98 → sem master
+  assert.deepStrictEqual(pvpTags(null, 100), []);
+});
