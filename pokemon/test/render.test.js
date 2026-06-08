@@ -210,3 +210,38 @@ test('detailHtml: sem pvp meta → sem bloco Competitivo (não-regressão)', () 
   const html = detailHtml(e);
   assert.doesNotMatch(html, /Competitivo/);
 });
+
+function pveStub(over) {
+  return Object.assign({
+    id: 'q', name: 'Mamoswine', verdict: 'INVESTIR', reason: 'x', ivPct: 90, cp: 3000,
+    size: null, isHundo:false, isShiny:false, isShadow:false, isPurified:false, isLucky:false,
+    isLegendary:false, isCostume:false, isXSComfort:false, isXLComfort:false, hasSecondCharge:false,
+    tradeBoost:null, action:null, pvp:null, pvpMeta:null,
+    moves:['Lança-Gelo','Avalanche'], ivs:{atk:15,def:15,sta:15}, height:2.5, weight:291,
+    tags: ['raid','pve'],
+    pveMeta: { raid:true, pve:true, gymAtk:false, gymDef:false, bestType:'ice',
+               bestMoveset:['ICE_SHARD','AVALANCHE'], movesetOk:true,
+               byType:{ ice:{ dps:18.2, er:50.1, dpsRank:5, erRank:7 } } },
+  }, over || {});
+}
+
+test('badgesHtml: selo 🔥 com tag raid', () => {
+  assert.match(badgesHtml(pveStub()), /🔥/);
+});
+
+test('badgesHtml: selo 🛡️ com tag gym_def', () => {
+  assert.match(badgesHtml(pveStub({ tags:['gym_def'], pveMeta: Object.assign(pveStub().pveMeta, {raid:false,pve:false,gymDef:true}) })), /🛡️/);
+});
+
+test('detailHtml: bloco Competitivo mostra PvE (tipo + rank + estimativa)', () => {
+  const html = detailHtml(pveStub());
+  assert.match(html, /Competitivo/);
+  assert.match(html, /Gelo|Raid/);
+  assert.match(html, /estimativa/);
+  assert.match(html, /rank 7|#7/);
+});
+
+test('detailHtml: sem pvpMeta nem pveMeta → sem bloco Competitivo (não-regressão)', () => {
+  const html = detailHtml(pveStub({ tags:[], pveMeta:null, pvpMeta:null }));
+  assert.doesNotMatch(html, /Competitivo/);
+});
