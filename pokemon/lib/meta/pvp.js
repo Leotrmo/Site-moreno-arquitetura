@@ -42,5 +42,46 @@
     return best;
   }
 
-  return { CP_CAPS, LEVEL_CAP, THRESHOLDS, cpFor, statProductFor, bestLevelUnderCap };
+  var _distCache = {};   // cacheKey → { sps:[...4096 desc], maxSp }
+
+  // Distribuição (ordenada desc) dos stat products dos 4096 IVs, no melhor nível sob o cap.
+  function _distribution(baseStats, cap, cpmList, cacheKey) {
+    if (cacheKey && _distCache[cacheKey]) return _distCache[cacheKey];
+    var sps = [];
+    for (var a = 0; a <= 15; a++)
+      for (var d = 0; d <= 15; d++)
+        for (var s = 0; s <= 15; s++) {
+          var ivs = { atk: a, def: d, sta: s };
+          var lvl = bestLevelUnderCap(baseStats, ivs, cpmList, cap);
+          sps.push(statProductFor(baseStats, ivs, lvl.cpm));
+        }
+    sps.sort(function (x, y) { return y - x; });   // desc
+    var res = { sps: sps, maxSp: sps[0] };
+    if (cacheKey) _distCache[cacheKey] = res;
+    return res;
+  }
+
+  // rank = 1 + (nº de IVs com stat product ESTRITAMENTE maior). Empates compartilham rank.
+  function _countStrictlyGreater(spsDesc, mySp) {
+    var n = 0;
+    for (var i = 0; i < spsDesc.length; i++) { if (spsDesc[i] > mySp) n++; else break; }
+    return n;
+  }
+
+  function rankInfo(args) {
+    var baseStats = args.baseStats, ivs = args.ivs, cap = args.cap,
+        cpmList = args.cpmList, cacheKey = args.cacheKey;
+    var dist = _distribution(baseStats, cap, cpmList, cacheKey);
+    var lvl = bestLevelUnderCap(baseStats, ivs, cpmList, cap);
+    var mySp = statProductFor(baseStats, ivs, lvl.cpm);
+    return {
+      ivRank: _countStrictlyGreater(dist.sps, mySp) + 1,
+      spPct: mySp / dist.maxSp,
+      sp: mySp,
+      level: lvl.level,
+      cp: cpFor(baseStats, ivs, lvl.cpm),
+    };
+  }
+
+  return { CP_CAPS, LEVEL_CAP, THRESHOLDS, cpFor, statProductFor, bestLevelUnderCap, rankInfo };
 });

@@ -39,3 +39,28 @@ test('bestLevelUnderCap: cap Infinity (master) → nível mais alto', () => {
 test('bestLevelUnderCap: nem o menor nível cabe → retorna o menor (piso)', () => {
   assert.deepStrictEqual(bestLevelUnderCap(base100, iv000, tinyCpm, 5), { level: 1, cpm: 0.1 }); // CP10>5
 });
+
+const { rankInfo } = require('../lib/meta/pvp.js');
+const realCpm = require('../data/cpm.json');          // gerado na Task 3 (níveis 1..50)
+const species = require('../data/species.json');       // Fase 0
+const azuBase = species.azumarill.baseStats;           // { atk:112, def:152, hp:225 }
+
+test('rankInfo master (sem cap): hundo é rank 1, spPct 1', () => {
+  const r = rankInfo({ baseStats: azuBase, ivs: { atk: 15, def: 15, sta: 15 },
+                       cap: Infinity, cpmList: realCpm, cacheKey: 'azumarill|master' });
+  assert.strictEqual(r.ivRank, 1);
+  assert.strictEqual(r.spPct, 1);
+});
+
+test('rankInfo Liga Grande (cap 1500): hundo NÃO é o ideal; 0/15/15 lidera', () => {
+  // Propriedade real: sob cap, ataque baixo + def/HP altos vencem no stat product.
+  const hundo = rankInfo({ baseStats: azuBase, ivs: { atk: 15, def: 15, sta: 15 },
+                           cap: 1500, cpmList: realCpm, cacheKey: 'azumarill|great' });
+  const lowAtk = rankInfo({ baseStats: azuBase, ivs: { atk: 0, def: 15, sta: 15 },
+                            cap: 1500, cpmList: realCpm, cacheKey: 'azumarill|great' });
+  assert.strictEqual(lowAtk.ivRank, 1);     // 0/15/15 é o melhor IV de Liga Grande
+  assert.strictEqual(lowAtk.spPct, 1);
+  assert.ok(hundo.ivRank > 1);              // hundo não lidera Grande
+  assert.ok(hundo.spPct < 1);
+  assert.ok(hundo.cp <= 1500);              // respeita o cap
+});
