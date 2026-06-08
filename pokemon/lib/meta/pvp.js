@@ -30,5 +30,17 @@
     return atk * def * hp;
   }
 
-  return { CP_CAPS, LEVEL_CAP, THRESHOLDS, cpFor, statProductFor };
+  // Maior entrada {level,cpm} cujo CP <= cap. Lista assumida ascendente por cpm.
+  // master (cap Infinity) → última entrada. Se nem a primeira cabe, retorna a primeira.
+  function bestLevelUnderCap(base, ivs, cpmList, cap) {
+    if (cap === Infinity) return cpmList[cpmList.length - 1];
+    var best = cpmList[0];
+    for (var i = 0; i < cpmList.length; i++) {
+      if (cpFor(base, ivs, cpmList[i].cpm) <= cap) best = cpmList[i];
+      else break;                       // CP cresce com o nível → pode parar no 1º que estoura
+    }
+    return best;
+  }
+
+  return { CP_CAPS, LEVEL_CAP, THRESHOLDS, cpFor, statProductFor, bestLevelUnderCap };
 });
