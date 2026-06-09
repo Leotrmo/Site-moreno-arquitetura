@@ -279,6 +279,24 @@
     return (names.length > 1 ? 'faltam ' : 'falta ') + lista;
   }
 
+  // Visão de exibição do moveset recomendado: [{ name, has }] (render não conhece meta).
+  function _movesetView(rec, mine, meta) {
+    if (!rec || !rec.length) return null;
+    const m = mine || [];
+    return rec.map(function (id) {
+      return { name: _moveName(id, meta), has: m.indexOf(id) >= 0 };
+    });
+  }
+
+  function _attachMovesetViews(e, meta) {
+    if (e.pvpMeta) for (const lg of PVP_LEAGUE_ORDER) {
+      const L = e.pvpMeta[lg];
+      if (L) L.movesetView = (L.isMeta && L.moveset) ? _movesetView(L.moveset, e.moveIds, meta) : null;
+    }
+    if (e.pveMeta)
+      e.pveMeta.movesetView = _movesetView(e.pveMeta.bestMoveset, e.moveIds, meta);
+  }
+
   // Moveset recomendado do gancho ativo (PvP da melhor liga; senão PvE bestMoveset).
   function _recommendedMoveset(e) {
     const lg = _bestPvpLeague(e);
@@ -370,10 +388,11 @@
     for (const e of list) {
       e.pvpMeta = (meta && meta.cpm && meta.pvpRanks && PokePvp) ? PokePvp.evalMon(e, meta) : null;
       e.pveMeta = (meta && meta.pveRanks && PokePve) ? PokePve.evalMon(e, meta) : null;
+      _attachMovesetViews(e, meta);
       e.isRocketReady = (meta && meta.moves && PokePve)
         ? PokePve.rocketSpam(e.moveIds, meta.moves) : false;
       e.tags = computeTags(e);
-      e.action = computeAction(e);
+      e.action = computeAction(e, meta);
       const v = computeVerdict(e);
       e.verdict = v.verdict;
       e.reason = v.reason;
