@@ -239,8 +239,44 @@
       return { kind: 'FORTALECER', role: role,
         reason: 'Fortalecer p/ ' + papel + ' (' + tipo + ') — atacante recomendado (estimativa)' };
     }
-    return { kind: 'ENSINAR_TM', role: role,
-      reason: 'Ensinar/TM p/ ' + papel + ' (' + tipo + ') — falta o moveset de ataque recomendado' };
+    return _notReadyAction(e,
+      'Ensinar/TM p/ ' + papel + ' (' + tipo + ') — falta o moveset de ataque recomendado');
+  }
+
+  // Humaniza um moveId p/ exibição: 'CLOSE_COMBAT' → 'Close Combat'.
+  function _humanMove(id) {
+    return String(id || '').toLowerCase().replace(/_/g, ' ').replace(/\b\w/g, function (c) { return c.toUpperCase(); });
+  }
+
+  // Moveset recomendado do gancho ativo (PvP da melhor liga; senão PvE bestMoveset).
+  function _recommendedMoveset(e) {
+    const lg = _bestPvpLeague(e);
+    if (lg && e.pvpMeta && e.pvpMeta[lg] && e.pvpMeta[lg].moveset) return e.pvpMeta[lg].moveset;
+    if (e.pveMeta && e.pveMeta.bestMoveset) return e.pveMeta.bestMoveset;
+    return null;
+  }
+
+  // 1º golpe recomendado que o mon NÃO tem E que é legado/Elite TM. null se não houver.
+  function _missingLegacyMove(e) {
+    const rec = _recommendedMoveset(e);
+    if (!rec || !rec.length) return null;
+    const mine = e.moveIds || [];
+    const elite = e.eliteMoves || [];
+    for (let i = 0; i < rec.length; i++) {
+      if (mine.indexOf(rec[i]) < 0 && elite.indexOf(rec[i]) >= 0) return rec[i];
+    }
+    return null;
+  }
+
+  // Ação quando o moveset NÃO está pronto: AGUARDAR_EVENTO (golpe legado falta) senão ENSINAR_TM.
+  function _notReadyAction(e, ensinarReason) {
+    const leg = _missingLegacyMove(e);
+    if (leg) {
+      return { kind: 'AGUARDAR_EVENTO', legacyMove: leg,
+        reason: 'Aguardar Evento — moveset ótimo precisa do golpe legado "' + _humanMove(leg) +
+                '"; espere Dia Comunitário / Elite TM' };
+    }
+    return { kind: 'ENSINAR_TM', reason: ensinarReason };
   }
 
   // Sombrio com Frustração: o golpe Frustração só sai em evento Rocket (Charged TM especial).
@@ -263,8 +299,8 @@
       return { kind: 'FORTALECER', league: lg,
         reason: 'Fortalecer p/ ' + ligaPt + ' — rank ' + L.speciesRank + ' da espécie, seu ' + ivInfo };
     }
-    return { kind: 'ENSINAR_TM', league: lg,
-      reason: 'Ensinar/TM p/ ' + ligaPt + ' — Top ' + L.speciesRank + ', falta o moveset recomendado' };
+    return _notReadyAction(e,
+      'Ensinar/TM p/ ' + ligaPt + ' — Top ' + L.speciesRank + ', falta o moveset recomendado');
   }
 
   function computeTags(e) {

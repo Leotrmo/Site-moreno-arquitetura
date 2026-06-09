@@ -280,3 +280,48 @@ test('computeAction: NÃO-Sombrio com Frustração no moveId não vira AGUARDAR_
   const a = computeAction(shadowFrustMon({ isShadow: false }));
   assert.notStrictEqual(a && a.kind, 'AGUARDAR_ROCKET');
 });
+
+// ---------------------------------------------------------------------------
+// Fase 3 — AGUARDAR_EVENTO (moveset ótimo exige golpe legado)
+// ---------------------------------------------------------------------------
+
+test('computeAction: PvP, falta golpe recomendado que é legado → AGUARDAR_EVENTO', () => {
+  const e = {
+    isShadow: false, isShiny: false, ivPct: 95, betterCopy: null,
+    moveIds: ['COUNTER'],                 // tem o rápido, falta o carregado
+    eliteMoves: ['CLOSE_COMBAT'],         // o carregado recomendado é legado
+    tags: ['pvp_great'],
+    pvpMeta: { great:  { isMeta: true, speciesRank: 5, ivRank: 1, spPct: 1, movesetOk: false,
+                         moveset: ['COUNTER', 'CLOSE_COMBAT'] },
+               ultra:  { isMeta: false, moveset: null }, master: { isMeta: false, moveset: null } },
+    pveMeta: null,
+  };
+  const a = computeAction(e);
+  assert.strictEqual(a.kind, 'AGUARDAR_EVENTO');
+  assert.match(a.reason, /legado|Evento|evento/);
+});
+
+test('computeAction: PvP, falta golpe recomendado que é TM normal → ENSINAR_TM (não evento)', () => {
+  const e = {
+    isShadow: false, isShiny: false, ivPct: 95, betterCopy: null,
+    moveIds: ['COUNTER'], eliteMoves: [],   // nada legado
+    tags: ['pvp_great'],
+    pvpMeta: { great:  { isMeta: true, speciesRank: 5, ivRank: 1, spPct: 1, movesetOk: false,
+                         moveset: ['COUNTER', 'CLOSE_COMBAT'] },
+               ultra:  { isMeta: false, moveset: null }, master: { isMeta: false, moveset: null } },
+    pveMeta: null,
+  };
+  assert.strictEqual(computeAction(e).kind, 'ENSINAR_TM');
+});
+
+test('computeAction: PvE raid, bestMoveset exige golpe legado que falta → AGUARDAR_EVENTO', () => {
+  const e = {
+    isShadow: false, isShiny: false, ivPct: 90, betterCopy: null,
+    moveIds: ['DRAGON_TAIL'], eliteMoves: ['OUTRAGE'],
+    tags: ['raid','pve'], pvpMeta: null,
+    pveMeta: { raid: true, pve: true, gymAtk: false, gymDef: false, bestType: 'dragon',
+               bestMoveset: ['DRAGON_TAIL','OUTRAGE'], movesetOk: false,
+               byType: { dragon: { dps: 18, er: 50, dpsRank: 2, erRank: 3 } } },
+  };
+  assert.strictEqual(computeAction(e).kind, 'AGUARDAR_EVENTO');
+});
