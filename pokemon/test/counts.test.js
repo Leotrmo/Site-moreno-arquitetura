@@ -71,7 +71,7 @@ test('contagens sem meta: raid/pve/gymAtk/gymDef ficam 0 (não-regressão)', () 
 test('contagens incluem rocket', () => {
   const meta = {
     speciesIndex: buildSpeciesIndex(speciesJson), movesPt: { 'tiro de lama':'MUD_SHOT', 'borda rochosa':'ROCK_SLIDE' },
-    moves: { MUD_SHOT:{ type:'ground', kind:'fast', pvp:{power:3,energy:4} },
+    moves: { MUD_SHOT:{ type:'ground', kind:'fast', pvp:{power:3,energy:12} },
              ROCK_SLIDE:{ type:'rock', kind:'charge', pvp:{power:75,energy:45} } },
   };
   const fd = { z: { mon_name:'Golem', mon_number:76, mon_cp:2000, mon_attack:10, mon_defence:10, mon_stamina:10,

@@ -198,8 +198,8 @@ function metaRocket() {
     speciesIndex: buildSpeciesIndex(require('../data/species.json')),
     movesPt: { 'tiro de lama': 'MUD_SHOT', 'borda rochosa': 'ROCK_SLIDE' },
     moves: {
-      MUD_SHOT:   { type: 'ground', kind: 'fast',   pvp: { power: 3,  energy: 4 } },
-      ROCK_SLIDE: { type: 'rock',   kind: 'charge', pvp: { power: 75, energy: 45 } }, // 45/4 = 11.25 <= 12
+      MUD_SHOT:   { type: 'ground', kind: 'fast',   pvp: { power: 3,  energy: 12 } },
+      ROCK_SLIDE: { type: 'rock',   kind: 'charge', pvp: { power: 75, energy: 45 } }, // 45/12 = 3.75 <= 4
     },
   };
 }

@@ -127,35 +127,36 @@ test('pveTags: deriva raid/pve/gym_atk/gym_def', () => {
 
 const { rocketSpam, ROCKET_SPAM_TURNS } = require('../lib/meta/pve.js');
 
-// movesById sintético: rápido forte (4 energia/turno) + carregado barato (35) e caro (60).
+// movesById sintético. pvp.energy do rápido = energia por ATIVAÇÃO; do carregado = custo.
+// "ativaçõesParaCarregar" = custo do carregado mais barato / energia do rápido mais forte.
 const rkMoves = {
-  MUD_SHOT:    { type: 'ground', kind: 'fast',   pvp: { power: 3,  energy: 4 } },
-  WEAK_FAST:   { type: 'normal', kind: 'fast',   pvp: { power: 5,  energy: 2 } },
+  STRONG_FAST: { type: 'ground', kind: 'fast',   pvp: { power: 3,  energy: 12 } },
+  WEAK_FAST:   { type: 'normal', kind: 'fast',   pvp: { power: 5,  energy: 3 } },
   CHEAP_CHG:   { type: 'rock',   kind: 'charge', pvp: { power: 50, energy: 35 } },
-  PRICEY_CHG:  { type: 'rock',   kind: 'charge', pvp: { power: 110,energy: 60 } },
+  PRICEY_CHG:  { type: 'rock',   kind: 'charge', pvp: { power: 110,energy: 55 } },
 };
 
-test('rocketSpam: rápido forte + carregado barato → true (35/4 = 8.75 <= 12)', () => {
-  assert.strictEqual(rocketSpam(['MUD_SHOT', 'CHEAP_CHG'], rkMoves), true);
+test('rocketSpam: rápido forte + carregado barato → true (35/12 = 2.92 <= 4)', () => {
+  assert.strictEqual(rocketSpam(['STRONG_FAST', 'CHEAP_CHG'], rkMoves), true);
 });
 
-test('rocketSpam: rápido fraco + carregado caro → false (60/2 = 30 > 12)', () => {
+test('rocketSpam: rápido fraco + carregado caro → false (55/3 = 18.3 > 4)', () => {
   assert.strictEqual(rocketSpam(['WEAK_FAST', 'PRICEY_CHG'], rkMoves), false);
 });
 
 test('rocketSpam: usa o carregado MAIS BARATO e o rápido MAIS FORTE disponíveis', () => {
-  // tem os dois carregados; o barato (35) manda → 35/4 = 8.75 <= 12 → true
-  assert.strictEqual(rocketSpam(['MUD_SHOT', 'CHEAP_CHG', 'PRICEY_CHG'], rkMoves), true);
+  // tem os dois carregados; o barato (35) manda → 35/12 = 2.92 <= 4 → true
+  assert.strictEqual(rocketSpam(['STRONG_FAST', 'CHEAP_CHG', 'PRICEY_CHG'], rkMoves), true);
 });
 
 test('rocketSpam: degrada gracioso (sem moves, sem movesById, só rápido, id desconhecido)', () => {
   assert.strictEqual(rocketSpam([], rkMoves), false);
-  assert.strictEqual(rocketSpam(['MUD_SHOT'], null), false);
-  assert.strictEqual(rocketSpam(['MUD_SHOT'], rkMoves), false);        // sem carregado
+  assert.strictEqual(rocketSpam(['STRONG_FAST'], null), false);
+  assert.strictEqual(rocketSpam(['STRONG_FAST'], rkMoves), false);     // sem carregado
   assert.strictEqual(rocketSpam(['CHEAP_CHG'], rkMoves), false);       // sem rápido
   assert.strictEqual(rocketSpam(['ZZZ_UNKNOWN'], rkMoves), false);     // id fora do movesById
 });
 
-test('ROCKET_SPAM_TURNS é o limiar configurável (padrão 12)', () => {
-  assert.strictEqual(ROCKET_SPAM_TURNS, 12);
+test('ROCKET_SPAM_TURNS é o limiar configurável (padrão 4)', () => {
+  assert.strictEqual(ROCKET_SPAM_TURNS, 4);
 });
