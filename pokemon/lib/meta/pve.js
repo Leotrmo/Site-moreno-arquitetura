@@ -8,6 +8,8 @@
   var PVE = { CPM: 0.7903, IV: 15, DEF_REF: 180, STAB: 1.2, INCOMING_K: 800, ER_WEIGHT: 0.7 };
   var RAID_TOP = 10, PVE_TOP = 35, GYM_ATK_TOP = 20, GYM_ATK_COVERAGE_MIN = 3,
       GYM_DEF_TOP = 50, GYM_DEF_IV_MIN = 13, ROCKET_SPAM_TURNS = 4;
+  var SHADOW_ATK_MULT = 1.2;        // Sombrio: +20% de ataque
+  var SHADOW_DEF_MULT = 1 / 1.2;    // Sombrio: toma 1.2x de dano → defesa efetiva ×0.8333
 
   function effAtk(base) { return (base.atk + PVE.IV) * PVE.CPM; }
   function effDef(base) { return (base.def + PVE.IV) * PVE.CPM; }
@@ -20,10 +22,10 @@
 
   // DPS do ciclo: n golpes rápidos por carregado (n = custo do carregado / ganho do rápido).
   // fast/charged = objetos de golpe com { type, pve:{power,energy,durationMs} }. types = tipos da espécie (STAB).
-  function cycleDps(fast, charged, base, types) {
+  function cycleDps(fast, charged, base, types, shadow) {
     if (!fast || !charged || !fast.pve || !charged.pve) return 0;
     if (!(fast.pve.energy > 0)) return 0;                 // sem geração de energia → ciclo indefinido
-    var atk = effAtk(base);
+    var atk = effAtk(base) * (shadow ? SHADOW_ATK_MULT : 1);
     var sF = types.indexOf(fast.type) >= 0 ? PVE.STAB : 1;
     var sC = types.indexOf(charged.type) >= 0 ? PVE.STAB : 1;
     var dF = dmgPerHit(fast.pve.power, atk, sF), tF = fast.pve.durationMs / 1000;
@@ -34,8 +36,8 @@
   }
 
   // TDO (Total Damage Output): bulk via Def·HP. K constante → ranking invariante.
-  function tdoFor(dps, base) {
-    return dps * effHp(base) * effDef(base) / PVE.INCOMING_K;
+  function tdoFor(dps, base, shadow) {
+    return dps * effHp(base) * (effDef(base) * (shadow ? SHADOW_DEF_MULT : 1)) / PVE.INCOMING_K;
   }
   // ER: combina DPS e TDO ponderando DPS (ER_WEIGHT).
   function erFor(dps, tdo) {
@@ -51,7 +53,7 @@
 
   // Enumera fastMoves × chargedMoves; devolve { best, byType } por ER.
   // moveset guarda os IDS (vindos das chaves); byType é chaveado pelo tipo do carregado.
-  function bestMoveset(species, movesById) {
+  function bestMoveset(species, movesById, shadow) {
     var base = species.baseStats, types = species.types || [];
     var fastIds = (species.fastMoves || []).filter(function (id) { return _hasPve(id, movesById); });
     var chgIds  = (species.chargedMoves || []).filter(function (id) { return _hasPve(id, movesById); });
@@ -60,9 +62,9 @@
       for (var j = 0; j < chgIds.length; j++) {
         var fId = fastIds[i], cId = chgIds[j];
         var F = movesById[fId], C = movesById[cId];
-        var dps = cycleDps(F, C, base, types);
+        var dps = cycleDps(F, C, base, types, shadow);
         if (!(dps > 0)) continue;
-        var tdo = tdoFor(dps, base), er = erFor(dps, tdo);
+        var tdo = tdoFor(dps, base, shadow), er = erFor(dps, tdo);
         var rec = { moveset: [fId, cId], type: C.type, dps: dps, tdo: tdo, er: er };
         if (!byType[C.type] || er > byType[C.type].er) byType[C.type] = rec;
         if (!best || er > best.er) best = rec;
@@ -141,6 +143,7 @@
   }
 
   return { PVE, RAID_TOP, PVE_TOP, GYM_ATK_TOP, GYM_ATK_COVERAGE_MIN, GYM_DEF_TOP, GYM_DEF_IV_MIN, ROCKET_SPAM_TURNS,
+           SHADOW_ATK_MULT, SHADOW_DEF_MULT,
            effAtk, effDef, effHp, dmgPerHit, cycleDps, tdoFor, erFor, bestMoveset,
            defBulk, evalMon, pveTags, rocketSpam };
 });

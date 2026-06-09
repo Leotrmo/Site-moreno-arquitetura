@@ -160,3 +160,35 @@ test('rocketSpam: degrada gracioso (sem moves, sem movesById, só rápido, id de
 test('ROCKET_SPAM_TURNS é o limiar configurável (padrão 4)', () => {
   assert.strictEqual(ROCKET_SPAM_TURNS, 4);
 });
+
+const { SHADOW_ATK_MULT } = require('../lib/meta/pve.js');
+
+test('cycleDps: Sombrio aplica 1.2x no ataque (DPS maior)', () => {
+  const base = { atk: 100, def: 100, hp: 100 };
+  const fast    = { type: 'fighting', pve: { power: 10, energy: 10, durationMs: 1000 } };
+  const charged = { type: 'fighting', pve: { power: 50, energy: 50, durationMs: 2000 } };
+  const normal = cycleDps(fast, charged, base, ['fighting']);
+  const shadow = cycleDps(fast, charged, base, ['fighting'], true);
+  assert.ok(shadow > normal, 'Sombrio tem DPS maior que a base');
+});
+
+test('tdoFor: Sombrio reduz o bulk (toma 1.2x de dano)', () => {
+  const base = { atk: 100, def: 100, hp: 100 };
+  assert.ok(tdoFor(10, base, true) < tdoFor(10, base, false), 'TDO Sombrio < TDO base');
+});
+
+test('bestMoveset: Sombrio supera a base de mesmos stats (ER maior)', () => {
+  const sp = { baseStats: { atk: 200, def: 120, hp: 140 }, types: ['ice'],
+               fastMoves: ['ICE_SHARD'], chargedMoves: ['AVALANCHE'] };
+  const movesById = {
+    ICE_SHARD: { type: 'ice', pve: { power: 12, energy: 12, durationMs: 1200 } },
+    AVALANCHE: { type: 'ice', pve: { power: 90, energy: 45, durationMs: 2700 } },
+  };
+  const baseBm   = bestMoveset(sp, movesById, false);
+  const shadowBm = bestMoveset(sp, movesById, true);
+  assert.ok(shadowBm.best.er > baseBm.best.er, 'ER Sombrio > ER base');
+});
+
+test('SHADOW_ATK_MULT exportado = 1.2', () => {
+  assert.strictEqual(SHADOW_ATK_MULT, 1.2);
+});
