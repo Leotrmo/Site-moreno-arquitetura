@@ -7,10 +7,12 @@
 
   var CP_CAPS    = { great: 1500, ultra: 2500, master: Infinity };
   var LEVEL_CAP  = 50;
+  // Limiares de "essa cópia presta?" — calibrados p/ shortlist útil (Fase 4).
+  // spPct = stat product / melhor da liga; ivRank = posição entre os 4096 IVs.
   var THRESHOLDS = {
-    great:  { spPct: 0.99, ivRank: 50 },
-    ultra:  { spPct: 0.99, ivRank: 50 },
-    master: { ivPct: 98 },
+    great:  { spPct: 0.97, ivRank: 200 },
+    ultra:  { spPct: 0.97, ivRank: 200 },
+    master: { ivPct: 96 },
   };
 
   // CP = max(10, floor( (atk+iv) * sqrt(def+iv) * sqrt(sta+iv) * cpm² / 10 ))

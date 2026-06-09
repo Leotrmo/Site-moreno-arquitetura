@@ -142,3 +142,20 @@ test('evalMon: expõe o moveset recomendado da liga (great) e null fora do meta'
   const offLeague = ['great','ultra','master'].find(lg => !r[lg].isMeta);
   if (offLeague) assert.strictEqual(r[offLeague].moveset, null);
 });
+
+const { THRESHOLDS } = require('../lib/meta/pvp.js');
+
+test('pvpTags: cópia "muito boa" (não perfeita) de espécie meta agora ganha tag', () => {
+  // ivRank 180/4096 e spPct 0.972 — reprovaria nos limiares antigos (0.99 / 50).
+  const pvp = {
+    great:  { isMeta: true, speciesRank: 30, ivRank: 180, spPct: 0.972, movesetOk: true, moveset: [] },
+    ultra:  { isMeta: false, ivRank: null, spPct: null },
+    master: { isMeta: false },
+  };
+  assert.ok(pvpTags(pvp, 80).includes('pvp_great'), 'shortlist útil: tag concedida');
+});
+
+test('THRESHOLDS great/ultra afrouxados em relação ao rigor antigo', () => {
+  assert.ok(THRESHOLDS.great.spPct <= 0.97, 'spPct afrouxado');
+  assert.ok(THRESHOLDS.great.ivRank >= 100, 'ivRank afrouxado');
+});
