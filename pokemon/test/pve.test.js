@@ -130,8 +130,8 @@ const { rocketSpam, ROCKET_SPAM_TURNS } = require('../lib/meta/pve.js');
 // movesById sintético. pvp.energy do rápido = energia por ATIVAÇÃO; do carregado = custo.
 // "ativaçõesParaCarregar" = custo do carregado mais barato / energia do rápido mais forte.
 const rkMoves = {
-  STRONG_FAST: { type: 'ground', kind: 'fast',   pvp: { power: 3,  energy: 12 } },
-  WEAK_FAST:   { type: 'normal', kind: 'fast',   pvp: { power: 5,  energy: 3 } },
+  STRONG_FAST: { type: 'ground', kind: 'fast',   pvp: { power: 3,  energy: 12, turns: 1 } },
+  WEAK_FAST:   { type: 'normal', kind: 'fast',   pvp: { power: 5,  energy: 3,  turns: 1 } },
   CHEAP_CHG:   { type: 'rock',   kind: 'charge', pvp: { power: 50, energy: 35 } },
   PRICEY_CHG:  { type: 'rock',   kind: 'charge', pvp: { power: 110,energy: 55 } },
 };
@@ -228,4 +228,21 @@ test('evalMon: expõe defBulkRank no retorno', () => {
   };
   const e = { speciesId: 'blissey', isShadow: false, ivs: { atk: 15, def: 15, sta: 15 }, moveIds: [] };
   assert.strictEqual(evalMonAlias(e, meta).defBulkRank, 2);
+});
+
+test('rocketSpam: golpe rápido lento (2 turnos) dobra os turnos p/ carregar → false', () => {
+  const slow = {
+    SLOW_FAST: { type: 'ground', kind: 'fast',   pvp: { power: 3, energy: 12, turns: 2 } },
+    CHEAP_CHG: { type: 'rock',   kind: 'charge', pvp: { power: 50, energy: 35 } },
+  };
+  // ativações 35/12 = 2.92 × 2 turnos = 5.84 > 4 → não é spam
+  assert.strictEqual(rocketSpam(['SLOW_FAST', 'CHEAP_CHG'], slow), false);
+});
+
+test('rocketSpam: sem duração (turns ausente) usa ativações (fallback gracioso)', () => {
+  const noT = {
+    F: { type: 'x', kind: 'fast',   pvp: { power: 3, energy: 12 } },
+    C: { type: 'y', kind: 'charge', pvp: { power: 50, energy: 35 } },
+  };
+  assert.strictEqual(rocketSpam(['F', 'C'], noT), true);   // 35/12 = 2.92 <= 4
 });

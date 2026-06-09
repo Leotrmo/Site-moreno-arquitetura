@@ -118,21 +118,27 @@
   // Tag 'rocket' (spec §8): moveset de spam — rápido que gera energia rápido + carregado barato.
   // Batalhas Rocket usam a mecânica de batalha de treinador (PvP) → usa stats pvp dos golpes.
   // ativaçõesParaCarregar = custo do carregado mais barato / energia-por-ativação do rápido mais forte.
-  // (turnos reais exigiriam a duração PvP do golpe, que moves.json ainda não guarda — refino de Fase 4.)
+  // turnos reais = ativações × turnos do rápido (pvp.turns); sem duração, usa ativações.
   function rocketSpam(moveIds, movesById) {
     if (!moveIds || !moveIds.length || !movesById) return false;
-    var fastEnergy = 0, cheapestCharged = Infinity;
+    var bestFast = null, cheapestCharged = Infinity;
     for (var i = 0; i < moveIds.length; i++) {
       var m = movesById[moveIds[i]];
       if (!m || !m.pvp) continue;
       if (m.kind === 'fast') {
-        if (m.pvp.energy > fastEnergy) fastEnergy = m.pvp.energy;
+        // "mais forte" = mais energia por turno (com fallback p/ energia por ativação).
+        var ept = m.pvp.turns ? (m.pvp.energy / m.pvp.turns) : m.pvp.energy;
+        if (!bestFast || ept > bestFast.ept)
+          bestFast = { energy: m.pvp.energy, turns: m.pvp.turns || null, ept: ept };
       } else if (m.kind === 'charge') {
         if (m.pvp.energy > 0 && m.pvp.energy < cheapestCharged) cheapestCharged = m.pvp.energy;
       }
     }
-    if (!(fastEnergy > 0) || cheapestCharged === Infinity) return false;
-    return (cheapestCharged / fastEnergy) <= ROCKET_SPAM_TURNS;
+    if (!bestFast || !(bestFast.energy > 0) || cheapestCharged === Infinity) return false;
+    var activations = cheapestCharged / bestFast.energy;
+    // turnos reais = ativações × turnos por ativação; sem duração → usa ativações (fallback).
+    var turnsToCharge = bestFast.turns ? activations * bestFast.turns : activations;
+    return turnsToCharge <= ROCKET_SPAM_TURNS;
   }
 
   // Tags a partir do objeto pveMeta.
