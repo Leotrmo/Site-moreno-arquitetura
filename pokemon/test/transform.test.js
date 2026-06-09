@@ -175,3 +175,11 @@ test('buildMoves: guarda pvp.turns (cooldown/500) só p/ golpes rápidos', () =>
   assert.strictEqual(m.COUNTER.pvp.turns, 2);
   assert.strictEqual(m.BODY_SLAM.pvp.turns, undefined); // carregado não guarda turns
 });
+
+test('buildMovesPt: namesPt mapeia moveId → nome PT cru (com acentos, pré-normalização)', () => {
+  const { namesPt } = buildMovesPt(gameMaster, i18nPt);
+  assert.deepStrictEqual(namesPt, {
+    ROCK_SMASH: 'Esmagamento de Pedras',
+    ICE_PUNCH: 'Soco de Gelo',
+  });
+});

@@ -59,6 +59,7 @@ function buildMovesPt(gameMaster, i18nPt) {
   if (!Array.isArray(arr)) throw new Error('buildMovesPt: game master sem array de templates');
   const ptByNum = _i18nMoveNames(i18nPt);
   const map = {};
+  const namesPt = {};   // moveId → nome PT cru (exibição; map é normalizado p/ casamento)
   let total = 0, hit = 0;
   for (const t of arr) {
     const tid = t.templateId || (t.data && t.data.templateId) || '';
@@ -72,8 +73,9 @@ function buildMovesPt(gameMaster, i18nPt) {
     if (!pt) continue;
     hit++;
     map[normalizeName(pt)] = moveId;
+    namesPt[moveId] = pt;
   }
-  return { map, coverage: total ? hit / total : 0 };
+  return { map, namesPt, coverage: total ? hit / total : 0 };
 }
 
 const LEAGUES = ['great', 'ultra', 'master'];
