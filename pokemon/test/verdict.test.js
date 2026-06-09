@@ -360,24 +360,26 @@ test('computeAction: meta IV baixo mas é a MELHOR cópia (sem betterCopy) → n
   assert.strictEqual(computeAction(e), null); // sem gancho de ação → null (motivo atual mantém)
 });
 
-test('analyze: Sombrio meta com Frustração → e.action AGUARDAR_ROCKET e veredito MANTER', () => {
+test('analyze (e2e): Sombrio raid-meta com Frustração → AGUARDAR_ROCKET + MANTER', () => {
   const { buildSpeciesIndex } = require('../lib/meta/match.js');
+  // species.json/movesPt reais p/ o casamento; pveRanks SINTÉTICO que força a espécie a
+  // ser atacante de raid → determinístico (não depende dos limiares do dataset real).
   const meta = {
     speciesIndex: buildSpeciesIndex(require('../data/species.json')),
     movesPt: { 'palmada':'COUNTER', 'frustracao':'FRUSTRATION', 'frustração':'FRUSTRATION' },
-    pvpRanks: require('../data/pvp_ranks.json'), cpm: require('../data/cpm.json'),
-    pveRanks: require('../data/pve_ranks.json'), moves: require('../data/moves.json'),
+    pveRanks: { machamp: { roles:['raid','pve'], bestType:'fighting',
+      bestMoveset:['COUNTER','CROSS_CHOP'],
+      byType:{ fighting:{ dps:18, tdo:500, er:50, dpsRank:3, erRank:3, moveset:['COUNTER','CROSS_CHOP'] } },
+      defBulkRank: 999 } },
   };
-  // Machamp #68 (atacante de raid/lutador meta). Sombrio + Frustração.
-  const fd = { s: { mon_name:'Machamp', mon_number:68, mon_cp:2800, mon_attack:14, mon_defence:13, mon_stamina:14,
+  // Machamp #68 Sombrio com Frustração, IV baixo (33%) p/ o veredito cair em MANTER (não INVESTIR).
+  const fd = { s: { mon_name:'Machamp', mon_number:68, mon_cp:1500, mon_attack:5, mon_defence:5, mon_stamina:5,
                     mon_height:1.6, mon_alignment:'SHADOW', mon_isShiny:'NO', mon_isLucky:'NO',
                     mon_move_1:'Palmada', mon_move_2:'Frustração' } };
   const e = analyze(fd, getPokemonSize, refdata, getPokemonSizeScalar, meta)[0];
-  // isPvpMeta: alguma liga com isMeta:true; isPveMeta: alguma flag de papel ativa
-  const isPvpMeta = e.pvpMeta && ['great','ultra','master'].some(lg => e.pvpMeta[lg] && e.pvpMeta[lg].isMeta);
-  const isPveMeta = e.pveMeta && (e.pveMeta.raid || e.pveMeta.pve || e.pveMeta.gymAtk || e.pveMeta.gymDef);
-  if (isPvpMeta || isPveMeta) {                    // se Machamp casou como meta (esperado)
-    assert.strictEqual(e.action && e.action.kind, 'AGUARDAR_ROCKET');
-    assert.strictEqual(e.verdict, 'MANTER');        // protegido (Sombrio/meta), não INVESTIR/TRANSFERIR
-  }
+  assert.strictEqual(e.speciesId, 'machamp');
+  assert.deepStrictEqual(e.moveIds, ['COUNTER', 'FRUSTRATION']);
+  assert.strictEqual(e.pveMeta && e.pveMeta.raid, true);          // virou atacante de raid (meta)
+  assert.strictEqual(e.action && e.action.kind, 'AGUARDAR_ROCKET'); // pré-empta Fortalecer
+  assert.strictEqual(e.verdict, 'MANTER');                          // protegido (Sombrio), não INVESTIR/TRANSFERIR
 });
