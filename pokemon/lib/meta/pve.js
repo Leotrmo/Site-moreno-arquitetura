@@ -7,7 +7,10 @@
 
   var PVE = { CPM: 0.7903, IV: 15, DEF_REF: 180, STAB: 1.2, INCOMING_K: 800, ER_WEIGHT: 0.7 };
   var RAID_TOP = 10, PVE_TOP = 35, GYM_ATK_TOP = 20, GYM_ATK_COVERAGE_MIN = 3,
-      GYM_DEF_TOP = 50, GYM_DEF_IV_MIN = 13, ROCKET_SPAM_TURNS = 4;
+      GYM_DEF_TOP = 50, GYM_DEF_IV_MIN = 13,
+      // ROCKET_SPAM_TURNS: turnos p/ carregar o golpe mais barato. Calibrado (Fase 4,
+      // métrica por turnos reais) p/ ~49 mons / 8% na coleção real (shortlist útil).
+      ROCKET_SPAM_TURNS = 10;
   var SHADOW_ATK_MULT = 1.2;        // Sombrio: +20% de ataque
   var SHADOW_DEF_MULT = 1 / 1.2;    // Sombrio: toma 1.2x de dano → defesa efetiva ×0.8333
 

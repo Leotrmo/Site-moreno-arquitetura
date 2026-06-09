@@ -7,12 +7,13 @@
 
   var CP_CAPS    = { great: 1500, ultra: 2500, master: Infinity };
   var LEVEL_CAP  = 50;
-  // Limiares de "essa cópia presta?" — calibrados p/ shortlist útil (Fase 4).
+  // Limiares de "essa cópia presta?" — calibrados p/ shortlist útil (Fase 4):
+  // ~20 picks PvP na coleção real de 592 mons [great 10 · ultra 9 · master 1].
   // spPct = stat product / melhor da liga; ivRank = posição entre os 4096 IVs.
   var THRESHOLDS = {
-    great:  { spPct: 0.97, ivRank: 200 },
-    ultra:  { spPct: 0.97, ivRank: 200 },
-    master: { ivPct: 96 },
+    great:  { spPct: 0.95, ivRank: 600 },
+    ultra:  { spPct: 0.95, ivRank: 600 },
+    master: { ivPct: 95 },
   };
 
   // CP = max(10, floor( (atk+iv) * sqrt(def+iv) * sqrt(sta+iv) * cpm² / 10 ))

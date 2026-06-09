@@ -157,8 +157,8 @@ test('rocketSpam: degrada gracioso (sem moves, sem movesById, só rápido, id de
   assert.strictEqual(rocketSpam(['ZZZ_UNKNOWN'], rkMoves), false);     // id fora do movesById
 });
 
-test('ROCKET_SPAM_TURNS é o limiar configurável (padrão 4)', () => {
-  assert.strictEqual(ROCKET_SPAM_TURNS, 4);
+test('ROCKET_SPAM_TURNS é o limiar configurável (calibrado p/ 10)', () => {
+  assert.strictEqual(ROCKET_SPAM_TURNS, 10);
 });
 
 const { SHADOW_ATK_MULT } = require('../lib/meta/pve.js');
@@ -230,13 +230,18 @@ test('evalMon: expõe defBulkRank no retorno', () => {
   assert.strictEqual(evalMonAlias(e, meta).defBulkRank, 2);
 });
 
-test('rocketSpam: golpe rápido lento (2 turnos) dobra os turnos p/ carregar → false', () => {
-  const slow = {
-    SLOW_FAST: { type: 'ground', kind: 'fast',   pvp: { power: 3, energy: 12, turns: 2 } },
-    CHEAP_CHG: { type: 'rock',   kind: 'charge', pvp: { power: 50, energy: 35 } },
+test('rocketSpam: turnos do golpe rápido contam (2 turnos sobe o turnsToCharge)', () => {
+  // Mesmo rápido (energia 12) e carregado (70): a versão de 2 turnos passa do limiar (10), a de 1 turno não.
+  const slow2 = {
+    F: { type: 'ground', kind: 'fast',   pvp: { power: 3, energy: 12, turns: 2 } },  // 70/(12/2)=11.67 > 10
+    C: { type: 'rock',   kind: 'charge', pvp: { power: 90, energy: 70 } },
   };
-  // ativações 35/12 = 2.92 × 2 turnos = 5.84 > 4 → não é spam
-  assert.strictEqual(rocketSpam(['SLOW_FAST', 'CHEAP_CHG'], slow), false);
+  const fast1 = {
+    F: { type: 'ground', kind: 'fast',   pvp: { power: 3, energy: 12, turns: 1 } },  // 70/12=5.83 <= 10
+    C: { type: 'rock',   kind: 'charge', pvp: { power: 90, energy: 70 } },
+  };
+  assert.strictEqual(rocketSpam(['F', 'C'], slow2), false);
+  assert.strictEqual(rocketSpam(['F', 'C'], fast1), true);
 });
 
 test('rocketSpam: sem duração (turns ausente) usa ativações (fallback gracioso)', () => {
