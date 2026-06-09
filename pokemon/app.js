@@ -20,7 +20,7 @@
         fetch('./data/moves.json').then(r => r.ok ? r.json() : null),
       ]);
       if (!species || !movesPt) return null;
-      return { speciesIndex: buildSpeciesIndex(species), movesPt,
+      return { speciesIndex: PokeMatch.buildSpeciesIndex(species), movesPt,
                pvpRanks: pvpRanks || null, cpm: cpm || null, pveRanks: pveRanks || null, moves: moves || null };
     } catch (e) { console.warn('meta indisponível:', e); return null; }
   }
