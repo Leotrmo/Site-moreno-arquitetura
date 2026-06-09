@@ -17,6 +17,9 @@
     ? require('./meta/pve.js')
     : (typeof globalThis !== 'undefined' ? globalThis.PokePve : null);
 
+  var TYPE_PT = ((typeof require === 'function')
+    ? require('./refdata.js') : (typeof globalThis !== 'undefined' ? globalThis : {})).TYPE_PT || {};
+
   function speciesScalar(getSizeScalar, mon) {
     if (typeof getSizeScalar !== 'function') return null;
     return getSizeScalar(mon.mon_number, mon.mon_height, mon.mon_form) || null;
@@ -222,11 +225,6 @@
     for (const lg of PVP_LEAGUE_ORDER) if (e.tags.includes('pvp_' + lg)) return lg;
     return null;
   }
-
-  const TYPE_PT = { normal:'Normal', fire:'Fogo', water:'Água', electric:'Elétrico', grass:'Planta',
-    ice:'Gelo', fighting:'Lutador', poison:'Venenoso', ground:'Terrestre', flying:'Voador',
-    psychic:'Psíquico', bug:'Inseto', rock:'Pedra', ghost:'Fantasma', dragon:'Dragão',
-    dark:'Sombrio', steel:'Aço', fairy:'Fada' };
 
   // Ação a partir do papel de atacante PvE (raid > gym_atk). null se o mon não é atacante.
   function _pveAction(e) {

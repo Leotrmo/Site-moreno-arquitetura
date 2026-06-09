@@ -10,6 +10,9 @@
       ({ '&':'&amp;', '<':'&lt;', '>':'&gt;', '"':'&quot;', "'":'&#39;' }[c]));
   }
 
+  var TYPE_PT = ((typeof require === 'function')
+    ? require('./refdata.js') : (typeof globalThis !== 'undefined' ? globalThis : {})).TYPE_PT || {};
+
   function badgesHtml(e) {
     const b = [];
     if (e.isHundo)    b.push('<span class="badge b-hundo">★</span>');
@@ -69,11 +72,6 @@
 
   const LEAGUE_LABEL = { great: 'Liga Grande', ultra: 'Liga Ultra', master: 'Liga Mestre' };
 
-  const TYPE_PT_PVE = { normal:'Normal', fire:'Fogo', water:'Água', electric:'Elétrico', grass:'Planta',
-    ice:'Gelo', fighting:'Lutador', poison:'Venenoso', ground:'Terrestre', flying:'Voador',
-    psychic:'Psíquico', bug:'Inseto', rock:'Pedra', ghost:'Fantasma', dragon:'Dragão',
-    dark:'Sombrio', steel:'Aço', fairy:'Fada' };
-
   function competitiveHtml(e) {
     if (!e.pvpMeta && !e.pveMeta) return '';
     const rows = [];
@@ -98,7 +96,7 @@
       if (pm.gymAtk) papeis.push('Atq. Ginásio');
       if (pm.gymDef) papeis.push('Def. Ginásio');
       if (papeis.length) {
-        const tipoPt = TYPE_PT_PVE[t] || t || '';
+        const tipoPt = TYPE_PT[t] || t || '';
         const rankTxt = bt ? (' — melhor como ' + tipoPt + ' (rank ' + bt.erRank + ' do tipo, DPS rank ' + bt.dpsRank + ')') : '';
         const mv = pm.movesetOk ? ' · moveset de ataque ✓' : (pm.bestMoveset ? ' · falta moveset de ataque' : '');
         rows.push('<div class="comp-row"><strong>PvE</strong>: ' + papeis.join(' · ') + rankTxt + mv +

@@ -44,5 +44,11 @@
     710, // Pumpkaboo → Gourgeist
   ]);
 
-  return { LEGENDARY, REGIONAL, TRADE_EVO };
+  // Nomes de tipo em PT-BR (fonte única; consumido por analysis.js e render.js).
+  const TYPE_PT = { normal:'Normal', fire:'Fogo', water:'Água', electric:'Elétrico', grass:'Planta',
+    ice:'Gelo', fighting:'Lutador', poison:'Venenoso', ground:'Terrestre', flying:'Voador',
+    psychic:'Psíquico', bug:'Inseto', rock:'Pedra', ghost:'Fantasma', dragon:'Dragão',
+    dark:'Sombrio', steel:'Aço', fairy:'Fada' };
+
+  return { LEGENDARY, REGIONAL, TRADE_EVO, TYPE_PT };
 });
