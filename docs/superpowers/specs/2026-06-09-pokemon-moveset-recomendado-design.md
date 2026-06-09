@@ -39,7 +39,9 @@ estão em português.
   gamemaster do PvPoke via `buildMoves` — fontes diferentes, por isso merge no
   orquestrador, não dentro de `buildMoves`).
 - O mapa `moves_pt.json` (normalizado → moveId, usado pelo casamento) **não muda**.
-- Cobertura PT ≈ 97,8%; golpes sem `namePt` caem no fallback do runtime (§4).
+- Cobertura medida no dataset real: 95,2% (296/311 golpes do moves.json com `namePt`;
+  os 15 sem nome são golpes exóticos — Dynamax Cannon, Aura Wheel etc.). Golpes sem
+  `namePt` caem no fallback do runtime (§4).
 - Datasets regenerados no mesmo PR; a GitHub Action `refresh-meta.yml` mantém daí em diante.
 
 ## 4. Montagem (analysis.js)
@@ -90,7 +92,7 @@ Bloco Competitivo do detalhe:
 
 ## 7. Casos de borda
 
-- Golpe sem `namePt` (cobertura 97,8%): fallback `_humanMove` (inglês humanizado).
+- Golpe sem `namePt` (cobertura real 95,2%): fallback `_humanMove` (inglês humanizado).
 - `meta.moves` ausente (datasets não carregados): camada de meta inteira já não roda; sem
   caminho novo.
 - Liga `isMeta` com `moveset` nulo (defensivo): `movesetView = null`, render mantém texto
