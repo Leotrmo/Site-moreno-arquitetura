@@ -72,6 +72,11 @@
 
   const LEAGUE_LABEL = { great: 'Liga Grande', ultra: 'Liga Ultra', master: 'Liga Mestre' };
 
+  // "Bolha ✓ · Jogo Duro (falta)" a partir do movesetView ([{name,has}]).
+  function movesetLabel(view) {
+    return view.map(function (m) { return esc(m.name) + (m.has ? ' ✓' : ' (falta)'); }).join(' · ');
+  }
+
   function competitiveHtml(e) {
     if (!e.pvpMeta && !e.pveMeta) return '';
     const rows = [];
@@ -80,7 +85,9 @@
         const L = e.pvpMeta[lg];
         if (!L || !L.isMeta) return;
         const sp = Math.round(L.spPct * 100);
-        const mv = L.movesetOk ? 'moveset recomendado ✓' : 'falta o moveset recomendado';
+        const mv = L.movesetView
+          ? 'recomendado: ' + movesetLabel(L.movesetView)
+          : (L.movesetOk ? 'moveset recomendado ✓' : 'falta o moveset recomendado');
         rows.push('<div class="comp-row"><strong>' + LEAGUE_LABEL[lg] + '</strong> — rank ' +
                   L.speciesRank + ' da espécie · seu IV PvP ' + sp + '% (rank ' + L.ivRank +
                   '/4096) · ' + mv + '</div>');
@@ -98,7 +105,9 @@
       if (papeis.length) {
         const tipoPt = TYPE_PT[t] || t || '';
         const rankTxt = bt ? (' — melhor como ' + tipoPt + ' (rank ' + bt.erRank + ' do tipo, DPS rank ' + bt.dpsRank + ')') : '';
-        const mv = pm.movesetOk ? ' · moveset de ataque ✓' : (pm.bestMoveset ? ' · falta moveset de ataque' : '');
+        const mv = pm.movesetView
+          ? ' · recomendado: ' + movesetLabel(pm.movesetView)
+          : (pm.movesetOk ? ' · moveset de ataque ✓' : (pm.bestMoveset ? ' · falta moveset de ataque' : ''));
         rows.push('<div class="comp-row"><strong>PvE</strong>: ' + papeis.join(' · ') + rankTxt + mv +
                   ' <span class="comp-est">(estimativa)</span></div>');
       }
