@@ -32,6 +32,7 @@
     if (e.tags.includes('raid'))    b.push('<span class="badge b-pve">🔥</span>');
     else if (e.tags.includes('pve')) b.push('<span class="badge b-pve">🔥</span>');
     if (e.tags.includes('gym_def')) b.push('<span class="badge b-gymdef">🛡️</span>');
+    if (e.tags.includes('rocket')) b.push('<span class="badge b-rocket">🚀</span>');
     return b.join('');
   }
 

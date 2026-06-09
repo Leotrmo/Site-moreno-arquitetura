@@ -245,3 +245,13 @@ test('detailHtml: sem pvpMeta nem pveMeta → sem bloco Competitivo (não-regres
   const html = detailHtml(pveStub({ tags:[], pveMeta:null, pvpMeta:null }));
   assert.doesNotMatch(html, /Competitivo/);
 });
+
+test('badgesHtml: selo 🚀 aparece com tag rocket', () => {
+  const html = badgesHtml(pveStub({ tags: ['rocket'] }));
+  assert.match(html, /🚀/);
+});
+
+test('badgesHtml: sem tag rocket → sem 🚀 (não-regressão)', () => {
+  const html = badgesHtml(pveStub({ tags: [] }));
+  assert.doesNotMatch(html, /🚀/);
+});
