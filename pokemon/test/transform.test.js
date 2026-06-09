@@ -136,3 +136,29 @@ test('buildPveRanks: espécie sem golpe PvE válido não recebe byType, mas pode
   assert.deepStrictEqual(out.onlywall.byType, {});
   assert.deepStrictEqual(out.onlywall.roles, []);
 });
+
+test('buildPveRanks: filtra Mega/Primal do pool e dá bônus a Sombrio', () => {
+  const { buildPveRanks } = require('../build/transform.js');
+  const species = {
+    chomp:        { baseStats: { atk: 200, def: 120, hp: 140 }, types: ['dragon'],
+                    fastMoves: ['DRAGON_TAIL'], chargedMoves: ['OUTRAGE'] },
+    chomp_shadow: { baseStats: { atk: 200, def: 120, hp: 140 }, types: ['dragon'],
+                    fastMoves: ['DRAGON_TAIL'], chargedMoves: ['OUTRAGE'] },
+    chomp_mega:   { baseStats: { atk: 320, def: 200, hp: 140 }, types: ['dragon'],
+                    fastMoves: ['DRAGON_TAIL'], chargedMoves: ['OUTRAGE'] },
+    groudon_primal: { baseStats: { atk: 300, def: 200, hp: 180 }, types: ['ground'],
+                    fastMoves: ['MUD_SHOT'], chargedMoves: ['EARTHQUAKE'] },
+  };
+  const movesById = {
+    DRAGON_TAIL: { type: 'dragon', pve: { power: 13, energy: 9,  durationMs: 1100 } },
+    OUTRAGE:     { type: 'dragon', pve: { power: 110, energy: 60, durationMs: 3900 } },
+    MUD_SHOT:    { type: 'ground', pve: { power: 3,  energy: 9,  durationMs: 600 } },
+    EARTHQUAKE:  { type: 'ground', pve: { power: 120, energy: 65, durationMs: 3600 } },
+  };
+  const out = buildPveRanks(species, movesById);
+  assert.ok(!out.chomp_mega, 'Mega não entra no pool');
+  assert.ok(!out.groudon_primal, 'Primal não entra no pool');
+  assert.ok(out.chomp_shadow.byType.dragon.er > out.chomp.byType.dragon.er, 'Sombrio com bônus > base');
+  assert.strictEqual(out.chomp_shadow.byType.dragon.erRank, 1, 'Sombrio ranqueia acima da base');
+  assert.strictEqual(out.chomp.byType.dragon.erRank, 2);
+});
