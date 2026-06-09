@@ -162,3 +162,16 @@ test('buildPveRanks: filtra Mega/Primal do pool e dá bônus a Sombrio', () => {
   assert.strictEqual(out.chomp_shadow.byType.dragon.erRank, 1, 'Sombrio ranqueia acima da base');
   assert.strictEqual(out.chomp.byType.dragon.erRank, 2);
 });
+
+test('buildMoves: guarda pvp.turns (cooldown/500) só p/ golpes rápidos', () => {
+  const { buildMoves } = require('../build/transform.js');
+  const gmInline = { moves: [
+    { moveId: 'MUD_SHOT',  type: 'ground',   power: 3,  energy: 0,  energyGain: 9, cooldown: 1000 },
+    { moveId: 'COUNTER',   type: 'fighting', power: 8,  energy: 0,  energyGain: 7, cooldown: 1000 },
+    { moveId: 'BODY_SLAM', type: 'normal',   power: 60, energy: 35, energyGain: 0, cooldown: 1900 },
+  ] };
+  const m = buildMoves(gmInline);
+  assert.strictEqual(m.MUD_SHOT.pvp.turns, 2);          // 1000 / 500
+  assert.strictEqual(m.COUNTER.pvp.turns, 2);
+  assert.strictEqual(m.BODY_SLAM.pvp.turns, undefined); // carregado não guarda turns
+});

@@ -36,11 +36,9 @@ function buildMoves(gamemaster) {
   for (const mv of gamemaster.moves) {
     if (!mv.moveId || mv.unlisted) continue;       // pula não-listados (ex.: Transform)
     const isFast = mv.energyGain > 0;              // fast gera energia; charge gasta (energy > 0)
-    out[mv.moveId] = {
-      type: mv.type,
-      kind: isFast ? 'fast' : 'charge',
-      pvp: { power: mv.power, energy: isFast ? mv.energyGain : mv.energy },
-    };
+    const pvp = { power: mv.power, energy: isFast ? mv.energyGain : mv.energy };
+    if (isFast && mv.cooldown) pvp.turns = mv.cooldown / 500;   // duração PvP em turnos
+    out[mv.moveId] = { type: mv.type, kind: isFast ? 'fast' : 'charge', pvp: pvp };
   }
   return out;
 }
