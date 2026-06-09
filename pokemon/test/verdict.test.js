@@ -360,6 +360,24 @@ test('computeAction: meta IV baixo mas é a MELHOR cópia (sem betterCopy) → n
   assert.strictEqual(computeAction(e), null); // sem gancho de ação → null (motivo atual mantém)
 });
 
+// ---------------------------------------------------------------------------
+// Fase 4 — justificativa PvE com rank do tipo (rastreável)
+// ---------------------------------------------------------------------------
+
+test('computeAction: justificativa de Raid inclui o rank do tipo (rastreável)', () => {
+  const e = {
+    tags: ['raid'], isShadow: false, ivPct: 90, betterCopy: null, moveIds: ['ICE_SHARD','AVALANCHE'], eliteMoves: [],
+    pvpMeta: null,
+    pveMeta: { raid: true, pve: true, gymAtk: false, gymDef: false, movesetOk: true,
+               bestType: 'ice', bestMoveset: ['ICE_SHARD','AVALANCHE'],
+               byType: { ice: { erRank: 8, dpsRank: 6 } }, defBulkRank: 300 },
+  };
+  const a = computeAction(e);
+  assert.strictEqual(a.kind, 'FORTALECER');
+  assert.match(a.reason, /Top 8/);   // rank do tipo aparece na justificativa
+  assert.match(a.reason, /Gelo/);
+});
+
 test('analyze (e2e): Sombrio raid-meta com Frustração → AGUARDAR_ROCKET + MANTER', () => {
   const { buildSpeciesIndex } = require('../lib/meta/match.js');
   // species.json/movesPt reais p/ o casamento; pveRanks SINTÉTICO que força a espécie a

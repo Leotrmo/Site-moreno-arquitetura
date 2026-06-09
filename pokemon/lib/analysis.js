@@ -233,12 +233,14 @@
     if (!role) return null;
     const tipo = TYPE_PT[e.pveMeta.bestType] || e.pveMeta.bestType || 'ataque';
     const papel = role === 'raid' ? 'Raid' : 'Ataque de Ginásio';
+    const bt = e.pveMeta.bestType && e.pveMeta.byType ? e.pveMeta.byType[e.pveMeta.bestType] : null;
+    const rankTxt = (bt && typeof bt.erRank === 'number') ? ' — Top ' + bt.erRank + ' atacante de ' + tipo : '';
     if (e.pveMeta.movesetOk) {
       return { kind: 'FORTALECER', role: role,
-        reason: 'Fortalecer p/ ' + papel + ' (' + tipo + ') — atacante recomendado (estimativa)' };
+        reason: 'Fortalecer p/ ' + papel + ' (' + tipo + ')' + rankTxt + ' (estimativa)' };
     }
     return _notReadyAction(e,
-      'Ensinar/TM p/ ' + papel + ' (' + tipo + ') — falta o moveset de ataque recomendado');
+      'Ensinar/TM p/ ' + papel + ' (' + tipo + ')' + rankTxt + ' — falta o moveset de ataque (estimativa)');
   }
 
   // Humaniza um moveId p/ exibição: 'CLOSE_COMBAT' → 'Close Combat'.
