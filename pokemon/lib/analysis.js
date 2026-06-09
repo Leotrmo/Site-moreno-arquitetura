@@ -227,7 +227,7 @@
   }
 
   // Ação a partir do papel de atacante PvE (raid > gym_atk). null se o mon não é atacante.
-  function _pveAction(e) {
+  function _pveAction(e, meta) {
     if (!e.pveMeta) return null;
     const role = e.pveMeta.raid ? 'raid' : (e.pveMeta.gymAtk ? 'gym_atk' : null);
     if (!role) return null;
@@ -239,13 +239,62 @@
       return { kind: 'FORTALECER', role: role,
         reason: 'Fortalecer p/ ' + papel + ' (' + tipo + ')' + rankTxt + ' (estimativa)' };
     }
+    // PvE exige os dois golpes do bestMoveset; lista os que faltam.
+    const mine = e.moveIds || [];
+    const missing = (e.pveMeta.bestMoveset || []).filter(function (id) { return mine.indexOf(id) < 0; });
     return _notReadyAction(e,
-      'Ensinar/TM p/ ' + papel + ' (' + tipo + ')' + rankTxt + ' — falta o moveset de ataque (estimativa)');
+      'Ensinar/TM p/ ' + papel + ' (' + tipo + ')' + rankTxt + ' — ' +
+      (missing.length ? _faltaTxt(missing, meta) : 'falta o moveset de ataque') + ' (estimativa)', meta);
   }
 
   // Humaniza um moveId p/ exibição: 'CLOSE_COMBAT' → 'Close Combat'.
   function _humanMove(id) {
     return String(id || '').toLowerCase().replace(/_/g, ' ').replace(/\b\w/g, function (c) { return c.toUpperCase(); });
+  }
+
+  // Nome de exibição de um moveId: namePt (moves.json) → senão inglês humanizado.
+  function _moveName(id, meta) {
+    const m = meta && meta.moves && meta.moves[id];
+    return (m && m.namePt) || _humanMove(id);
+  }
+
+  // Golpes que faltam segundo o critério do movesetOk PvP: o rápido se não o tem;
+  // os carregados (todos) se não tem nenhum deles.
+  function _missingPvpMoves(mine, rec) {
+    if (!rec || rec.length < 2) return [];
+    const m = mine || [];
+    const out = [];
+    if (m.indexOf(rec[0]) < 0) out.push(rec[0]);
+    const charged = rec.slice(1);
+    if (!charged.some(function (c) { return m.indexOf(c) >= 0; })) out.push.apply(out, charged);
+    return out;
+  }
+
+  // "falta X" / "faltam X e Y" / "faltam X, Y e Z" com nomes de exibição.
+  function _faltaTxt(ids, meta) {
+    const names = ids.map(function (id) { return _moveName(id, meta); });
+    const lista = names.length > 1
+      ? names.slice(0, -1).join(', ') + ' e ' + names[names.length - 1]
+      : names[0];
+    return (names.length > 1 ? 'faltam ' : 'falta ') + lista;
+  }
+
+  // Visão de exibição do moveset recomendado: [{ name, has }] (render não conhece meta).
+  function _movesetView(rec, mine, meta) {
+    if (!rec || !rec.length) return null;
+    const m = mine || [];
+    return rec.map(function (id) {
+      return { name: _moveName(id, meta), has: m.indexOf(id) >= 0 };
+    });
+  }
+
+  function _attachMovesetViews(e, meta) {
+    if (e.pvpMeta) for (const lg of PVP_LEAGUE_ORDER) {
+      const L = e.pvpMeta[lg];
+      if (L) L.movesetView = (L.isMeta && L.moveset) ? _movesetView(L.moveset, e.moveIds, meta) : null;
+    }
+    if (e.pveMeta)
+      e.pveMeta.movesetView = _movesetView(e.pveMeta.bestMoveset, e.moveIds, meta);
   }
 
   // Moveset recomendado do gancho ativo (PvP da melhor liga; senão PvE bestMoveset).
@@ -269,11 +318,11 @@
   }
 
   // Ação quando o moveset NÃO está pronto: AGUARDAR_EVENTO (golpe legado falta) senão ENSINAR_TM.
-  function _notReadyAction(e, ensinarReason) {
+  function _notReadyAction(e, ensinarReason, meta) {
     const leg = _missingLegacyMove(e);
     if (leg) {
       return { kind: 'AGUARDAR_EVENTO', legacyMove: leg,
-        reason: 'Aguardar Evento — moveset ótimo precisa do golpe legado "' + _humanMove(leg) +
+        reason: 'Aguardar Evento — moveset ótimo precisa do golpe legado "' + _moveName(leg, meta) +
                 '"; espere Dia Comunitário / Elite TM' };
     }
     return { kind: 'ENSINAR_TM', reason: ensinarReason };
@@ -297,7 +346,7 @@
     return null;
   }
 
-  function computeAction(e) {
+  function computeAction(e, meta) {
     // P1 (Fase 3): Sombrio meta com Frustração → aguardar evento Rocket (pré-empta Fortalecer).
     if ((isPvpMeta(e) || isPveMeta(e)) && _isShadowFrustration(e)) {
       return { kind: 'AGUARDAR_ROCKET',
@@ -313,10 +362,12 @@
         return { kind: 'FORTALECER', league: lg,
           reason: 'Fortalecer p/ ' + ligaPt + ' — rank ' + L.speciesRank + ' da espécie, seu ' + ivInfo };
       }
+      const missing = _missingPvpMoves(e.moveIds, L.moveset);
       return _notReadyAction(e,
-        'Ensinar/TM p/ ' + ligaPt + ' — Top ' + L.speciesRank + ', falta o moveset recomendado');
+        'Ensinar/TM p/ ' + ligaPt + ' — Top ' + L.speciesRank + ', ' +
+        (missing.length ? _faltaTxt(missing, meta) : 'falta o moveset recomendado'), meta);
     }
-    const pve = _pveAction(e);
+    const pve = _pveAction(e, meta);
     if (pve) return pve;
     // P5: Trocar/Reroll (duplicata pior: shiny lucky ou meta IV baixo).
     return _trocaAction(e);
@@ -337,10 +388,11 @@
     for (const e of list) {
       e.pvpMeta = (meta && meta.cpm && meta.pvpRanks && PokePvp) ? PokePvp.evalMon(e, meta) : null;
       e.pveMeta = (meta && meta.pveRanks && PokePve) ? PokePve.evalMon(e, meta) : null;
+      _attachMovesetViews(e, meta);
       e.isRocketReady = (meta && meta.moves && PokePve)
         ? PokePve.rocketSpam(e.moveIds, meta.moves) : false;
       e.tags = computeTags(e);
-      e.action = computeAction(e);
+      e.action = computeAction(e, meta);
       const v = computeVerdict(e);
       e.verdict = v.verdict;
       e.reason = v.reason;

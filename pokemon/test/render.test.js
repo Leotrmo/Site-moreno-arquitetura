@@ -263,3 +263,36 @@ test('cardHtml: ícone da ação por kind (🚀 AGUARDAR_ROCKET, 🗓️ AGUARDA
   // combate mantém ⚔️
   assert.match(cardHtml(pvpStub({ action: { kind:'FORTALECER', reason:'Fortalecer — x' } })), /⚔️/);
 });
+
+test('detailHtml: linha PvP lista o moveset recomendado com ✓/(falta)', () => {
+  const e = pvpStub({ verdict:'INVESTIR', moves:['Bolha','Raio Congelante'], height:0.5, weight:28.5,
+    ivs:{atk:0,def:15,sta:15},
+    pvpMeta: { great: { isMeta:true, speciesRank:13, ivRank:1, spPct:1, movesetOk:false,
+                        movesetView: [ { name:'Bolha', has:true }, { name:'Raio Congelante', has:true },
+                                       { name:'Jogo Duro', has:false } ] },
+               ultra:{isMeta:false}, master:{isMeta:false} } });
+  const html = detailHtml(e);
+  assert.match(html, /recomendado: Bolha ✓ · Raio Congelante ✓ · Jogo Duro \(falta\)/);
+  assert.doesNotMatch(html, /falta o moveset recomendado/);
+});
+
+test('detailHtml: linha PvP sem movesetView → texto antigo (fallback)', () => {
+  const e = pvpStub({ verdict:'INVESTIR', moves:['x'], height:0.5, weight:28.5, ivs:{atk:0,def:15,sta:15} });
+  const html = detailHtml(e);
+  assert.match(html, /moveset recomendado ✓/);   // movesetOk:true no stub default
+});
+
+test('detailHtml: linha PvE lista o moveset recomendado com ✓/(falta)', () => {
+  const e = pveStub({ pveMeta: Object.assign(pveStub().pveMeta, {
+    movesetOk: false,
+    movesetView: [ { name:'Lança de Gelo', has:true }, { name:'Avalanche', has:false } ],
+  }) });
+  const html = detailHtml(e);
+  assert.match(html, /recomendado: Lança de Gelo ✓ · Avalanche \(falta\)/);
+  assert.match(html, /estimativa/);
+});
+
+test('detailHtml: linha PvE sem movesetView → texto antigo (fallback)', () => {
+  const html = detailHtml(pveStub());
+  assert.match(html, /moveset de ataque ✓/);   // movesetOk:true no stub default
+});

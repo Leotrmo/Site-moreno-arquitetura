@@ -55,6 +55,8 @@ async function main() {
     ? Object.keys(moves).filter(id => moves[id].pve).length / Object.keys(moves).length : 0;
   const pveRanks = T.buildPveRanks(species, moves);
   const movesPtRes = T.buildMovesPt(gameMaster, i18nPt);
+  // Nome PT de exibição por golpe (moves.json vem do PvPoke; nomes vêm dos PokeMiners → merge aqui).
+  for (const id in movesPtRes.namesPt) if (moves[id]) moves[id].namePt = movesPtRes.namesPt[id];
   const pvpRanks = T.buildPvpRanks({ great: rGreat, ultra: rUltra, master: rMaster }, TOP_N);
   const cpm = buildCpm(gameMaster);
 
@@ -64,6 +66,10 @@ async function main() {
   assertNonEmpty('pvpRanks', pvpRanks);
   if (movesPtRes.coverage < 0.8)
     throw new Error('validação: cobertura PT ' + (movesPtRes.coverage * 100).toFixed(1) + '% < 80% — schema mudou?');
+  const namePtCoverage = Object.keys(moves).length
+    ? Object.keys(moves).filter(id => moves[id].namePt).length / Object.keys(moves).length : 0;
+  if (namePtCoverage < 0.8)
+    throw new Error('validação: cobertura namePt ' + (namePtCoverage * 100).toFixed(1) + '% < 80% — merge falhou?');
   if (!Array.isArray(cpm) || cpm.length === 0) throw new Error('validação: cpm vazio — abortando');
   if (Math.abs(cpm[0].cpm - 0.094) > 1e-9)
     throw new Error('validação: cpm[0] != 0.094 (L1) — schema do GAME_MASTER mudou?');

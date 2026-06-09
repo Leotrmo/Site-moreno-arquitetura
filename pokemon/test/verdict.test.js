@@ -378,6 +378,71 @@ test('computeAction: justificativa de Raid inclui o rank do tipo (rastreável)',
   assert.match(a.reason, /Gelo/);
 });
 
+// ---------------------------------------------------------------------------
+// Moveset recomendado — razões nomeiam os golpes faltantes (spec 2026-06-09)
+// ---------------------------------------------------------------------------
+
+function ensinarMon(moveIds) {
+  return pvpMon({
+    moveIds: moveIds, eliteMoves: [],
+    pvpMeta: {
+      great:  { isMeta: true, speciesRank: 13, ivRank: 1, spPct: 1, movesetOk: false,
+                moveset: ['COUNTER', 'ICE_PUNCH', 'POWER_UP_PUNCH'] },
+      ultra:  { isMeta: false }, master: { isMeta: false },
+    },
+  });
+}
+const NOMES_PT = { moves: {
+  COUNTER: { namePt: 'Contra-ataque' },
+  ICE_PUNCH: { namePt: 'Soco de Gelo' },
+  POWER_UP_PUNCH: { namePt: 'Soco Energizado' },
+  CLOSE_COMBAT: { namePt: 'Combate Corpo a Corpo' },
+} };
+
+test('computeAction: ENSINAR_TM PvP sem nenhum carregado → "faltam X e Y" em PT', () => {
+  const a = computeAction(ensinarMon(['COUNTER']), NOMES_PT);
+  assert.strictEqual(a.kind, 'ENSINAR_TM');
+  assert.match(a.reason, /faltam Soco de Gelo e Soco Energizado/);
+});
+
+test('computeAction: ENSINAR_TM PvP só com o rápido faltando → singular "falta"', () => {
+  const a = computeAction(ensinarMon(['ICE_PUNCH', 'POWER_UP_PUNCH']), NOMES_PT);
+  assert.strictEqual(a.kind, 'ENSINAR_TM');
+  assert.match(a.reason, /falta Contra-ataque/);
+  assert.doesNotMatch(a.reason, /faltam/);
+});
+
+test('computeAction: sem meta → nome do golpe em inglês humanizado (fallback)', () => {
+  const a = computeAction(ensinarMon(['ICE_PUNCH', 'POWER_UP_PUNCH']));
+  assert.match(a.reason, /falta Counter/);
+});
+
+test('computeAction: ENSINAR_TM sem moveset no rankEntry → texto genérico (fallback)', () => {
+  const a = computeAction(pvpMon({
+    pvpMeta: {
+      great:  { isMeta: true, speciesRank: 13, ivRank: 1, spPct: 1, movesetOk: false },
+      ultra:  { isMeta: false }, master: { isMeta: false },
+    },
+  }), NOMES_PT);
+  assert.strictEqual(a.kind, 'ENSINAR_TM');
+  assert.match(a.reason, /falta o moveset recomendado/);
+});
+
+test('computeAction: AGUARDAR_EVENTO nomeia o golpe legado em PT', () => {
+  const e = {
+    isShadow: false, isShiny: false, ivPct: 95, betterCopy: null,
+    moveIds: ['COUNTER'], eliteMoves: ['CLOSE_COMBAT'],
+    tags: ['pvp_great'],
+    pvpMeta: { great:  { isMeta: true, speciesRank: 5, ivRank: 1, spPct: 1, movesetOk: false,
+                         moveset: ['COUNTER', 'CLOSE_COMBAT'] },
+               ultra:  { isMeta: false, moveset: null }, master: { isMeta: false, moveset: null } },
+    pveMeta: null,
+  };
+  const a = computeAction(e, NOMES_PT);
+  assert.strictEqual(a.kind, 'AGUARDAR_EVENTO');
+  assert.match(a.reason, /Combate Corpo a Corpo/);
+});
+
 test('analyze (e2e): Sombrio raid-meta com Frustração → AGUARDAR_ROCKET + MANTER', () => {
   const { buildSpeciesIndex } = require('../lib/meta/match.js');
   // species.json/movesPt reais p/ o casamento; pveRanks SINTÉTICO que força a espécie a
@@ -400,4 +465,91 @@ test('analyze (e2e): Sombrio raid-meta com Frustração → AGUARDAR_ROCKET + MA
   assert.strictEqual(e.pveMeta && e.pveMeta.raid, true);          // virou atacante de raid (meta)
   assert.strictEqual(e.action && e.action.kind, 'AGUARDAR_ROCKET'); // pré-empta Fortalecer
   assert.strictEqual(e.verdict, 'MANTER');                          // protegido (Sombrio), não INVESTIR/TRANSFERIR
+});
+
+// ---------------------------------------------------------------------------
+// Task 4 — PvE: razão ENSINAR_TM nomeia golpes faltantes
+// ---------------------------------------------------------------------------
+
+test('computeAction: ENSINAR_TM PvE sem nenhum golpe → "faltam X e Y" em PT', () => {
+  const e = pveRaider({
+    moveIds: [],
+    pveMeta: Object.assign(pveRaider().pveMeta, { movesetOk: false }),
+  });
+  const meta = { moves: { ICE_SHARD: { namePt: 'Lança de Gelo' }, AVALANCHE: { namePt: 'Avalanche' } } };
+  const a = computeAction(e, meta);
+  assert.strictEqual(a.kind, 'ENSINAR_TM');
+  assert.match(a.reason, /faltam Lança de Gelo e Avalanche/);
+  assert.match(a.reason, /estimativa/);
+});
+
+test('computeAction: ENSINAR_TM PvE com o rápido → "falta Avalanche" (singular)', () => {
+  const e = pveRaider({
+    moveIds: ['ICE_SHARD'],
+    pveMeta: Object.assign(pveRaider().pveMeta, { movesetOk: false }),
+  });
+  const meta = { moves: { ICE_SHARD: { namePt: 'Lança de Gelo' }, AVALANCHE: { namePt: 'Avalanche' } } };
+  const a = computeAction(e, meta);
+  assert.match(a.reason, /falta Avalanche/);
+  assert.doesNotMatch(a.reason, /faltam/);
+});
+
+test('computeAction: ENSINAR_TM PvE sem bestMoveset → texto genérico (fallback)', () => {
+  const e = pveRaider({
+    pveMeta: Object.assign(pveRaider().pveMeta, { movesetOk: false, bestMoveset: null }),
+  });
+  const a = computeAction(e, { moves: {} });
+  assert.strictEqual(a.kind, 'ENSINAR_TM');
+  assert.match(a.reason, /falta o moveset de ataque/);
+});
+
+// ---------------------------------------------------------------------------
+// Task 5 — analyze: movesetView anexado (pvp por liga + pve) e meta repassado
+// ---------------------------------------------------------------------------
+
+test('analyze: anexa movesetView por liga PvP (nomes PT + has)', () => {
+  const { buildSpeciesIndex } = require('../lib/meta/match.js');
+  // pvpRanks SINTÉTICO → moveset recomendado determinístico (não depende do dataset real).
+  const meta = {
+    speciesIndex: buildSpeciesIndex(require('../data/species.json')),
+    movesPt: { 'bolha': 'BUBBLE', 'raio congelante': 'ICE_BEAM' },
+    pvpRanks: { azumarill: { great: { rank: 13, score: 90, moveset: ['BUBBLE', 'ICE_BEAM', 'PLAY_ROUGH'] },
+                             ultra: null, master: null } },
+    cpm: require('../data/cpm.json'),
+    moves: { BUBBLE: { namePt: 'Bolha' }, ICE_BEAM: { namePt: 'Raio Congelante' },
+             PLAY_ROUGH: { namePt: 'Jogo Duro' } },
+  };
+  const fd = { z: { mon_name:'Azumarill', mon_number:184, mon_cp:1498, mon_attack:0, mon_defence:15, mon_stamina:15,
+                    mon_height:0.5, mon_isShiny:'NO', mon_isLucky:'NO', mon_move_1:'Bolha', mon_move_2:'Raio Congelante' } };
+  const e = analyze(fd, getPokemonSize, refdata, getPokemonSizeScalar, meta)[0];
+  assert.deepStrictEqual(e.pvpMeta.great.movesetView, [
+    { name: 'Bolha', has: true },
+    { name: 'Raio Congelante', has: true },
+    { name: 'Jogo Duro', has: false },
+  ]);
+  assert.strictEqual(e.pvpMeta.ultra.movesetView, null);   // liga fora do meta → null
+});
+
+test('analyze: anexa movesetView no pveMeta e passa meta ao computeAction', () => {
+  const { buildSpeciesIndex } = require('../lib/meta/match.js');
+  const meta = {
+    speciesIndex: buildSpeciesIndex(require('../data/species.json')),
+    movesPt: { 'palmada': 'COUNTER' },
+    pveRanks: { machamp: { roles: ['raid','pve'], bestType: 'fighting',
+      bestMoveset: ['COUNTER','CROSS_CHOP'],
+      byType: { fighting: { dps: 18, tdo: 500, er: 50, dpsRank: 3, erRank: 3, moveset: ['COUNTER','CROSS_CHOP'] } },
+      defBulkRank: 999 } },
+    moves: { COUNTER: { namePt: 'Contra-ataque' }, CROSS_CHOP: { namePt: 'Golpe Cruzado' } },
+  };
+  const fd = { s: { mon_name:'Machamp', mon_number:68, mon_cp:1500, mon_attack:15, mon_defence:15, mon_stamina:14,
+                    mon_height:1.6, mon_isShiny:'NO', mon_isLucky:'NO', mon_move_1:'Palmada' } };
+  const e = analyze(fd, getPokemonSize, refdata, getPokemonSizeScalar, meta)[0];
+  assert.deepStrictEqual(e.pveMeta.movesetView, [
+    { name: 'Contra-ataque', has: true },
+    { name: 'Golpe Cruzado', has: false },
+  ]);
+  // analyze repassa meta → a razão da ação sai com nome PT. Não asserimos o kind:
+  // hoje CROSS_CHOP não é elite do Machamp (→ ENSINAR_TM), mas se o upstream mudar
+  // isso vira AGUARDAR_EVENTO — e a razão dele também nomeia o golpe em PT.
+  assert.match(e.action.reason, /Golpe Cruzado/);
 });
