@@ -11,16 +11,17 @@
 
   async function loadMeta() {
     try {
-      const [species, movesPt, pvpRanks, cpm, pveRanks] = await Promise.all([
+      const [species, movesPt, pvpRanks, cpm, pveRanks, moves] = await Promise.all([
         fetch('./data/species.json').then(r => r.ok ? r.json() : null),
         fetch('./data/moves_pt.json').then(r => r.ok ? r.json() : null),
         fetch('./data/pvp_ranks.json').then(r => r.ok ? r.json() : null),
         fetch('./data/cpm.json').then(r => r.ok ? r.json() : null),
         fetch('./data/pve_ranks.json').then(r => r.ok ? r.json() : null),
+        fetch('./data/moves.json').then(r => r.ok ? r.json() : null),
       ]);
       if (!species || !movesPt) return null;
       return { speciesIndex: buildSpeciesIndex(species), movesPt,
-               pvpRanks: pvpRanks || null, cpm: cpm || null, pveRanks: pveRanks || null };
+               pvpRanks: pvpRanks || null, cpm: cpm || null, pveRanks: pveRanks || null, moves: moves || null };
     } catch (e) { console.warn('meta indisponível:', e); return null; }
   }
 
@@ -66,6 +67,7 @@
       ['pvp_master', '⚔️ Mestre ' + c.pvpMaster,  e => e.tags.includes('pvp_master')],
       ['raid',    '🔥 Raid ' + c.raid,           e => e.tags.includes('raid')],
       ['gym_def', '🛡️ Def. Ginásio ' + c.gymDef, e => e.tags.includes('gym_def')],
+      ['rocket',  '🚀 Rocket ' + c.rocket,    e => e.tags.includes('rocket')],
     ];
     const wrap = document.getElementById('chips');
     wrap.innerHTML = '';
