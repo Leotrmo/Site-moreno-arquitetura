@@ -106,7 +106,11 @@
     if (state.verdict) rows = rows.filter(e => e.verdict === state.verdict);
     if (state.special && state._specialFns[state.special]) rows = rows.filter(state._specialFns[state.special]);
     if (state.query) rows = rows.filter(e => e.name.toLowerCase().includes(state.query));
-    rows = rows.slice().sort(getSorter(state.sort));
+    // Com um chip competitivo ranqueável ativo, ordena pelo rank daquela dimensão (melhor primeiro).
+    const sorter = (state.special && COMP_RANK_KEYS.includes(state.special))
+      ? competitiveRankSorter(state.special)
+      : getSorter(state.sort);
+    rows = rows.slice().sort(sorter);
 
     const list = document.getElementById('list');
     list.innerHTML = rows.map(cardHtml).join('');
