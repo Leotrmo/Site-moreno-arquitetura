@@ -191,3 +191,34 @@ test('analyze SEM meta: e.pveMeta null, sem tags PvE (não-regressão)', () => {
   assert.strictEqual(e.pveMeta, null);
   assert.ok(!e.tags.some(t => ['raid','pve','gym_atk','gym_def'].includes(t)));
 });
+
+// --- Fase 3: tag rocket (moveset de spam, runtime via meta.moves) ---
+function metaRocket() {
+  return {
+    speciesIndex: buildSpeciesIndex(require('../data/species.json')),
+    movesPt: { 'tiro de lama': 'MUD_SHOT', 'borda rochosa': 'ROCK_SLIDE' },
+    moves: {
+      MUD_SHOT:   { type: 'ground', kind: 'fast',   pvp: { power: 3,  energy: 4 } },
+      ROCK_SLIDE: { type: 'rock',   kind: 'charge', pvp: { power: 75, energy: 45 } }, // 45/4 = 11.25 <= 12
+    },
+  };
+}
+
+test('analyze: mon com moveset de spam recebe e.isRocketReady=true e tag rocket', () => {
+  // Golem #76: Tiro de Lama + Borda Rochosa
+  const fd = { r: { mon_name:'Golem', mon_number:76, mon_cp:2000, mon_attack:10, mon_defence:10, mon_stamina:10,
+                    mon_height:1.4, mon_isShiny:'NO', mon_isLucky:'NO',
+                    mon_move_1:'Tiro de Lama', mon_move_2:'Borda Rochosa' } };
+  const e = analyze(fd, getPokemonSize, refdata, getPokemonSizeScalar, metaRocket())[0];
+  assert.strictEqual(e.isRocketReady, true);
+  assert.ok(e.tags.includes('rocket'));
+});
+
+test('analyze: sem meta.moves → isRocketReady=false e sem tag rocket (não-regressão)', () => {
+  const fd = { r: { mon_name:'Golem', mon_number:76, mon_cp:2000, mon_attack:10, mon_defence:10, mon_stamina:10,
+                    mon_height:1.4, mon_isShiny:'NO', mon_isLucky:'NO',
+                    mon_move_1:'Tiro de Lama', mon_move_2:'Borda Rochosa' } };
+  const e = analyze(fd, getPokemonSize, refdata, getPokemonSizeScalar)[0]; // sem meta
+  assert.strictEqual(e.isRocketReady, false);
+  assert.ok(!e.tags.includes('rocket'));
+});

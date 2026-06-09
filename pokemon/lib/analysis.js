@@ -123,6 +123,7 @@
       // ATENÇÃO: chamar de pvpMeta, não pvp — pvp já existe (mon_pvp_stats).
       pvpMeta: null,
       pveMeta: null,
+      isRocketReady: false,
       action: null,
     };
   }
@@ -258,6 +259,7 @@
     if (e.isRegional) tags.push('REGIONAL');
     if (e.pvpMeta && PokePvp) for (const t of PokePvp.pvpTags(e.pvpMeta, e.ivPct)) tags.push(t);
     if (e.pveMeta && PokePve) for (const t of PokePve.pveTags(e.pveMeta)) tags.push(t);
+    if (e.isRocketReady) tags.push('rocket');
     return tags;
   }
 
@@ -266,6 +268,8 @@
     for (const e of list) {
       e.pvpMeta = (meta && meta.cpm && meta.pvpRanks && PokePvp) ? PokePvp.evalMon(e, meta) : null;
       e.pveMeta = (meta && meta.pveRanks && PokePve) ? PokePve.evalMon(e, meta) : null;
+      e.isRocketReady = (meta && meta.moves && PokePve)
+        ? PokePve.rocketSpam(e.moveIds, meta.moves) : false;
       e.tags = computeTags(e);
       e.action = computeAction(e);
       const v = computeVerdict(e);
@@ -280,7 +284,7 @@
     const c = { total: list.length, INVESTIR:0, MANTER:0, TRANSFERIR:0,
                 hundos:0, shinies:0, shadows:0, purified:0, extremeSizes:0, legendaries:0, luckies:0, tradeBoost:0,
                 pvpGreat:0, pvpUltra:0, pvpMaster:0,
-                raid:0, pve:0, gymAtk:0, gymDef:0 };
+                raid:0, pve:0, gymAtk:0, gymDef:0, rocket:0 };
     for (const e of list) {
       c[e.verdict]++;
       if (e.isHundo) c.hundos++;
@@ -298,6 +302,7 @@
       if (e.tags.includes('pve'))     c.pve++;
       if (e.tags.includes('gym_atk')) c.gymAtk++;
       if (e.tags.includes('gym_def')) c.gymDef++;
+      if (e.tags.includes('rocket')) c.rocket++;
     }
     return c;
   }
