@@ -255,3 +255,11 @@ test('badgesHtml: sem tag rocket → sem 🚀 (não-regressão)', () => {
   const html = badgesHtml(pveStub({ tags: [] }));
   assert.doesNotMatch(html, /🚀/);
 });
+
+test('cardHtml: ícone da ação por kind (🚀 AGUARDAR_ROCKET, 🗓️ AGUARDAR_EVENTO, 🔁 TROCAR)', () => {
+  assert.match(cardHtml(pvpStub({ action: { kind:'AGUARDAR_ROCKET', reason:'Aguardar Rocket — x' } })), /🚀/);
+  assert.match(cardHtml(pvpStub({ action: { kind:'AGUARDAR_EVENTO', reason:'Aguardar Evento — x' } })), /🗓️/);
+  assert.match(cardHtml(pvpStub({ action: { kind:'TROCAR', reason:'Trocar — x' } })), /🔁/);
+  // combate mantém ⚔️
+  assert.match(cardHtml(pvpStub({ action: { kind:'FORTALECER', reason:'Fortalecer — x' } })), /⚔️/);
+});

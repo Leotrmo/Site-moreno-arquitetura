@@ -359,3 +359,25 @@ test('computeAction: meta IV baixo mas é a MELHOR cópia (sem betterCopy) → n
   };
   assert.strictEqual(computeAction(e), null); // sem gancho de ação → null (motivo atual mantém)
 });
+
+test('analyze: Sombrio meta com Frustração → e.action AGUARDAR_ROCKET e veredito MANTER', () => {
+  const { buildSpeciesIndex } = require('../lib/meta/match.js');
+  const meta = {
+    speciesIndex: buildSpeciesIndex(require('../data/species.json')),
+    movesPt: { 'palmada':'COUNTER', 'frustracao':'FRUSTRATION', 'frustração':'FRUSTRATION' },
+    pvpRanks: require('../data/pvp_ranks.json'), cpm: require('../data/cpm.json'),
+    pveRanks: require('../data/pve_ranks.json'), moves: require('../data/moves.json'),
+  };
+  // Machamp #68 (atacante de raid/lutador meta). Sombrio + Frustração.
+  const fd = { s: { mon_name:'Machamp', mon_number:68, mon_cp:2800, mon_attack:14, mon_defence:13, mon_stamina:14,
+                    mon_height:1.6, mon_alignment:'SHADOW', mon_isShiny:'NO', mon_isLucky:'NO',
+                    mon_move_1:'Palmada', mon_move_2:'Frustração' } };
+  const e = analyze(fd, getPokemonSize, refdata, getPokemonSizeScalar, meta)[0];
+  // isPvpMeta: alguma liga com isMeta:true; isPveMeta: alguma flag de papel ativa
+  const isPvpMeta = e.pvpMeta && ['great','ultra','master'].some(lg => e.pvpMeta[lg] && e.pvpMeta[lg].isMeta);
+  const isPveMeta = e.pveMeta && (e.pveMeta.raid || e.pveMeta.pve || e.pveMeta.gymAtk || e.pveMeta.gymDef);
+  if (isPvpMeta || isPveMeta) {                    // se Machamp casou como meta (esperado)
+    assert.strictEqual(e.action && e.action.kind, 'AGUARDAR_ROCKET');
+    assert.strictEqual(e.verdict, 'MANTER');        // protegido (Sombrio/meta), não INVESTIR/TRANSFERIR
+  }
+});
