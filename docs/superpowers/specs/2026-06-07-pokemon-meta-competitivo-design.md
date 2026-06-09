@@ -56,7 +56,7 @@ BUILD-TIME (GitHub Action: agendada + dispatch manual)
     3. baixa localização PT-BR (PokeMiners) → mapa golpe-PT → moveId
     4. CALCULA DPS/TDO/ER por espécie+moveset → ranking por tipo
     → emite (commitados):
-       pokemon/data/species.json    (dex+forma → speciesId, baseStats, tipos, família, legacyMoves, shadowEligible)
+       pokemon/data/species.json    (dex+forma → speciesId, baseStats, tipos, família, eliteMoves, shadowEligible)
        pokemon/data/moves.json      (moveId → stats PvP/PvE)
        pokemon/data/moves_pt.json   (nome-PT normalizado → moveId)
        pokemon/data/pvp_ranks.json  (speciesId → rank/score/moveset por liga)
@@ -86,7 +86,7 @@ RUNTIME (navegador, estático, offline-friendly)
 
 | Arquivo | Chave | Conteúdo |
 |---|---|---|
-| `species.json` | `dex` (+ forma) → `speciesId` | `{ baseStats:{atk,def,hp}, types:[..], family, evolvesTo:[..], legacyMoves:[..], shadowEligible }` |
+| `species.json` | `dex` (+ forma) → `speciesId` | `{ baseStats:{atk,def,hp}, types:[..], family, evolvesTo:[..], eliteMoves:[..], shadowEligible }` |
 | `moves.json` | `moveId` | `{ type, kind:"fast"\|"charge", pve:{power,energy,duration}, pvp:{power,energy} }` |
 | `moves_pt.json` | nome-PT **normalizado** | `moveId` |
 | `pvp_ranks.json` | `speciesId` | `{ great:{rank,score,moveset:[..]}, ultra:{..}, master:{..} }` |
@@ -179,7 +179,7 @@ Tudo calculado do Game Master (ver desvio consciente, §4).
 | **Fortalecer / Evoluir** | INVESTIR | meta-relevante (PvP ou PvE) + IV certo pro papel + moveset ok |
 | **Ensinar / TM** | INVESTIR | meta-relevante + IV certo, mas `movesetOk = false` |
 | **Aguardar Rocket** | MANTER | `isShadow` + meta-relevante + tem **"Frustração"** nos golpes |
-| **Aguardar Evento** | MANTER | meta-relevante mas moveset ótimo exige **golpe legado** (`legacyMoves`) |
+| **Aguardar Evento** | MANTER | meta-relevante mas moveset ótimo exige **golpe legado/Elite TM** (`eliteMoves`) |
 | **Trocar (Lucky/reroll)** | MANTER | espécie meta + **IV baixo** (reroll), **ou** shiny duplicado p/ lucky trade |
 | **Transferir** | TRANSFERIR | nada acima — regra atual (duplicata pior, IV < 80%, nada especial) |
 
@@ -228,7 +228,7 @@ Cada fase é commitável, testável (`node --test`) e não regride a anterior.
 - **Fase 1 — PvP por liga.** `lib/meta/pvp.js` (rank de IV + meta), tags `pvp_*`, ações Fortalecer/Ensinar-TM, chips ⚔️, bloco competitivo no detalhe.
 - **Fase 2 — PvE.** `lib/meta/pve.js` (DPS/TDO/ER no build), tags `raid`/`pve`/`gym_atk`/`gym_def`, chips 🔥🛡️.
 - **Fase 3 — Rocket + eventos.** tag `rocket`, ações Aguardar Rocket (Frustração), Aguardar Evento (legado), Trocar/Reroll (lucky).
-- **Fase 4 — Polimento.** Ajuste de limiares, ordenação por rank, textos de justificativa, relatório de cobertura PT.
+- **Fase 4 — Polimento.** Calibração de limiares (PvP/Rocket), Sombrio correto (build + casamento), filtro de formas, ordenação por rank, justificativas rastreáveis, limpezas. Detalhe concreto em **§14** (decisões de 2026-06-09).
 
 ## 12. Critérios de sucesso
 
@@ -247,3 +247,63 @@ Cada fase é commitável, testável (`node --test`) e não regride a anterior.
 - **DPS/TDO é estimativa** → rotulado como tal; não promete simulação por chefe.
 - **Perf no celular** → memoização por `(speciesId, liga)`; pré-cálculo no build só se medir necessidade.
 - **Licenciamento do Game Master** → mirrors abertos da comunidade; uso pessoal.
+
+---
+
+## 14. Fase 4 — Decisões de polimento (2026-06-09)
+
+Detalhamento concreto da Fase 4, aprovado em brainstorming com Leo. Tudo aditivo e não-regressivo; nenhuma mudança no fluxo de "trocar `colecao.json`".
+
+### 14.1 Achado que orienta o design (Sombrio + formas)
+
+Auditoria do código revelou que **as 534 entradas `_shadow` e as Megas em `pve_ranks.json` são hoje peso morto**:
+- `lib/meta/match.js` **não casa Sombrio** — um Sombrio da coleção casa com a forma-base (`charizard`), nunca com `charizard_shadow`. As entradas `_shadow` nunca são consultadas em runtime.
+- O build **não aplica multiplicador Sombrio** — `charizard` e `charizard_shadow` têm os mesmos `baseStats` e recebem **ER idêntico**. As entradas `_shadow` são duplicatas que **incham o pool de ranking e soterram as formas-base** (as únicas consultadas).
+- O runtime **não dá bônus de DPS a Sombrio**.
+
+Conclusão: os itens "bônus Sombrio no DPS", "filtro de formas não-obtíveis" e "como Sombrio casa" são **um problema só** e são resolvidos juntos.
+
+### 14.2 Calibração / precisão
+
+- **PvP — afrouxar (decisão: "shortlist útil").** Mantém o portão "espécie é meta" (Top-N da liga). **Afrouxa o portão de IV** (hoje `spPct ≥ 0.99` ou `ivRank ≤ 50/4096`, que só deixa passar o Gyarados hundo). Calibração **empírica** contra a coleção real (~592 mons), igual à do Rocket na Fase 3: ajustar `THRESHOLDS.great/ultra` (e revisar `master`) para surgir uma **shortlist acionável de ~15-30 picks** de "vale investir pra PvP". Números finais determinados na implementação, verificados contra a coleção; documentados em código + memória.
+- **Sombrio correto (build + casamento).**
+  - **Build:** `transform.buildPveRanks` aplica os multiplicadores Sombrio ao calcular DPS/TDO/ER das entradas `_shadow` — **1.2× no ataque** (afeta dano/DPS) e a **penalidade de bulk** no TDO (Sombrio toma 1.2× de dano ⇒ ~0.8333× efetivo em bulk). As entradas `_shadow` passam a ter rank **real** (melhor que a base no DPS), competindo corretamente no pool.
+  - **Casamento:** `lib/meta/match.js` passa a anexar o sufixo `_shadow` ao `speciesId` quando o mon é Sombrio **e** existe a entrada `_shadow` correspondente, com **degradação graciosa** (sem entrada `_shadow` → cai na base, como hoje). Assim o Sombrio do Leo herda o rank com bônus e ganha crédito de Raid corretamente.
+- **Rocket — duração real do golpe.** `moves.json` passa a guardar a **duração PvP em turnos** do golpe rápido (do Game Master). `PokePve.rocketSpam` calcula os **turnos reais para carregar** (custo do carregado mais barato ÷ energia-por-turno do rápido, considerando a duração) em vez da aproximação atual por energia-por-ativação. Recalibrar `ROCKET_SPAM_TURNS` contra a coleção (alvo: shortlist ~das dezenas, não a coleção inteira).
+
+### 14.3 Filtro de formas (pool de ranking PvE)
+
+Decisão (Leo delegou; escolha alinhada a "shortlist útil"): o pool de ranking de `buildPveRanks` passa a ser **base + regional + Sombrio (com bônus)**.
+- **Remove Megas** (`_mega`, `_mega_x`, `_mega_y`, `_primal`): estado **temporário**, gated por Mega Energy, e **nenhuma cópia da coleção casa** com `_mega`. Mantê-las só soterra atacantes permanentes.
+- **Remove formas-fantasma** não-obteníveis (entradas da fonte que não existem como Pokémon jogável). Sinal data-driven via `tags`/flags do gamemaster PvPoke; a lista exata de tags a excluir é **confirmada na implementação** inspecionando os valores distintos no build (validação defensiva: se a flag sumir do schema, falhar alto).
+- **Mantém Sombrio** no pool — agora é casado (14.2) e genuinamente melhor.
+
+Efeito: ranks de Raid/Ginásio passam a refletir formas **permanentemente obteníveis**, com Sombrio corretamente no topo.
+
+### 14.4 Ordenação por rank
+
+- **Runtime (UI):** com um chip competitivo ativo (⚔️ Grande/Ultra/Mestre, 🔥 Raid, 🛡️ Def. Ginásio), a lista **reordena pelo rank daquela dimensão** (melhor primeiro), com **desempate determinístico**: rank → IV% → nome. Sem chip competitivo ativo, mantém a ordenação atual (veredito → IV). Reusa a engine de filtros/ordenação do `app.js`; busca/modo-transferir/contadores **não mudam**.
+- **Build:** dar **desempate determinístico** aos sorts de ranking de `buildPvpRanks`/`buildPveRanks` (ex.: `speciesId` como critério secundário) para rebuilds serem byte-estáveis.
+
+### 14.5 Textos de justificativa rastreáveis
+
+Cada mon com ação de meta mostra uma **frase rastreável** no card (refina os motivos genéricos de hoje), por tipo de ação — modelos no espírito de §9:
+- *"Fortalecer p/ Grande — Medicham Top 20 da espécie, seu IV rank 12/4096 (99,4%)"*
+- *"Ensinar TM — falta 'Contra-ataque' (recomendado p/ Grande)"*
+- *"Aguardar Rocket — Sombrio meta com Frustração; espera evento p/ TM"*
+- *"Aguardar Evento — moveset ótimo exige golpe Elite TM"*
+- *"Trocar — duplicata pior / IV baixo p/ reroll"*
+
+A justificativa é montada do que o motor já calcula (rank da espécie, ivRank/spPct, moveset recomendado vs. o seu). `render.js` exibe; `analysis.js`/motor expõem os campos necessários.
+
+### 14.6 Limpezas técnicas
+
+- **`TYPE_PT` duplicado** entre `analysis.js` e `render.js` → extrair para módulo compartilhado (ex.: `refdata.js`) e importar nos dois. Sem mudança de comportamento.
+- **Spec `legacyMoves` → `eliteMoves`** → corrigido neste documento (§5, §6.1, §9). O campo real em `species.json` sempre foi `eliteMoves`.
+
+### 14.7 Invariantes preservados
+
+- Nenhum mon meta-relevante sugerido para Transferir (§12.2).
+- Camada puramente aditiva: mon sem gancho de meta passa pelo fluxo atual.
+- `node --test` 100% verde, incluindo casos-pivô (os dois Xatus, Chansey gym_def, Gyarados pvp).
+- Datasets regenerados só pela Action; site segue estático e offline-friendly.
