@@ -70,3 +70,36 @@ test('nome: empate de nome desempata por maior IV', () => {
   list.sort(getSorter('nome'));
   assert.deepStrictEqual(list.map(m => m.ivPct), [90, 60]);
 });
+
+const { rankFor, competitiveRankSorter, COMP_RANK_KEYS } = require('../lib/sort.js');
+
+const mkPvp = (ivRank) => ({ great: { isMeta: true, ivRank }, ultra: { isMeta: false }, master: { isMeta: false } });
+
+test('rankFor: pvp usa ivRank; ausente → Infinity', () => {
+  assert.strictEqual(rankFor({ pvpMeta: mkPvp(12) }, 'pvp_great'), 12);
+  assert.strictEqual(rankFor({ pvpMeta: null }, 'pvp_great'), Infinity);
+});
+
+test('rankFor: raid usa o menor erRank entre os tipos', () => {
+  const e = { pveMeta: { byType: { ice: { erRank: 9 }, water: { erRank: 4 } } } };
+  assert.strictEqual(rankFor(e, 'raid'), 4);
+});
+
+test('rankFor: gym_def usa defBulkRank', () => {
+  assert.strictEqual(rankFor({ pveMeta: { defBulkRank: 2 } }, 'gym_def'), 2);
+});
+
+test('competitiveRankSorter: ordena por rank asc, desempata por IV% e nome', () => {
+  const a = { name: 'Azu', ivPct: 90, pvpMeta: mkPvp(40) };
+  const b = { name: 'Bel', ivPct: 95, pvpMeta: mkPvp(10) };
+  const c = { name: 'Cce', ivPct: 80, pvpMeta: mkPvp(10) };
+  const sorted = [a, b, c].slice().sort(competitiveRankSorter('pvp_great'));
+  assert.deepStrictEqual(sorted.map(x => x.name), ['Bel', 'Cce', 'Azu']); // rank 10 antes de 40; IV 95 antes de 80
+});
+
+test('COMP_RANK_KEYS lista as dimensões ranqueáveis', () => {
+  assert.ok(COMP_RANK_KEYS.includes('pvp_great'));
+  assert.ok(COMP_RANK_KEYS.includes('raid'));
+  assert.ok(COMP_RANK_KEYS.includes('gym_def'));
+  assert.ok(!COMP_RANK_KEYS.includes('rocket')); // rocket não tem rank
+});
