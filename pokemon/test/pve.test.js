@@ -124,3 +124,38 @@ test('pveTags: deriva raid/pve/gym_atk/gym_def', () => {
     ['gym_def', 'pve', 'raid']);
   assert.deepStrictEqual(pveTags(null), []);
 });
+
+const { rocketSpam, ROCKET_SPAM_TURNS } = require('../lib/meta/pve.js');
+
+// movesById sintético: rápido forte (4 energia/turno) + carregado barato (35) e caro (60).
+const rkMoves = {
+  MUD_SHOT:    { type: 'ground', kind: 'fast',   pvp: { power: 3,  energy: 4 } },
+  WEAK_FAST:   { type: 'normal', kind: 'fast',   pvp: { power: 5,  energy: 2 } },
+  CHEAP_CHG:   { type: 'rock',   kind: 'charge', pvp: { power: 50, energy: 35 } },
+  PRICEY_CHG:  { type: 'rock',   kind: 'charge', pvp: { power: 110,energy: 60 } },
+};
+
+test('rocketSpam: rápido forte + carregado barato → true (35/4 = 8.75 <= 12)', () => {
+  assert.strictEqual(rocketSpam(['MUD_SHOT', 'CHEAP_CHG'], rkMoves), true);
+});
+
+test('rocketSpam: rápido fraco + carregado caro → false (60/2 = 30 > 12)', () => {
+  assert.strictEqual(rocketSpam(['WEAK_FAST', 'PRICEY_CHG'], rkMoves), false);
+});
+
+test('rocketSpam: usa o carregado MAIS BARATO e o rápido MAIS FORTE disponíveis', () => {
+  // tem os dois carregados; o barato (35) manda → 35/4 = 8.75 <= 12 → true
+  assert.strictEqual(rocketSpam(['MUD_SHOT', 'CHEAP_CHG', 'PRICEY_CHG'], rkMoves), true);
+});
+
+test('rocketSpam: degrada gracioso (sem moves, sem movesById, só rápido, id desconhecido)', () => {
+  assert.strictEqual(rocketSpam([], rkMoves), false);
+  assert.strictEqual(rocketSpam(['MUD_SHOT'], null), false);
+  assert.strictEqual(rocketSpam(['MUD_SHOT'], rkMoves), false);        // sem carregado
+  assert.strictEqual(rocketSpam(['CHEAP_CHG'], rkMoves), false);       // sem rápido
+  assert.strictEqual(rocketSpam(['ZZZ_UNKNOWN'], rkMoves), false);     // id fora do movesById
+});
+
+test('ROCKET_SPAM_TURNS é o limiar configurável (padrão 12)', () => {
+  assert.strictEqual(ROCKET_SPAM_TURNS, 12);
+});
