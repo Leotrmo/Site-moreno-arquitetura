@@ -284,23 +284,42 @@
     return !!(e.isShadow && (e.moveIds || []).indexOf('FRUSTRATION') >= 0);
   }
 
+  // Trocar/Reroll: só faz sentido em duplicata pior (você tem uma cópia melhor da espécie).
+  function _trocaAction(e) {
+    if (!e.betterCopy) return null;
+    if (e.isShiny) {
+      return { kind: 'TROCAR', reason: 'Trocar shiny duplicado p/ Lucky (Melhor Amigo)' };
+    }
+    if ((isPvpMeta(e) || isPveMeta(e)) && e.ivPct < 80) {
+      return { kind: 'TROCAR',
+        reason: 'Trocar p/ reroll de IV — espécie meta, cópia fraca (IV ' + e.ivPct + '%)' };
+    }
+    return null;
+  }
+
   function computeAction(e) {
     // P1 (Fase 3): Sombrio meta com Frustração → aguardar evento Rocket (pré-empta Fortalecer).
     if ((isPvpMeta(e) || isPveMeta(e)) && _isShadowFrustration(e)) {
       return { kind: 'AGUARDAR_ROCKET',
         reason: 'Aguardar Rocket — Sombrio com Frustração; troque o golpe em evento (Charged TM)' };
     }
+    // P2–P4: gancho de moveset (PvP tem prioridade; senão PvE) → Fortalecer / Aguardar Evento / Ensinar-TM.
     const lg = _bestPvpLeague(e);
-    if (!lg || !e.pvpMeta) return _pveAction(e);   // sem ação PvP → tenta PvE
-    const L = e.pvpMeta[lg];
-    const ligaPt = LEAGUE_PT[lg];
-    const ivInfo = 'IV PvP ' + Math.round(L.spPct * 100) + '% (rank ' + L.ivRank + '/4096)';
-    if (L.movesetOk) {
-      return { kind: 'FORTALECER', league: lg,
-        reason: 'Fortalecer p/ ' + ligaPt + ' — rank ' + L.speciesRank + ' da espécie, seu ' + ivInfo };
+    if (lg && e.pvpMeta) {
+      const L = e.pvpMeta[lg];
+      const ligaPt = LEAGUE_PT[lg];
+      const ivInfo = 'IV PvP ' + Math.round(L.spPct * 100) + '% (rank ' + L.ivRank + '/4096)';
+      if (L.movesetOk) {
+        return { kind: 'FORTALECER', league: lg,
+          reason: 'Fortalecer p/ ' + ligaPt + ' — rank ' + L.speciesRank + ' da espécie, seu ' + ivInfo };
+      }
+      return _notReadyAction(e,
+        'Ensinar/TM p/ ' + ligaPt + ' — Top ' + L.speciesRank + ', falta o moveset recomendado');
     }
-    return _notReadyAction(e,
-      'Ensinar/TM p/ ' + ligaPt + ' — Top ' + L.speciesRank + ', falta o moveset recomendado');
+    const pve = _pveAction(e);
+    if (pve) return pve;
+    // P5: Trocar/Reroll (duplicata pior: shiny lucky ou meta IV baixo).
+    return _trocaAction(e);
   }
 
   function computeTags(e) {

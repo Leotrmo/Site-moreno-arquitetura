@@ -325,3 +325,37 @@ test('computeAction: PvE raid, bestMoveset exige golpe legado que falta → AGUA
   };
   assert.strictEqual(computeAction(e).kind, 'AGUARDAR_EVENTO');
 });
+
+// ---------------------------------------------------------------------------
+// Fase 3 — TROCAR (reroll de IV meta / shiny duplicado p/ Lucky)
+// ---------------------------------------------------------------------------
+
+test('computeAction: duplicata pior meta com IV baixo → TROCAR (reroll)', () => {
+  const e = {
+    isShadow: false, isShiny: false, ivPct: 60, betterCopy: { id: 'best' },
+    moveIds: ['BUBBLE'], eliteMoves: [], tags: ['pve'], pvpMeta: null,
+    pveMeta: { raid: false, pve: true, gymAtk: false, gymDef: false, movesetOk: false, bestMoveset: null, byType: {} },
+  };
+  const a = computeAction(e);
+  assert.strictEqual(a.kind, 'TROCAR');
+  assert.match(a.reason, /reroll|IV/i);
+});
+
+test('computeAction: shiny duplicado (pior) → TROCAR (lucky), mesmo sem meta', () => {
+  const e = {
+    isShadow: false, isShiny: true, ivPct: 70, betterCopy: { id: 'best' },
+    moveIds: [], eliteMoves: [], tags: [], pvpMeta: null, pveMeta: null,
+  };
+  const a = computeAction(e);
+  assert.strictEqual(a.kind, 'TROCAR');
+  assert.match(a.reason, /[Ll]ucky|shiny/);
+});
+
+test('computeAction: meta IV baixo mas é a MELHOR cópia (sem betterCopy) → não TROCAR', () => {
+  const e = {
+    isShadow: false, isShiny: false, ivPct: 60, betterCopy: null,
+    moveIds: ['BUBBLE'], eliteMoves: [], tags: ['pve'], pvpMeta: null,
+    pveMeta: { raid: false, pve: true, gymAtk: false, gymDef: false, movesetOk: false, bestMoveset: null, byType: {} },
+  };
+  assert.strictEqual(computeAction(e), null); // sem gancho de ação → null (motivo atual mantém)
+});
