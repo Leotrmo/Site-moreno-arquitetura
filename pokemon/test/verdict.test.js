@@ -466,3 +466,39 @@ test('analyze (e2e): Sombrio raid-meta com Frustração → AGUARDAR_ROCKET + MA
   assert.strictEqual(e.action && e.action.kind, 'AGUARDAR_ROCKET'); // pré-empta Fortalecer
   assert.strictEqual(e.verdict, 'MANTER');                          // protegido (Sombrio), não INVESTIR/TRANSFERIR
 });
+
+// ---------------------------------------------------------------------------
+// Task 4 — PvE: razão ENSINAR_TM nomeia golpes faltantes
+// ---------------------------------------------------------------------------
+
+test('computeAction: ENSINAR_TM PvE sem nenhum golpe → "faltam X e Y" em PT', () => {
+  const e = pveRaider({
+    moveIds: [],
+    pveMeta: Object.assign(pveRaider().pveMeta, { movesetOk: false }),
+  });
+  const meta = { moves: { ICE_SHARD: { namePt: 'Lança de Gelo' }, AVALANCHE: { namePt: 'Avalanche' } } };
+  const a = computeAction(e, meta);
+  assert.strictEqual(a.kind, 'ENSINAR_TM');
+  assert.match(a.reason, /faltam Lança de Gelo e Avalanche/);
+  assert.match(a.reason, /estimativa/);
+});
+
+test('computeAction: ENSINAR_TM PvE com o rápido → "falta Avalanche" (singular)', () => {
+  const e = pveRaider({
+    moveIds: ['ICE_SHARD'],
+    pveMeta: Object.assign(pveRaider().pveMeta, { movesetOk: false }),
+  });
+  const meta = { moves: { ICE_SHARD: { namePt: 'Lança de Gelo' }, AVALANCHE: { namePt: 'Avalanche' } } };
+  const a = computeAction(e, meta);
+  assert.match(a.reason, /falta Avalanche/);
+  assert.doesNotMatch(a.reason, /faltam/);
+});
+
+test('computeAction: ENSINAR_TM PvE sem bestMoveset → texto genérico (fallback)', () => {
+  const e = pveRaider({
+    pveMeta: Object.assign(pveRaider().pveMeta, { movesetOk: false, bestMoveset: null }),
+  });
+  const a = computeAction(e, { moves: {} });
+  assert.strictEqual(a.kind, 'ENSINAR_TM');
+  assert.match(a.reason, /falta o moveset de ataque/);
+});

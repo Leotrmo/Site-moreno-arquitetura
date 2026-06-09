@@ -227,7 +227,7 @@
   }
 
   // Ação a partir do papel de atacante PvE (raid > gym_atk). null se o mon não é atacante.
-  function _pveAction(e) {
+  function _pveAction(e, meta) {
     if (!e.pveMeta) return null;
     const role = e.pveMeta.raid ? 'raid' : (e.pveMeta.gymAtk ? 'gym_atk' : null);
     if (!role) return null;
@@ -239,8 +239,12 @@
       return { kind: 'FORTALECER', role: role,
         reason: 'Fortalecer p/ ' + papel + ' (' + tipo + ')' + rankTxt + ' (estimativa)' };
     }
+    // PvE exige os dois golpes do bestMoveset; lista os que faltam.
+    const mine = e.moveIds || [];
+    const missing = (e.pveMeta.bestMoveset || []).filter(function (id) { return mine.indexOf(id) < 0; });
     return _notReadyAction(e,
-      'Ensinar/TM p/ ' + papel + ' (' + tipo + ')' + rankTxt + ' — falta o moveset de ataque (estimativa)');
+      'Ensinar/TM p/ ' + papel + ' (' + tipo + ')' + rankTxt + ' — ' +
+      (missing.length ? _faltaTxt(missing, meta) : 'falta o moveset de ataque') + ' (estimativa)', meta);
   }
 
   // Humaniza um moveId p/ exibição: 'CLOSE_COMBAT' → 'Close Combat'.
