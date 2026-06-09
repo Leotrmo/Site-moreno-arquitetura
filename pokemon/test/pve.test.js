@@ -130,8 +130,8 @@ const { rocketSpam, ROCKET_SPAM_TURNS } = require('../lib/meta/pve.js');
 // movesById sintético. pvp.energy do rápido = energia por ATIVAÇÃO; do carregado = custo.
 // "ativaçõesParaCarregar" = custo do carregado mais barato / energia do rápido mais forte.
 const rkMoves = {
-  STRONG_FAST: { type: 'ground', kind: 'fast',   pvp: { power: 3,  energy: 12 } },
-  WEAK_FAST:   { type: 'normal', kind: 'fast',   pvp: { power: 5,  energy: 3 } },
+  STRONG_FAST: { type: 'ground', kind: 'fast',   pvp: { power: 3,  energy: 12, turns: 1 } },
+  WEAK_FAST:   { type: 'normal', kind: 'fast',   pvp: { power: 5,  energy: 3,  turns: 1 } },
   CHEAP_CHG:   { type: 'rock',   kind: 'charge', pvp: { power: 50, energy: 35 } },
   PRICEY_CHG:  { type: 'rock',   kind: 'charge', pvp: { power: 110,energy: 55 } },
 };
@@ -157,6 +157,97 @@ test('rocketSpam: degrada gracioso (sem moves, sem movesById, só rápido, id de
   assert.strictEqual(rocketSpam(['ZZZ_UNKNOWN'], rkMoves), false);     // id fora do movesById
 });
 
-test('ROCKET_SPAM_TURNS é o limiar configurável (padrão 4)', () => {
-  assert.strictEqual(ROCKET_SPAM_TURNS, 4);
+test('ROCKET_SPAM_TURNS é o limiar configurável (calibrado p/ 10)', () => {
+  assert.strictEqual(ROCKET_SPAM_TURNS, 10);
+});
+
+const { SHADOW_ATK_MULT } = require('../lib/meta/pve.js');
+
+test('cycleDps: Sombrio aplica 1.2x no ataque (DPS maior)', () => {
+  const base = { atk: 100, def: 100, hp: 100 };
+  const fast    = { type: 'fighting', pve: { power: 10, energy: 10, durationMs: 1000 } };
+  const charged = { type: 'fighting', pve: { power: 50, energy: 50, durationMs: 2000 } };
+  const normal = cycleDps(fast, charged, base, ['fighting']);
+  const shadow = cycleDps(fast, charged, base, ['fighting'], true);
+  assert.ok(shadow > normal, 'Sombrio tem DPS maior que a base');
+});
+
+test('tdoFor: Sombrio reduz o bulk (toma 1.2x de dano)', () => {
+  const base = { atk: 100, def: 100, hp: 100 };
+  assert.ok(tdoFor(10, base, true) < tdoFor(10, base, false), 'TDO Sombrio < TDO base');
+});
+
+test('bestMoveset: Sombrio supera a base de mesmos stats (ER maior)', () => {
+  const sp = { baseStats: { atk: 200, def: 120, hp: 140 }, types: ['ice'],
+               fastMoves: ['ICE_SHARD'], chargedMoves: ['AVALANCHE'] };
+  const movesById = {
+    ICE_SHARD: { type: 'ice', pve: { power: 12, energy: 12, durationMs: 1200 } },
+    AVALANCHE: { type: 'ice', pve: { power: 90, energy: 45, durationMs: 2700 } },
+  };
+  const baseBm   = bestMoveset(sp, movesById, false);
+  const shadowBm = bestMoveset(sp, movesById, true);
+  assert.ok(shadowBm.best.er > baseBm.best.er, 'ER Sombrio > ER base');
+});
+
+test('SHADOW_ATK_MULT exportado = 1.2', () => {
+  assert.strictEqual(SHADOW_ATK_MULT, 1.2);
+});
+
+const { evalMon: evalMonAlias } = require('../lib/meta/pve.js');
+
+test('evalMon: mon Sombrio usa a entrada _shadow quando existe', () => {
+  const meta = {
+    pveRanks: {
+      gengar:        { roles: [],            bestType: 'ghost', bestMoveset: ['SHADOW_CLAW','SHADOW_BALL'], byType: {}, defBulkRank: 900 },
+      gengar_shadow: { roles: ['raid','pve'], bestType: 'ghost', bestMoveset: ['SHADOW_CLAW','SHADOW_BALL'], byType: {}, defBulkRank: 900 },
+    },
+    speciesIndex: { byId: { gengar: { baseStats: { atk: 1, def: 1, hp: 1 } }, gengar_shadow: { baseStats: { atk: 1, def: 1, hp: 1 } } } },
+  };
+  const e = { speciesId: 'gengar', isShadow: true, ivs: { atk: 15, def: 15, sta: 15 }, moveIds: [] };
+  const r = evalMonAlias(e, meta);
+  assert.strictEqual(r.raid, true, 'pegou a role raid da entrada _shadow');
+});
+
+test('evalMon: mon NÃO Sombrio ignora a entrada _shadow (usa a base)', () => {
+  const meta = {
+    pveRanks: {
+      gengar:        { roles: [],            bestType: 'ghost', bestMoveset: null, byType: {}, defBulkRank: 900 },
+      gengar_shadow: { roles: ['raid','pve'], bestType: 'ghost', bestMoveset: null, byType: {}, defBulkRank: 900 },
+    },
+    speciesIndex: { byId: { gengar: { baseStats: { atk: 1, def: 1, hp: 1 } } } },
+  };
+  const e = { speciesId: 'gengar', isShadow: false, ivs: { atk: 15, def: 15, sta: 15 }, moveIds: [] };
+  const r = evalMonAlias(e, meta);
+  assert.strictEqual(r.raid, false, 'usou a base, sem role');
+});
+
+test('evalMon: expõe defBulkRank no retorno', () => {
+  const meta = {
+    pveRanks: { blissey: { roles: [], bestType: null, bestMoveset: null, byType: {}, defBulkRank: 2 } },
+    speciesIndex: { byId: { blissey: { baseStats: { atk: 60, def: 80, hp: 510 } } } },
+  };
+  const e = { speciesId: 'blissey', isShadow: false, ivs: { atk: 15, def: 15, sta: 15 }, moveIds: [] };
+  assert.strictEqual(evalMonAlias(e, meta).defBulkRank, 2);
+});
+
+test('rocketSpam: turnos do golpe rápido contam (2 turnos sobe o turnsToCharge)', () => {
+  // Mesmo rápido (energia 12) e carregado (70): a versão de 2 turnos passa do limiar (10), a de 1 turno não.
+  const slow2 = {
+    F: { type: 'ground', kind: 'fast',   pvp: { power: 3, energy: 12, turns: 2 } },  // 70/(12/2)=11.67 > 10
+    C: { type: 'rock',   kind: 'charge', pvp: { power: 90, energy: 70 } },
+  };
+  const fast1 = {
+    F: { type: 'ground', kind: 'fast',   pvp: { power: 3, energy: 12, turns: 1 } },  // 70/12=5.83 <= 10
+    C: { type: 'rock',   kind: 'charge', pvp: { power: 90, energy: 70 } },
+  };
+  assert.strictEqual(rocketSpam(['F', 'C'], slow2), false);
+  assert.strictEqual(rocketSpam(['F', 'C'], fast1), true);
+});
+
+test('rocketSpam: sem duração (turns ausente) usa ativações (fallback gracioso)', () => {
+  const noT = {
+    F: { type: 'x', kind: 'fast',   pvp: { power: 3, energy: 12 } },
+    C: { type: 'y', kind: 'charge', pvp: { power: 50, energy: 35 } },
+  };
+  assert.strictEqual(rocketSpam(['F', 'C'], noT), true);   // 35/12 = 2.92 <= 4
 });

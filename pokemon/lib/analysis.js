@@ -17,6 +17,9 @@
     ? require('./meta/pve.js')
     : (typeof globalThis !== 'undefined' ? globalThis.PokePve : null);
 
+  var TYPE_PT = ((typeof require === 'function')
+    ? require('./refdata.js') : (typeof globalThis !== 'undefined' ? globalThis : {})).TYPE_PT || {};
+
   function speciesScalar(getSizeScalar, mon) {
     if (typeof getSizeScalar !== 'function') return null;
     return getSizeScalar(mon.mon_number, mon.mon_height, mon.mon_form) || null;
@@ -223,11 +226,6 @@
     return null;
   }
 
-  const TYPE_PT = { normal:'Normal', fire:'Fogo', water:'Água', electric:'Elétrico', grass:'Planta',
-    ice:'Gelo', fighting:'Lutador', poison:'Venenoso', ground:'Terrestre', flying:'Voador',
-    psychic:'Psíquico', bug:'Inseto', rock:'Pedra', ghost:'Fantasma', dragon:'Dragão',
-    dark:'Sombrio', steel:'Aço', fairy:'Fada' };
-
   // Ação a partir do papel de atacante PvE (raid > gym_atk). null se o mon não é atacante.
   function _pveAction(e) {
     if (!e.pveMeta) return null;
@@ -235,12 +233,14 @@
     if (!role) return null;
     const tipo = TYPE_PT[e.pveMeta.bestType] || e.pveMeta.bestType || 'ataque';
     const papel = role === 'raid' ? 'Raid' : 'Ataque de Ginásio';
+    const bt = e.pveMeta.bestType && e.pveMeta.byType ? e.pveMeta.byType[e.pveMeta.bestType] : null;
+    const rankTxt = (bt && typeof bt.erRank === 'number') ? ' — Top ' + bt.erRank + ' atacante de ' + tipo : '';
     if (e.pveMeta.movesetOk) {
       return { kind: 'FORTALECER', role: role,
-        reason: 'Fortalecer p/ ' + papel + ' (' + tipo + ') — atacante recomendado (estimativa)' };
+        reason: 'Fortalecer p/ ' + papel + ' (' + tipo + ')' + rankTxt + ' (estimativa)' };
     }
     return _notReadyAction(e,
-      'Ensinar/TM p/ ' + papel + ' (' + tipo + ') — falta o moveset de ataque recomendado');
+      'Ensinar/TM p/ ' + papel + ' (' + tipo + ')' + rankTxt + ' — falta o moveset de ataque (estimativa)');
   }
 
   // Humaniza um moveId p/ exibição: 'CLOSE_COMBAT' → 'Close Combat'.

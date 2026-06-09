@@ -35,5 +35,33 @@
     return COMPARATORS[key] || COMPARATORS.recomendado;
   }
 
-  return { COMPARATORS, SORT_OPTIONS, getSorter };
+  // Dimensões competitivas com rank (rocket não tem rank → fora).
+  const COMP_RANK_KEYS = ['pvp_great', 'pvp_ultra', 'pvp_master', 'raid', 'gym_def'];
+
+  // Rank do mon na dimensão do chip ativo. Menor = melhor. Ausente → Infinity (vai p/ o fim).
+  function rankFor(e, key) {
+    if (key === 'pvp_great' || key === 'pvp_ultra' || key === 'pvp_master') {
+      const lg = key.slice(4);
+      const L = e.pvpMeta && e.pvpMeta[lg];
+      return (L && L.isMeta && typeof L.ivRank === 'number') ? L.ivRank : Infinity;
+    }
+    if (key === 'raid') {
+      const bt = e.pveMeta && e.pveMeta.byType;
+      if (!bt) return Infinity;
+      let best = Infinity;
+      for (const t in bt) if (typeof bt[t].erRank === 'number' && bt[t].erRank < best) best = bt[t].erRank;
+      return best;
+    }
+    if (key === 'gym_def') {
+      return (e.pveMeta && typeof e.pveMeta.defBulkRank === 'number') ? e.pveMeta.defBulkRank : Infinity;
+    }
+    return Infinity;
+  }
+
+  // Comparador: rank asc, desempate IV% desc, depois nome.
+  function competitiveRankSorter(key) {
+    return (a, b) => (rankFor(a, key) - rankFor(b, key)) || (b.ivPct - a.ivPct) || byName(a, b);
+  }
+
+  return { COMPARATORS, SORT_OPTIONS, getSorter, COMP_RANK_KEYS, rankFor, competitiveRankSorter };
 });

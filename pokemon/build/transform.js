@@ -36,11 +36,9 @@ function buildMoves(gamemaster) {
   for (const mv of gamemaster.moves) {
     if (!mv.moveId || mv.unlisted) continue;       // pula não-listados (ex.: Transform)
     const isFast = mv.energyGain > 0;              // fast gera energia; charge gasta (energy > 0)
-    out[mv.moveId] = {
-      type: mv.type,
-      kind: isFast ? 'fast' : 'charge',
-      pvp: { power: mv.power, energy: isFast ? mv.energyGain : mv.energy },
-    };
+    const pvp = { power: mv.power, energy: isFast ? mv.energyGain : mv.energy };
+    if (isFast && mv.cooldown) pvp.turns = mv.cooldown / 500;   // duração PvP em turnos
+    out[mv.moveId] = { type: mv.type, kind: isFast ? 'fast' : 'charge', pvp: pvp };
   }
   return out;
 }
@@ -140,6 +138,10 @@ function buildMovesPve(gameMaster) {
   return { map, count };
 }
 
+// Formas não-obteníveis como cópia permanente: Mega/Primal saem do pool de ranking PvE.
+const MEGA_RE = /_mega(_x|_y)?$|_primal$/;
+const isShadowId = (id) => /_shadow$/.test(id);
+
 // Gera pve_ranks.json: ranking por tipo (erRank/dpsRank), roles de espécie e defBulkRank global.
 function buildPveRanks(species, movesById, cfg) {
   cfg = cfg || {};
@@ -153,9 +155,10 @@ function buildPveRanks(species, movesById, cfg) {
   // 1. melhor moveset por espécie + defBulk
   const calc = {};   // id → { best, byType, defBulk }
   for (const id of ids) {
+    if (MEGA_RE.test(id)) continue;                 // Mega/Primal fora do pool
     const sp = species[id];
     if (!sp || !sp.baseStats) continue;
-    const bm = PokePve.bestMoveset(sp, movesById);
+    const bm = PokePve.bestMoveset(sp, movesById, isShadowId(id));   // bônus Sombrio nas entradas _shadow
     calc[id] = { best: bm.best, byType: bm.byType, defBulk: sp.baseStats.def * sp.baseStats.hp };
   }
 
@@ -167,15 +170,15 @@ function buildPveRanks(species, movesById, cfg) {
   }
   const erRankOf = {}, dpsRankOf = {};   // type → { id → rank }
   for (const t in byTypeList) {
-    const byEr = byTypeList[t].slice().sort((a, b) => b.er - a.er);
-    const byDps = byTypeList[t].slice().sort((a, b) => b.dps - a.dps);
+    const byEr = byTypeList[t].slice().sort((a, b) => (b.er - a.er) || a.id.localeCompare(b.id));
+    const byDps = byTypeList[t].slice().sort((a, b) => (b.dps - a.dps) || a.id.localeCompare(b.id));
     erRankOf[t] = {}; dpsRankOf[t] = {};
     byEr.forEach((x, i) => { erRankOf[t][x.id] = i + 1; });
     byDps.forEach((x, i) => { dpsRankOf[t][x.id] = i + 1; });
   }
 
   // 3. defBulkRank global
-  const bulkSorted = Object.keys(calc).sort((a, b) => calc[b].defBulk - calc[a].defBulk);
+  const bulkSorted = Object.keys(calc).sort((a, b) => (calc[b].defBulk - calc[a].defBulk) || a.localeCompare(b));
   const defBulkRankOf = {};
   bulkSorted.forEach((id, i) => { defBulkRankOf[id] = i + 1; });
 

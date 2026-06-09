@@ -7,7 +7,12 @@
 
   var PVE = { CPM: 0.7903, IV: 15, DEF_REF: 180, STAB: 1.2, INCOMING_K: 800, ER_WEIGHT: 0.7 };
   var RAID_TOP = 10, PVE_TOP = 35, GYM_ATK_TOP = 20, GYM_ATK_COVERAGE_MIN = 3,
-      GYM_DEF_TOP = 50, GYM_DEF_IV_MIN = 13, ROCKET_SPAM_TURNS = 4;
+      GYM_DEF_TOP = 50, GYM_DEF_IV_MIN = 13,
+      // ROCKET_SPAM_TURNS: turnos p/ carregar o golpe mais barato. Calibrado (Fase 4,
+      // métrica por turnos reais) p/ ~49 mons / 8% na coleção real (shortlist útil).
+      ROCKET_SPAM_TURNS = 10;
+  var SHADOW_ATK_MULT = 1.2;        // Sombrio: +20% de ataque
+  var SHADOW_DEF_MULT = 1 / 1.2;    // Sombrio: toma 1.2x de dano → defesa efetiva ×0.8333
 
   function effAtk(base) { return (base.atk + PVE.IV) * PVE.CPM; }
   function effDef(base) { return (base.def + PVE.IV) * PVE.CPM; }
@@ -20,10 +25,10 @@
 
   // DPS do ciclo: n golpes rápidos por carregado (n = custo do carregado / ganho do rápido).
   // fast/charged = objetos de golpe com { type, pve:{power,energy,durationMs} }. types = tipos da espécie (STAB).
-  function cycleDps(fast, charged, base, types) {
+  function cycleDps(fast, charged, base, types, shadow) {
     if (!fast || !charged || !fast.pve || !charged.pve) return 0;
     if (!(fast.pve.energy > 0)) return 0;                 // sem geração de energia → ciclo indefinido
-    var atk = effAtk(base);
+    var atk = effAtk(base) * (shadow ? SHADOW_ATK_MULT : 1);
     var sF = types.indexOf(fast.type) >= 0 ? PVE.STAB : 1;
     var sC = types.indexOf(charged.type) >= 0 ? PVE.STAB : 1;
     var dF = dmgPerHit(fast.pve.power, atk, sF), tF = fast.pve.durationMs / 1000;
@@ -34,8 +39,8 @@
   }
 
   // TDO (Total Damage Output): bulk via Def·HP. K constante → ranking invariante.
-  function tdoFor(dps, base) {
-    return dps * effHp(base) * effDef(base) / PVE.INCOMING_K;
+  function tdoFor(dps, base, shadow) {
+    return dps * effHp(base) * (effDef(base) * (shadow ? SHADOW_DEF_MULT : 1)) / PVE.INCOMING_K;
   }
   // ER: combina DPS e TDO ponderando DPS (ER_WEIGHT).
   function erFor(dps, tdo) {
@@ -51,7 +56,7 @@
 
   // Enumera fastMoves × chargedMoves; devolve { best, byType } por ER.
   // moveset guarda os IDS (vindos das chaves); byType é chaveado pelo tipo do carregado.
-  function bestMoveset(species, movesById) {
+  function bestMoveset(species, movesById, shadow) {
     var base = species.baseStats, types = species.types || [];
     var fastIds = (species.fastMoves || []).filter(function (id) { return _hasPve(id, movesById); });
     var chgIds  = (species.chargedMoves || []).filter(function (id) { return _hasPve(id, movesById); });
@@ -60,9 +65,9 @@
       for (var j = 0; j < chgIds.length; j++) {
         var fId = fastIds[i], cId = chgIds[j];
         var F = movesById[fId], C = movesById[cId];
-        var dps = cycleDps(F, C, base, types);
+        var dps = cycleDps(F, C, base, types, shadow);
         if (!(dps > 0)) continue;
-        var tdo = tdoFor(dps, base), er = erFor(dps, tdo);
+        var tdo = tdoFor(dps, base, shadow), er = erFor(dps, tdo);
         var rec = { moveset: [fId, cId], type: C.type, dps: dps, tdo: tdo, er: er };
         if (!byType[C.type] || er > byType[C.type].er) byType[C.type] = rec;
         if (!best || er > best.er) best = rec;
@@ -86,9 +91,12 @@
   // Avalia o mon em PvE. Retorna null sem speciesId/pveRanks. gymDef usa o IV individual.
   function evalMon(e, meta) {
     if (!e || !e.speciesId || !meta || !meta.pveRanks) return null;
-    var entry = meta.pveRanks[e.speciesId];
+    // Sombrio prefere a entrada _shadow (com bônus do build); degrada p/ a base se não existir.
+    var pveId = (e.isShadow && meta.pveRanks[e.speciesId + '_shadow'])
+      ? e.speciesId + '_shadow' : e.speciesId;
+    var entry = meta.pveRanks[pveId];
     var byId = meta.speciesIndex && meta.speciesIndex.byId;
-    var sp = byId && byId[e.speciesId];
+    var sp = byId && (byId[pveId] || byId[e.speciesId]);
     if (!entry) return null;                       // espécie sem dados de PvE
     var roles = entry.roles || [];
     var gymDef = false;
@@ -105,6 +113,7 @@
       bestType: entry.bestType || null,
       bestMoveset: entry.bestMoveset || null,
       byType: entry.byType || {},
+      defBulkRank: (typeof entry.defBulkRank === 'number') ? entry.defBulkRank : null,
       movesetOk: pveMovesetOk(e.moveIds, entry.bestMoveset),
     };
   }
@@ -112,21 +121,27 @@
   // Tag 'rocket' (spec §8): moveset de spam — rápido que gera energia rápido + carregado barato.
   // Batalhas Rocket usam a mecânica de batalha de treinador (PvP) → usa stats pvp dos golpes.
   // ativaçõesParaCarregar = custo do carregado mais barato / energia-por-ativação do rápido mais forte.
-  // (turnos reais exigiriam a duração PvP do golpe, que moves.json ainda não guarda — refino de Fase 4.)
+  // turnos reais = ativações × turnos do rápido (pvp.turns); sem duração, usa ativações.
   function rocketSpam(moveIds, movesById) {
     if (!moveIds || !moveIds.length || !movesById) return false;
-    var fastEnergy = 0, cheapestCharged = Infinity;
+    var bestFast = null, cheapestCharged = Infinity;
     for (var i = 0; i < moveIds.length; i++) {
       var m = movesById[moveIds[i]];
       if (!m || !m.pvp) continue;
       if (m.kind === 'fast') {
-        if (m.pvp.energy > fastEnergy) fastEnergy = m.pvp.energy;
+        // "mais forte" = mais energia por turno (com fallback p/ energia por ativação).
+        var ept = m.pvp.turns ? (m.pvp.energy / m.pvp.turns) : m.pvp.energy;
+        if (!bestFast || ept > bestFast.ept)
+          bestFast = { energy: m.pvp.energy, turns: m.pvp.turns || null, ept: ept };
       } else if (m.kind === 'charge') {
         if (m.pvp.energy > 0 && m.pvp.energy < cheapestCharged) cheapestCharged = m.pvp.energy;
       }
     }
-    if (!(fastEnergy > 0) || cheapestCharged === Infinity) return false;
-    return (cheapestCharged / fastEnergy) <= ROCKET_SPAM_TURNS;
+    if (!bestFast || !(bestFast.energy > 0) || cheapestCharged === Infinity) return false;
+    var activations = cheapestCharged / bestFast.energy;
+    // turnos reais = ativações × turnos por ativação; sem duração → usa ativações (fallback).
+    var turnsToCharge = bestFast.turns ? activations * bestFast.turns : activations;
+    return turnsToCharge <= ROCKET_SPAM_TURNS;
   }
 
   // Tags a partir do objeto pveMeta.
@@ -141,6 +156,7 @@
   }
 
   return { PVE, RAID_TOP, PVE_TOP, GYM_ATK_TOP, GYM_ATK_COVERAGE_MIN, GYM_DEF_TOP, GYM_DEF_IV_MIN, ROCKET_SPAM_TURNS,
+           SHADOW_ATK_MULT, SHADOW_DEF_MULT,
            effAtk, effDef, effHp, dmgPerHit, cycleDps, tdoFor, erFor, bestMoveset,
            defBulk, evalMon, pveTags, rocketSpam };
 });
