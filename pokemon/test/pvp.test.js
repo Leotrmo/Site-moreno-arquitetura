@@ -132,3 +132,13 @@ test('pvpTags: aplica THRESHOLDS (great por spPct/ivRank; master por ivPct)', ()
   assert.deepStrictEqual(pvpTags(pvp, 90).sort(), ['pvp_great']);                // ivPct 90<98 → sem master
   assert.deepStrictEqual(pvpTags(null, 100), []);
 });
+
+test('evalMon: expõe o moveset recomendado da liga (great) e null fora do meta', () => {
+  const e = { speciesId: 'azumarill', ivs: { atk: 0, def: 15, sta: 15 }, moveIds: ['BUBBLE','ICE_BEAM'] };
+  const r = evalMon(e, metaObj());
+  assert.ok(Array.isArray(r.great.moveset), 'great.moveset é array (espécie meta na Grande)');
+  assert.ok(r.great.moveset.length >= 2);
+  // liga em que a espécie não é meta → moveset null
+  const offLeague = ['great','ultra','master'].find(lg => !r[lg].isMeta);
+  if (offLeague) assert.strictEqual(r[offLeague].moveset, null);
+});

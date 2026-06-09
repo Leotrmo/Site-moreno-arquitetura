@@ -107,7 +107,7 @@
       var rankEntry = ranks[lg] || null;     // null = espécie fora do Top N daquela liga
       if (!rankEntry) {
         // Fora do meta: não calcula a distribuição dos 4096 (ivRank/spPct nunca são usados aqui).
-        out[lg] = { isMeta: false, speciesRank: null, ivRank: null, spPct: null, movesetOk: false };
+        out[lg] = { isMeta: false, speciesRank: null, ivRank: null, spPct: null, movesetOk: false, moveset: null };
         return;
       }
       var info = rankInfo({
@@ -120,6 +120,7 @@
         ivRank: info.ivRank,
         spPct: info.spPct,
         movesetOk: movesetOk(e.moveIds, rankEntry.moveset),
+        moveset: rankEntry.moveset || null,
       };
     });
     return out;

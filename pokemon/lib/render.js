@@ -32,11 +32,13 @@
     if (e.tags.includes('raid'))    b.push('<span class="badge b-pve">🔥</span>');
     else if (e.tags.includes('pve')) b.push('<span class="badge b-pve">🔥</span>');
     if (e.tags.includes('gym_def')) b.push('<span class="badge b-gymdef">🛡️</span>');
+    if (e.tags.includes('rocket')) b.push('<span class="badge b-rocket">🚀</span>');
     return b.join('');
   }
 
   const VERDICT_CLASS = { INVESTIR:'invest', MANTER:'keep', TRANSFERIR:'transfer' };
   const VERDICT_LABEL = { INVESTIR:'💪 INVESTIR', MANTER:'🛡️ MANTER', TRANSFERIR:'❌ TRANSFERIR' };
+  const ACTION_ICON = { FORTALECER:'⚔️', ENSINAR_TM:'⚔️', AGUARDAR_ROCKET:'🚀', AGUARDAR_EVENTO:'🗓️', TROCAR:'🔁' };
 
   function ivClass(iv) {
     if (iv === 100) return 'iv-perfect';
@@ -59,7 +61,7 @@
           badgesHtml(e) +
         '</div>' +
         '<div class="reason">' + esc(e.reason) + '</div>' +
-        (e.action ? '<div class="pk-action">⚔️ ' + esc(e.action.reason) + '</div>' : '') +
+        (e.action ? '<div class="pk-action">' + (ACTION_ICON[e.action.kind] || '⚔️') + ' ' + esc(e.action.reason) + '</div>' : '') +
         (e.tradeBoost ? '<div class="trade-tip">🔁 ' + esc(e.tradeBoost.reason) + '</div>' : '') +
       '</div>'
     );

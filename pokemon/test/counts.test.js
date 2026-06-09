@@ -67,3 +67,22 @@ test('contagens sem meta: raid/pve/gymAtk/gymDef ficam 0 (não-regressão)', () 
   assert.strictEqual(c.gymAtk, 0);
   assert.strictEqual(c.gymDef, 0);
 });
+
+test('contagens incluem rocket', () => {
+  const meta = {
+    speciesIndex: buildSpeciesIndex(speciesJson), movesPt: { 'tiro de lama':'MUD_SHOT', 'borda rochosa':'ROCK_SLIDE' },
+    moves: { MUD_SHOT:{ type:'ground', kind:'fast', pvp:{power:3,energy:12} },
+             ROCK_SLIDE:{ type:'rock', kind:'charge', pvp:{power:75,energy:45} } },
+  };
+  const fd = { z: { mon_name:'Golem', mon_number:76, mon_cp:2000, mon_attack:10, mon_defence:10, mon_stamina:10,
+                    mon_height:1.4, mon_isShiny:'NO', mon_isLucky:'NO',
+                    mon_move_1:'Tiro de Lama', mon_move_2:'Borda Rochosa' } };
+  const c = computeCounts(analyze(fd, getPokemonSize, refdata, getPokemonSizeScalar, meta));
+  assert.ok('rocket' in c);
+  assert.strictEqual(c.rocket, 1);
+});
+
+test('contagens sem meta: rocket fica 0 (não-regressão)', () => {
+  const c = computeCounts(analyze(fd, getPokemonSize, refdata)); // fd do topo do arquivo
+  assert.strictEqual(c.rocket, 0);
+});

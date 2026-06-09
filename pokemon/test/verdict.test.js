@@ -248,3 +248,138 @@ test('computeAction: só pve/gym_def (sem raid/gym_atk) → null (não força IN
   assert.strictEqual(computeAction({ ivPct: 50, tags: ['pve'], pvpMeta: null,
     pveMeta: { raid: false, pve: true, gymAtk: false, gymDef: false, movesetOk: false } }), null);
 });
+
+// ---------------------------------------------------------------------------
+// Fase 3 — AGUARDAR_ROCKET (Sombrio meta com Frustração)
+// ---------------------------------------------------------------------------
+
+function shadowFrustMon(over) {
+  return Object.assign({
+    isShadow: true, isShiny: false, ivPct: 90, betterCopy: null,
+    moveIds: ['COUNTER', 'FRUSTRATION'], eliteMoves: [],
+    tags: ['pvp_great'],
+    pvpMeta: { great:  { isMeta: true, speciesRank: 5, ivRank: 1, spPct: 1, movesetOk: false, moveset: ['COUNTER','CLOSE_COMBAT'] },
+               ultra:  { isMeta: false, moveset: null },
+               master: { isMeta: false, moveset: null } },
+    pveMeta: null,
+  }, over || {});
+}
+
+test('computeAction: Sombrio meta com Frustração → AGUARDAR_ROCKET (pré-empta tudo)', () => {
+  const a = computeAction(shadowFrustMon());
+  assert.strictEqual(a.kind, 'AGUARDAR_ROCKET');
+  assert.match(a.reason, /Rocket|Frustra/i);
+});
+
+test('computeAction: Sombrio meta SEM Frustração não vira AGUARDAR_ROCKET', () => {
+  const a = computeAction(shadowFrustMon({ moveIds: ['COUNTER', 'CLOSE_COMBAT'] }));
+  assert.notStrictEqual(a && a.kind, 'AGUARDAR_ROCKET');
+});
+
+test('computeAction: NÃO-Sombrio com Frustração no moveId não vira AGUARDAR_ROCKET', () => {
+  const a = computeAction(shadowFrustMon({ isShadow: false }));
+  assert.notStrictEqual(a && a.kind, 'AGUARDAR_ROCKET');
+});
+
+// ---------------------------------------------------------------------------
+// Fase 3 — AGUARDAR_EVENTO (moveset ótimo exige golpe legado)
+// ---------------------------------------------------------------------------
+
+test('computeAction: PvP, falta golpe recomendado que é legado → AGUARDAR_EVENTO', () => {
+  const e = {
+    isShadow: false, isShiny: false, ivPct: 95, betterCopy: null,
+    moveIds: ['COUNTER'],                 // tem o rápido, falta o carregado
+    eliteMoves: ['CLOSE_COMBAT'],         // o carregado recomendado é legado
+    tags: ['pvp_great'],
+    pvpMeta: { great:  { isMeta: true, speciesRank: 5, ivRank: 1, spPct: 1, movesetOk: false,
+                         moveset: ['COUNTER', 'CLOSE_COMBAT'] },
+               ultra:  { isMeta: false, moveset: null }, master: { isMeta: false, moveset: null } },
+    pveMeta: null,
+  };
+  const a = computeAction(e);
+  assert.strictEqual(a.kind, 'AGUARDAR_EVENTO');
+  assert.match(a.reason, /legado|Evento|evento/);
+});
+
+test('computeAction: PvP, falta golpe recomendado que é TM normal → ENSINAR_TM (não evento)', () => {
+  const e = {
+    isShadow: false, isShiny: false, ivPct: 95, betterCopy: null,
+    moveIds: ['COUNTER'], eliteMoves: [],   // nada legado
+    tags: ['pvp_great'],
+    pvpMeta: { great:  { isMeta: true, speciesRank: 5, ivRank: 1, spPct: 1, movesetOk: false,
+                         moveset: ['COUNTER', 'CLOSE_COMBAT'] },
+               ultra:  { isMeta: false, moveset: null }, master: { isMeta: false, moveset: null } },
+    pveMeta: null,
+  };
+  assert.strictEqual(computeAction(e).kind, 'ENSINAR_TM');
+});
+
+test('computeAction: PvE raid, bestMoveset exige golpe legado que falta → AGUARDAR_EVENTO', () => {
+  const e = {
+    isShadow: false, isShiny: false, ivPct: 90, betterCopy: null,
+    moveIds: ['DRAGON_TAIL'], eliteMoves: ['OUTRAGE'],
+    tags: ['raid','pve'], pvpMeta: null,
+    pveMeta: { raid: true, pve: true, gymAtk: false, gymDef: false, bestType: 'dragon',
+               bestMoveset: ['DRAGON_TAIL','OUTRAGE'], movesetOk: false,
+               byType: { dragon: { dps: 18, er: 50, dpsRank: 2, erRank: 3 } } },
+  };
+  assert.strictEqual(computeAction(e).kind, 'AGUARDAR_EVENTO');
+});
+
+// ---------------------------------------------------------------------------
+// Fase 3 — TROCAR (reroll de IV meta / shiny duplicado p/ Lucky)
+// ---------------------------------------------------------------------------
+
+test('computeAction: duplicata pior meta com IV baixo → TROCAR (reroll)', () => {
+  const e = {
+    isShadow: false, isShiny: false, ivPct: 60, betterCopy: { id: 'best' },
+    moveIds: ['BUBBLE'], eliteMoves: [], tags: ['pve'], pvpMeta: null,
+    pveMeta: { raid: false, pve: true, gymAtk: false, gymDef: false, movesetOk: false, bestMoveset: null, byType: {} },
+  };
+  const a = computeAction(e);
+  assert.strictEqual(a.kind, 'TROCAR');
+  assert.match(a.reason, /reroll|IV/i);
+});
+
+test('computeAction: shiny duplicado (pior) → TROCAR (lucky), mesmo sem meta', () => {
+  const e = {
+    isShadow: false, isShiny: true, ivPct: 70, betterCopy: { id: 'best' },
+    moveIds: [], eliteMoves: [], tags: [], pvpMeta: null, pveMeta: null,
+  };
+  const a = computeAction(e);
+  assert.strictEqual(a.kind, 'TROCAR');
+  assert.match(a.reason, /[Ll]ucky|shiny/);
+});
+
+test('computeAction: meta IV baixo mas é a MELHOR cópia (sem betterCopy) → não TROCAR', () => {
+  const e = {
+    isShadow: false, isShiny: false, ivPct: 60, betterCopy: null,
+    moveIds: ['BUBBLE'], eliteMoves: [], tags: ['pve'], pvpMeta: null,
+    pveMeta: { raid: false, pve: true, gymAtk: false, gymDef: false, movesetOk: false, bestMoveset: null, byType: {} },
+  };
+  assert.strictEqual(computeAction(e), null); // sem gancho de ação → null (motivo atual mantém)
+});
+
+test('analyze (e2e): Sombrio raid-meta com Frustração → AGUARDAR_ROCKET + MANTER', () => {
+  const { buildSpeciesIndex } = require('../lib/meta/match.js');
+  // species.json/movesPt reais p/ o casamento; pveRanks SINTÉTICO que força a espécie a
+  // ser atacante de raid → determinístico (não depende dos limiares do dataset real).
+  const meta = {
+    speciesIndex: buildSpeciesIndex(require('../data/species.json')),
+    movesPt: { 'palmada':'COUNTER', 'frustracao':'FRUSTRATION', 'frustração':'FRUSTRATION' },
+    pveRanks: { machamp: { roles:['raid','pve'], bestType:'fighting',
+      bestMoveset:['COUNTER','CROSS_CHOP'],
+      byType:{ fighting:{ dps:18, tdo:500, er:50, dpsRank:3, erRank:3, moveset:['COUNTER','CROSS_CHOP'] } },
+      defBulkRank: 999 } },
+  };
+  // Machamp #68 Sombrio com Frustração, IV baixo (33%) p/ o veredito cair em MANTER (não INVESTIR).
+  const fd = { s: { mon_name:'Machamp', mon_number:68, mon_cp:1500, mon_attack:5, mon_defence:5, mon_stamina:5,
+                    mon_height:1.6, mon_alignment:'SHADOW', mon_isShiny:'NO', mon_isLucky:'NO',
+                    mon_move_1:'Palmada', mon_move_2:'Frustração' } };
+  const e = analyze(fd, getPokemonSize, refdata, getPokemonSizeScalar, meta)[0];
+  assert.strictEqual(e.speciesId, 'machamp');
+  assert.deepStrictEqual(e.moveIds, ['COUNTER', 'FRUSTRATION']);
+  assert.strictEqual(e.pveMeta && e.pveMeta.raid, true);          // virou atacante de raid (meta)
+  assert.strictEqual(e.action && e.action.kind, 'AGUARDAR_ROCKET'); // pré-empta Fortalecer
+  assert.strictEqual(e.verdict, 'MANTER');                          // protegido (Sombrio), não INVESTIR/TRANSFERIR
+});

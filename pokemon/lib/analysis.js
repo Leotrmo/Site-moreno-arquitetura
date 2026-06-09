@@ -72,6 +72,10 @@
     const iv = ivPct(mon);
     const size = getSize(mon.mon_number, mon.mon_height, mon.mon_form);
     const scalar = speciesScalar(getSizeScalar, mon);
+    const sid = (meta && meta.speciesIndex && PokeMatch)
+      ? PokeMatch.matchSpecies(mon, meta.speciesIndex) : null;
+    const eliteMoves = (sid && meta.speciesIndex.byId && meta.speciesIndex.byId[sid] && meta.speciesIndex.byId[sid].eliteMoves)
+      ? meta.speciesIndex.byId[sid].eliteMoves : [];
     return {
       raw: mon,
       name: mon.mon_name,
@@ -112,17 +116,18 @@
       tags: [],
       tradeBoost: null,
       // Fase 0 — casamento com o meta (null/[] quando meta ausente):
-      speciesId: (meta && meta.speciesIndex && PokeMatch)
-        ? PokeMatch.matchSpecies(mon, meta.speciesIndex) : null,
+      speciesId: sid,
       moveIds: (meta && meta.movesPt && PokeMatch)
         ? [mon.mon_move_1, mon.mon_move_2, mon.mon_move_3]
             .map(function (m) { return PokeMatch.matchMove(m, meta.movesPt); })
             .filter(Boolean)
         : [],
+      eliteMoves: eliteMoves,
       // Fase 1 — avaliação PvP (preenchida por analyze quando há meta).
       // ATENÇÃO: chamar de pvpMeta, não pvp — pvp já existe (mon_pvp_stats).
       pvpMeta: null,
       pveMeta: null,
+      isRocketReady: false,
       action: null,
     };
   }
@@ -234,22 +239,87 @@
       return { kind: 'FORTALECER', role: role,
         reason: 'Fortalecer p/ ' + papel + ' (' + tipo + ') — atacante recomendado (estimativa)' };
     }
-    return { kind: 'ENSINAR_TM', role: role,
-      reason: 'Ensinar/TM p/ ' + papel + ' (' + tipo + ') — falta o moveset de ataque recomendado' };
+    return _notReadyAction(e,
+      'Ensinar/TM p/ ' + papel + ' (' + tipo + ') — falta o moveset de ataque recomendado');
+  }
+
+  // Humaniza um moveId p/ exibição: 'CLOSE_COMBAT' → 'Close Combat'.
+  function _humanMove(id) {
+    return String(id || '').toLowerCase().replace(/_/g, ' ').replace(/\b\w/g, function (c) { return c.toUpperCase(); });
+  }
+
+  // Moveset recomendado do gancho ativo (PvP da melhor liga; senão PvE bestMoveset).
+  function _recommendedMoveset(e) {
+    const lg = _bestPvpLeague(e);
+    if (lg && e.pvpMeta && e.pvpMeta[lg] && e.pvpMeta[lg].moveset) return e.pvpMeta[lg].moveset;
+    if (e.pveMeta && e.pveMeta.bestMoveset) return e.pveMeta.bestMoveset;
+    return null;
+  }
+
+  // 1º golpe recomendado que o mon NÃO tem E que é legado/Elite TM. null se não houver.
+  function _missingLegacyMove(e) {
+    const rec = _recommendedMoveset(e);
+    if (!rec || !rec.length) return null;
+    const mine = e.moveIds || [];
+    const elite = e.eliteMoves || [];
+    for (let i = 0; i < rec.length; i++) {
+      if (mine.indexOf(rec[i]) < 0 && elite.indexOf(rec[i]) >= 0) return rec[i];
+    }
+    return null;
+  }
+
+  // Ação quando o moveset NÃO está pronto: AGUARDAR_EVENTO (golpe legado falta) senão ENSINAR_TM.
+  function _notReadyAction(e, ensinarReason) {
+    const leg = _missingLegacyMove(e);
+    if (leg) {
+      return { kind: 'AGUARDAR_EVENTO', legacyMove: leg,
+        reason: 'Aguardar Evento — moveset ótimo precisa do golpe legado "' + _humanMove(leg) +
+                '"; espere Dia Comunitário / Elite TM' };
+    }
+    return { kind: 'ENSINAR_TM', reason: ensinarReason };
+  }
+
+  // Sombrio com Frustração: o golpe Frustração só sai em evento Rocket (Charged TM especial).
+  function _isShadowFrustration(e) {
+    return !!(e.isShadow && (e.moveIds || []).indexOf('FRUSTRATION') >= 0);
+  }
+
+  // Trocar/Reroll: só faz sentido em duplicata pior (você tem uma cópia melhor da espécie).
+  function _trocaAction(e) {
+    if (!e.betterCopy) return null;
+    if (e.isShiny) {
+      return { kind: 'TROCAR', reason: 'Trocar shiny duplicado p/ Lucky (Melhor Amigo)' };
+    }
+    if ((isPvpMeta(e) || isPveMeta(e)) && e.ivPct < 80) {
+      return { kind: 'TROCAR',
+        reason: 'Trocar p/ reroll de IV — espécie meta, cópia fraca (IV ' + e.ivPct + '%)' };
+    }
+    return null;
   }
 
   function computeAction(e) {
-    const lg = _bestPvpLeague(e);
-    if (!lg || !e.pvpMeta) return _pveAction(e);   // sem ação PvP → tenta PvE
-    const L = e.pvpMeta[lg];
-    const ligaPt = LEAGUE_PT[lg];
-    const ivInfo = 'IV PvP ' + Math.round(L.spPct * 100) + '% (rank ' + L.ivRank + '/4096)';
-    if (L.movesetOk) {
-      return { kind: 'FORTALECER', league: lg,
-        reason: 'Fortalecer p/ ' + ligaPt + ' — rank ' + L.speciesRank + ' da espécie, seu ' + ivInfo };
+    // P1 (Fase 3): Sombrio meta com Frustração → aguardar evento Rocket (pré-empta Fortalecer).
+    if ((isPvpMeta(e) || isPveMeta(e)) && _isShadowFrustration(e)) {
+      return { kind: 'AGUARDAR_ROCKET',
+        reason: 'Aguardar Rocket — Sombrio com Frustração; troque o golpe em evento (Charged TM)' };
     }
-    return { kind: 'ENSINAR_TM', league: lg,
-      reason: 'Ensinar/TM p/ ' + ligaPt + ' — Top ' + L.speciesRank + ', falta o moveset recomendado' };
+    // P2–P4: gancho de moveset (PvP tem prioridade; senão PvE) → Fortalecer / Aguardar Evento / Ensinar-TM.
+    const lg = _bestPvpLeague(e);
+    if (lg && e.pvpMeta) {
+      const L = e.pvpMeta[lg];
+      const ligaPt = LEAGUE_PT[lg];
+      const ivInfo = 'IV PvP ' + Math.round(L.spPct * 100) + '% (rank ' + L.ivRank + '/4096)';
+      if (L.movesetOk) {
+        return { kind: 'FORTALECER', league: lg,
+          reason: 'Fortalecer p/ ' + ligaPt + ' — rank ' + L.speciesRank + ' da espécie, seu ' + ivInfo };
+      }
+      return _notReadyAction(e,
+        'Ensinar/TM p/ ' + ligaPt + ' — Top ' + L.speciesRank + ', falta o moveset recomendado');
+    }
+    const pve = _pveAction(e);
+    if (pve) return pve;
+    // P5: Trocar/Reroll (duplicata pior: shiny lucky ou meta IV baixo).
+    return _trocaAction(e);
   }
 
   function computeTags(e) {
@@ -258,6 +328,7 @@
     if (e.isRegional) tags.push('REGIONAL');
     if (e.pvpMeta && PokePvp) for (const t of PokePvp.pvpTags(e.pvpMeta, e.ivPct)) tags.push(t);
     if (e.pveMeta && PokePve) for (const t of PokePve.pveTags(e.pveMeta)) tags.push(t);
+    if (e.isRocketReady) tags.push('rocket');
     return tags;
   }
 
@@ -266,6 +337,8 @@
     for (const e of list) {
       e.pvpMeta = (meta && meta.cpm && meta.pvpRanks && PokePvp) ? PokePvp.evalMon(e, meta) : null;
       e.pveMeta = (meta && meta.pveRanks && PokePve) ? PokePve.evalMon(e, meta) : null;
+      e.isRocketReady = (meta && meta.moves && PokePve)
+        ? PokePve.rocketSpam(e.moveIds, meta.moves) : false;
       e.tags = computeTags(e);
       e.action = computeAction(e);
       const v = computeVerdict(e);
@@ -280,7 +353,7 @@
     const c = { total: list.length, INVESTIR:0, MANTER:0, TRANSFERIR:0,
                 hundos:0, shinies:0, shadows:0, purified:0, extremeSizes:0, legendaries:0, luckies:0, tradeBoost:0,
                 pvpGreat:0, pvpUltra:0, pvpMaster:0,
-                raid:0, pve:0, gymAtk:0, gymDef:0 };
+                raid:0, pve:0, gymAtk:0, gymDef:0, rocket:0 };
     for (const e of list) {
       c[e.verdict]++;
       if (e.isHundo) c.hundos++;
@@ -298,6 +371,7 @@
       if (e.tags.includes('pve'))     c.pve++;
       if (e.tags.includes('gym_atk')) c.gymAtk++;
       if (e.tags.includes('gym_def')) c.gymDef++;
+      if (e.tags.includes('rocket')) c.rocket++;
     }
     return c;
   }

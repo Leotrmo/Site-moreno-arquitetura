@@ -7,7 +7,7 @@
 
   var PVE = { CPM: 0.7903, IV: 15, DEF_REF: 180, STAB: 1.2, INCOMING_K: 800, ER_WEIGHT: 0.7 };
   var RAID_TOP = 10, PVE_TOP = 35, GYM_ATK_TOP = 20, GYM_ATK_COVERAGE_MIN = 3,
-      GYM_DEF_TOP = 50, GYM_DEF_IV_MIN = 13;
+      GYM_DEF_TOP = 50, GYM_DEF_IV_MIN = 13, ROCKET_SPAM_TURNS = 4;
 
   function effAtk(base) { return (base.atk + PVE.IV) * PVE.CPM; }
   function effDef(base) { return (base.def + PVE.IV) * PVE.CPM; }
@@ -109,6 +109,26 @@
     };
   }
 
+  // Tag 'rocket' (spec §8): moveset de spam — rápido que gera energia rápido + carregado barato.
+  // Batalhas Rocket usam a mecânica de batalha de treinador (PvP) → usa stats pvp dos golpes.
+  // ativaçõesParaCarregar = custo do carregado mais barato / energia-por-ativação do rápido mais forte.
+  // (turnos reais exigiriam a duração PvP do golpe, que moves.json ainda não guarda — refino de Fase 4.)
+  function rocketSpam(moveIds, movesById) {
+    if (!moveIds || !moveIds.length || !movesById) return false;
+    var fastEnergy = 0, cheapestCharged = Infinity;
+    for (var i = 0; i < moveIds.length; i++) {
+      var m = movesById[moveIds[i]];
+      if (!m || !m.pvp) continue;
+      if (m.kind === 'fast') {
+        if (m.pvp.energy > fastEnergy) fastEnergy = m.pvp.energy;
+      } else if (m.kind === 'charge') {
+        if (m.pvp.energy > 0 && m.pvp.energy < cheapestCharged) cheapestCharged = m.pvp.energy;
+      }
+    }
+    if (!(fastEnergy > 0) || cheapestCharged === Infinity) return false;
+    return (cheapestCharged / fastEnergy) <= ROCKET_SPAM_TURNS;
+  }
+
   // Tags a partir do objeto pveMeta.
   function pveTags(pveMeta) {
     if (!pveMeta) return [];
@@ -120,7 +140,7 @@
     return tags;
   }
 
-  return { PVE, RAID_TOP, PVE_TOP, GYM_ATK_TOP, GYM_ATK_COVERAGE_MIN, GYM_DEF_TOP, GYM_DEF_IV_MIN,
+  return { PVE, RAID_TOP, PVE_TOP, GYM_ATK_TOP, GYM_ATK_COVERAGE_MIN, GYM_DEF_TOP, GYM_DEF_IV_MIN, ROCKET_SPAM_TURNS,
            effAtk, effDef, effHp, dmgPerHit, cycleDps, tdoFor, erFor, bestMoveset,
-           defBulk, evalMon, pveTags };
+           defBulk, evalMon, pveTags, rocketSpam };
 });
