@@ -88,9 +88,12 @@
   // Avalia o mon em PvE. Retorna null sem speciesId/pveRanks. gymDef usa o IV individual.
   function evalMon(e, meta) {
     if (!e || !e.speciesId || !meta || !meta.pveRanks) return null;
-    var entry = meta.pveRanks[e.speciesId];
+    // Sombrio prefere a entrada _shadow (com bônus do build); degrada p/ a base se não existir.
+    var pveId = (e.isShadow && meta.pveRanks[e.speciesId + '_shadow'])
+      ? e.speciesId + '_shadow' : e.speciesId;
+    var entry = meta.pveRanks[pveId];
     var byId = meta.speciesIndex && meta.speciesIndex.byId;
-    var sp = byId && byId[e.speciesId];
+    var sp = byId && (byId[pveId] || byId[e.speciesId]);
     if (!entry) return null;                       // espécie sem dados de PvE
     var roles = entry.roles || [];
     var gymDef = false;
@@ -107,6 +110,7 @@
       bestType: entry.bestType || null,
       bestMoveset: entry.bestMoveset || null,
       byType: entry.byType || {},
+      defBulkRank: (typeof entry.defBulkRank === 'number') ? entry.defBulkRank : null,
       movesetOk: pveMovesetOk(e.moveIds, entry.bestMoveset),
     };
   }

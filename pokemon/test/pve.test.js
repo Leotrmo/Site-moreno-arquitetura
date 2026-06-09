@@ -192,3 +192,40 @@ test('bestMoveset: Sombrio supera a base de mesmos stats (ER maior)', () => {
 test('SHADOW_ATK_MULT exportado = 1.2', () => {
   assert.strictEqual(SHADOW_ATK_MULT, 1.2);
 });
+
+const { evalMon: evalMonAlias } = require('../lib/meta/pve.js');
+
+test('evalMon: mon Sombrio usa a entrada _shadow quando existe', () => {
+  const meta = {
+    pveRanks: {
+      gengar:        { roles: [],            bestType: 'ghost', bestMoveset: ['SHADOW_CLAW','SHADOW_BALL'], byType: {}, defBulkRank: 900 },
+      gengar_shadow: { roles: ['raid','pve'], bestType: 'ghost', bestMoveset: ['SHADOW_CLAW','SHADOW_BALL'], byType: {}, defBulkRank: 900 },
+    },
+    speciesIndex: { byId: { gengar: { baseStats: { atk: 1, def: 1, hp: 1 } }, gengar_shadow: { baseStats: { atk: 1, def: 1, hp: 1 } } } },
+  };
+  const e = { speciesId: 'gengar', isShadow: true, ivs: { atk: 15, def: 15, sta: 15 }, moveIds: [] };
+  const r = evalMonAlias(e, meta);
+  assert.strictEqual(r.raid, true, 'pegou a role raid da entrada _shadow');
+});
+
+test('evalMon: mon NÃO Sombrio ignora a entrada _shadow (usa a base)', () => {
+  const meta = {
+    pveRanks: {
+      gengar:        { roles: [],            bestType: 'ghost', bestMoveset: null, byType: {}, defBulkRank: 900 },
+      gengar_shadow: { roles: ['raid','pve'], bestType: 'ghost', bestMoveset: null, byType: {}, defBulkRank: 900 },
+    },
+    speciesIndex: { byId: { gengar: { baseStats: { atk: 1, def: 1, hp: 1 } } } },
+  };
+  const e = { speciesId: 'gengar', isShadow: false, ivs: { atk: 15, def: 15, sta: 15 }, moveIds: [] };
+  const r = evalMonAlias(e, meta);
+  assert.strictEqual(r.raid, false, 'usou a base, sem role');
+});
+
+test('evalMon: expõe defBulkRank no retorno', () => {
+  const meta = {
+    pveRanks: { blissey: { roles: [], bestType: null, bestMoveset: null, byType: {}, defBulkRank: 2 } },
+    speciesIndex: { byId: { blissey: { baseStats: { atk: 60, def: 80, hp: 510 } } } },
+  };
+  const e = { speciesId: 'blissey', isShadow: false, ivs: { atk: 15, def: 15, sta: 15 }, moveIds: [] };
+  assert.strictEqual(evalMonAlias(e, meta).defBulkRank, 2);
+});
