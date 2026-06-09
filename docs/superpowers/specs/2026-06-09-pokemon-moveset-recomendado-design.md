@@ -46,12 +46,16 @@ estão em português.
 
 - Helper `_moveName(id, meta)` → `meta.moves[id].namePt`, senão `_humanMove(id)`
   (fallback inglês p/ os ~2% sem nome PT e p/ `meta.moves` ausente).
-- `enrichOne` anexa visões prontas pra exibição (render não conhece `meta`):
+- `analyze` anexa visões prontas pra exibição, logo após preencher `e.pvpMeta`/`e.pveMeta`
+  (é no `analyze` que eles deixam de ser null; render não conhece `meta`):
   - `e.pvpMeta[liga].movesetView` = `[{ name, has }]` na ordem do moveset recomendado
     (rápido, carregado1, carregado2?), `has` = mon tem o golpe (`e.moveIds`).
     Só pra ligas `isMeta` com `moveset` não-nulo; senão `null`.
   - `e.pveMeta.movesetView` = idem para `bestMoveset` (rápido, carregado); `null` se
     `bestMoveset` nulo.
+- `computeAction` (e os auxiliares `_pveAction`/`_notReadyAction`) ganham um parâmetro
+  `meta` **opcional** — `computeAction` é função pura chamada sem `meta` pelos testes
+  existentes; sem ele, os nomes caem no fallback inglês.
 - Razões de ação passam a nomear o que falta (apenas texto; o `kind` e a lógica de
   decisão não mudam):
   - **Ensinar/TM (PvP)**: `"Ensinar/TM p/ <liga> — Top <N>, falta <golpes>"` onde
@@ -103,9 +107,10 @@ Bloco Competitivo do detalhe:
 - `transform.test.js`: `buildMovesPt` retorna `namesPt` com nome cru ("Lança-chamas"
   com acento); merge no `refresh-meta` coberto por teste do orquestrador ou inspeção
   do dataset gerado.
-- `enrich.test.js`: `movesetView` PvP e PvE (ordem, `has`, `null` quando sem moveset).
-- `verdict.test.js`: razões Ensinar/TM nomeiam golpes faltantes (PvP 1 golpe, PvP 2+
-  golpes com conjunção, PvE); Aguardar Evento em PT; fallback inglês quando sem `namePt`.
+- `verdict.test.js`: `movesetView` PvP e PvE via `analyze` (ordem, `has`, `null` quando
+  sem moveset — é no `analyze` que a visão é anexada); razões Ensinar/TM nomeiam golpes
+  faltantes (PvP 1 golpe, PvP 2+ golpes com conjunção, PvE); Aguardar Evento em PT;
+  fallback inglês quando sem `namePt`.
 - `render.test.js`: linha de liga com `✓`/`(falta)`; fallback para texto atual sem
   `movesetView`.
 
