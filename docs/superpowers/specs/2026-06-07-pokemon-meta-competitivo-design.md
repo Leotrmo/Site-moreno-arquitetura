@@ -275,10 +275,11 @@ Conclusão: os itens "bônus Sombrio no DPS", "filtro de formas não-obtíveis" 
 
 Decisão (Leo delegou; escolha alinhada a "shortlist útil"): o pool de ranking de `buildPveRanks` passa a ser **base + regional + Sombrio (com bônus)**.
 - **Remove Megas** (`_mega`, `_mega_x`, `_mega_y`, `_primal`): estado **temporário**, gated por Mega Energy, e **nenhuma cópia da coleção casa** com `_mega`. Mantê-las só soterra atacantes permanentes.
-- **Remove formas-fantasma** não-obteníveis (entradas da fonte que não existem como Pokémon jogável). Sinal data-driven via `tags`/flags do gamemaster PvPoke; a lista exata de tags a excluir é **confirmada na implementação** inspecionando os valores distintos no build (validação defensiva: se a flag sumir do schema, falhar alto).
 - **Mantém Sombrio** no pool — agora é casado (14.2) e genuinamente melhor.
 
 Efeito: ranks de Raid/Ginásio passam a refletir formas **permanentemente obteníveis**, com Sombrio corretamente no topo.
+
+> **Nota de implementação (2026-06-09):** o filtro foi feito por **sufixo de `speciesId`** (`MEGA_RE = /_mega(_x|_y)?$|_primal$/` em `buildPveRanks`), não por `tags` do gamemaster. O filtro mais amplo de "formas-fantasma" não-obteníveis (ex.: `eternatus_eternamax`, `mewtwo_armored`, `necrozma_ultra` via tag/flag) ficou **fora do escopo da Fase 4** — blast radius pequeno (~4 formas lendárias, nenhuma na coleção do Leo) e remetido a follow-up. Da mesma forma, entradas `_shadow` ainda entram no ranking de `defBulkRank` (Sombrio compartilha stats-base mas é mau defensor) — efeito não-realizado hoje (0 Sombrios com `gym_def`), também follow-up.
 
 ### 14.4 Ordenação por rank
 
