@@ -72,6 +72,10 @@
     const iv = ivPct(mon);
     const size = getSize(mon.mon_number, mon.mon_height, mon.mon_form);
     const scalar = speciesScalar(getSizeScalar, mon);
+    const sid = (meta && meta.speciesIndex && PokeMatch)
+      ? PokeMatch.matchSpecies(mon, meta.speciesIndex) : null;
+    const eliteMoves = (sid && meta.speciesIndex.byId && meta.speciesIndex.byId[sid] && meta.speciesIndex.byId[sid].eliteMoves)
+      ? meta.speciesIndex.byId[sid].eliteMoves : [];
     return {
       raw: mon,
       name: mon.mon_name,
@@ -112,13 +116,13 @@
       tags: [],
       tradeBoost: null,
       // Fase 0 — casamento com o meta (null/[] quando meta ausente):
-      speciesId: (meta && meta.speciesIndex && PokeMatch)
-        ? PokeMatch.matchSpecies(mon, meta.speciesIndex) : null,
+      speciesId: sid,
       moveIds: (meta && meta.movesPt && PokeMatch)
         ? [mon.mon_move_1, mon.mon_move_2, mon.mon_move_3]
             .map(function (m) { return PokeMatch.matchMove(m, meta.movesPt); })
             .filter(Boolean)
         : [],
+      eliteMoves: eliteMoves,
       // Fase 1 — avaliação PvP (preenchida por analyze quando há meta).
       // ATENÇÃO: chamar de pvpMeta, não pvp — pvp já existe (mon_pvp_stats).
       pvpMeta: null,
@@ -239,7 +243,17 @@
       reason: 'Ensinar/TM p/ ' + papel + ' (' + tipo + ') — falta o moveset de ataque recomendado' };
   }
 
+  // Sombrio com Frustração: o golpe Frustração só sai em evento Rocket (Charged TM especial).
+  function _isShadowFrustration(e) {
+    return !!(e.isShadow && (e.moveIds || []).indexOf('FRUSTRATION') >= 0);
+  }
+
   function computeAction(e) {
+    // P1 (Fase 3): Sombrio meta com Frustração → aguardar evento Rocket (pré-empta Fortalecer).
+    if ((isPvpMeta(e) || isPveMeta(e)) && _isShadowFrustration(e)) {
+      return { kind: 'AGUARDAR_ROCKET',
+        reason: 'Aguardar Rocket — Sombrio com Frustração; troque o golpe em evento (Charged TM)' };
+    }
     const lg = _bestPvpLeague(e);
     if (!lg || !e.pvpMeta) return _pveAction(e);   // sem ação PvP → tenta PvE
     const L = e.pvpMeta[lg];

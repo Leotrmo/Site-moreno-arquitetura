@@ -248,3 +248,35 @@ test('computeAction: só pve/gym_def (sem raid/gym_atk) → null (não força IN
   assert.strictEqual(computeAction({ ivPct: 50, tags: ['pve'], pvpMeta: null,
     pveMeta: { raid: false, pve: true, gymAtk: false, gymDef: false, movesetOk: false } }), null);
 });
+
+// ---------------------------------------------------------------------------
+// Fase 3 — AGUARDAR_ROCKET (Sombrio meta com Frustração)
+// ---------------------------------------------------------------------------
+
+function shadowFrustMon(over) {
+  return Object.assign({
+    isShadow: true, isShiny: false, ivPct: 90, betterCopy: null,
+    moveIds: ['COUNTER', 'FRUSTRATION'], eliteMoves: [],
+    tags: ['pvp_great'],
+    pvpMeta: { great:  { isMeta: true, speciesRank: 5, ivRank: 1, spPct: 1, movesetOk: false, moveset: ['COUNTER','CLOSE_COMBAT'] },
+               ultra:  { isMeta: false, moveset: null },
+               master: { isMeta: false, moveset: null } },
+    pveMeta: null,
+  }, over || {});
+}
+
+test('computeAction: Sombrio meta com Frustração → AGUARDAR_ROCKET (pré-empta tudo)', () => {
+  const a = computeAction(shadowFrustMon());
+  assert.strictEqual(a.kind, 'AGUARDAR_ROCKET');
+  assert.match(a.reason, /Rocket|Frustra/i);
+});
+
+test('computeAction: Sombrio meta SEM Frustração não vira AGUARDAR_ROCKET', () => {
+  const a = computeAction(shadowFrustMon({ moveIds: ['COUNTER', 'CLOSE_COMBAT'] }));
+  assert.notStrictEqual(a && a.kind, 'AGUARDAR_ROCKET');
+});
+
+test('computeAction: NÃO-Sombrio com Frustração no moveId não vira AGUARDAR_ROCKET', () => {
+  const a = computeAction(shadowFrustMon({ isShadow: false }));
+  assert.notStrictEqual(a && a.kind, 'AGUARDAR_ROCKET');
+});
