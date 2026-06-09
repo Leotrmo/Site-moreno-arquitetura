@@ -378,6 +378,71 @@ test('computeAction: justificativa de Raid inclui o rank do tipo (rastreável)',
   assert.match(a.reason, /Gelo/);
 });
 
+// ---------------------------------------------------------------------------
+// Moveset recomendado — razões nomeiam os golpes faltantes (spec 2026-06-09)
+// ---------------------------------------------------------------------------
+
+function ensinarMon(moveIds) {
+  return pvpMon({
+    moveIds: moveIds, eliteMoves: [],
+    pvpMeta: {
+      great:  { isMeta: true, speciesRank: 13, ivRank: 1, spPct: 1, movesetOk: false,
+                moveset: ['COUNTER', 'ICE_PUNCH', 'POWER_UP_PUNCH'] },
+      ultra:  { isMeta: false }, master: { isMeta: false },
+    },
+  });
+}
+const NOMES_PT = { moves: {
+  COUNTER: { namePt: 'Contra-ataque' },
+  ICE_PUNCH: { namePt: 'Soco de Gelo' },
+  POWER_UP_PUNCH: { namePt: 'Soco Energizado' },
+  CLOSE_COMBAT: { namePt: 'Combate Corpo a Corpo' },
+} };
+
+test('computeAction: ENSINAR_TM PvP sem nenhum carregado → "faltam X e Y" em PT', () => {
+  const a = computeAction(ensinarMon(['COUNTER']), NOMES_PT);
+  assert.strictEqual(a.kind, 'ENSINAR_TM');
+  assert.match(a.reason, /faltam Soco de Gelo e Soco Energizado/);
+});
+
+test('computeAction: ENSINAR_TM PvP só com o rápido faltando → singular "falta"', () => {
+  const a = computeAction(ensinarMon(['ICE_PUNCH', 'POWER_UP_PUNCH']), NOMES_PT);
+  assert.strictEqual(a.kind, 'ENSINAR_TM');
+  assert.match(a.reason, /falta Contra-ataque/);
+  assert.doesNotMatch(a.reason, /faltam/);
+});
+
+test('computeAction: sem meta → nome do golpe em inglês humanizado (fallback)', () => {
+  const a = computeAction(ensinarMon(['ICE_PUNCH', 'POWER_UP_PUNCH']));
+  assert.match(a.reason, /falta Counter/);
+});
+
+test('computeAction: ENSINAR_TM sem moveset no rankEntry → texto genérico (fallback)', () => {
+  const a = computeAction(pvpMon({
+    pvpMeta: {
+      great:  { isMeta: true, speciesRank: 13, ivRank: 1, spPct: 1, movesetOk: false },
+      ultra:  { isMeta: false }, master: { isMeta: false },
+    },
+  }), NOMES_PT);
+  assert.strictEqual(a.kind, 'ENSINAR_TM');
+  assert.match(a.reason, /falta o moveset recomendado/);
+});
+
+test('computeAction: AGUARDAR_EVENTO nomeia o golpe legado em PT', () => {
+  const e = {
+    isShadow: false, isShiny: false, ivPct: 95, betterCopy: null,
+    moveIds: ['COUNTER'], eliteMoves: ['CLOSE_COMBAT'],
+    tags: ['pvp_great'],
+    pvpMeta: { great:  { isMeta: true, speciesRank: 5, ivRank: 1, spPct: 1, movesetOk: false,
+                         moveset: ['COUNTER', 'CLOSE_COMBAT'] },
+               ultra:  { isMeta: false, moveset: null }, master: { isMeta: false, moveset: null } },
+    pveMeta: null,
+  };
+  const a = computeAction(e, NOMES_PT);
+  assert.strictEqual(a.kind, 'AGUARDAR_EVENTO');
+  assert.match(a.reason, /Combate Corpo a Corpo/);
+});
+
 test('analyze (e2e): Sombrio raid-meta com Frustração → AGUARDAR_ROCKET + MANTER', () => {
   const { buildSpeciesIndex } = require('../lib/meta/match.js');
   // species.json/movesPt reais p/ o casamento; pveRanks SINTÉTICO que força a espécie a
