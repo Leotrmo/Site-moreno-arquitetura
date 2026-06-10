@@ -739,15 +739,42 @@
       { rotulo: '🏆 Jornada lendária é...',      letra: 'f' }
     ];
 
-    /* Os 5 resultados possíveis (índices 0-3 batem com t2; 4 = perfil
-       equilibrado, decidido por regra própria no cálculo final) */
-    const MONS = [
-      { nome: 'SNORLAX',  emoji: '😴', frase: 'Mestre dos banquetes: sua jornada é guiada pelo estômago, e está certíssimo.' },
-      { nome: 'CHARIZARD', emoji: '🔥', frase: 'Espírito de batalha: você vive pela intensidade.' },
-      { nome: 'GENGAR',   emoji: '👻', frase: 'Imprevisível: você ama o desconhecido.' },
-      { nome: 'PIKACHU',  emoji: '⚡', frase: 'Parceiro lendário: pra você, o que importa é com quem está.' },
-      { nome: 'EEVEE',    emoji: '🦊', frase: 'Multipotencial: você quer de tudo um pouco.' }
+    /* Os 4 perfis medidos pelas respostas (mesma ordem dos códigos t2).
+       Usados no cálculo e no texto do "porquê". */
+    const PERFIS = [
+      { nome: 'Conforto',    emoji: '🍔' },
+      { nome: 'Intensidade', emoji: '🔥' },
+      { nome: 'Exploração',  emoji: '🗺️' },
+      { nome: 'Companhia',   emoji: '👥' }
     ];
+
+    /* Os 17 resultados possíveis.
+       Chave: perfil puro ('0'..'3'), par líder+segundo ('01', '32'...) ou 'eq' (equilibrado).
+       dex   = número na Pokédex nacional (monta a URL do sprite);
+       emoji = fallback quando o sprite não carrega (ex.: sem internet). */
+    const RESULTADOS = {
+      '0':  { nome: 'SNORLAX',    dex: 143, emoji: '😴', frase: 'Mestre dos banquetes: sua jornada é guiada pelo estômago, e está certíssimo.' },
+      '01': { nome: 'BLASTOISE',  dex: 9,   emoji: '🐢', frase: 'Tranquilo na rotina, canhão na hora H: ninguém te tira do sério à toa.' },
+      '02': { nome: 'SLOWPOKE',   dex: 79,  emoji: '🦥', frase: 'O mundo corre, você aproveita: seu ritmo é seu, e tá ótimo assim.' },
+      '03': { nome: 'JIGGLYPUFF', dex: 39,  emoji: '🎤', frase: 'Conforto pra você é gente por perto: você é o aconchego (e o show) do grupo.' },
+      '1':  { nome: 'CHARIZARD',  dex: 6,   emoji: '🔥', frase: 'Espírito de batalha: você vive pela intensidade.' },
+      '10': { nome: 'ARCANINE',   dex: 59,  emoji: '🐕', frase: 'Intenso e leal: você queima nas aventuras, mas sabe voltar pra lareira.' },
+      '12': { nome: 'PIDGEOT',    dex: 18,  emoji: '🦅', frase: 'Velocidade e horizonte: você vive de vento no rosto e mapa novo.' },
+      '13': { nome: 'DRAGONITE',  dex: 149, emoji: '🐉', frase: 'Força de campeão, coração de parceiro: é pelos seus que você voa.' },
+      '2':  { nome: 'GENGAR',     dex: 94,  emoji: '👻', frase: 'Imprevisível: você ama o desconhecido.' },
+      '20': { nome: 'PSYDUCK',    dex: 54,  emoji: '🦆', frase: 'Imprevisível e adorável: nem você sabe seu próximo passo, e é isso que encanta.' },
+      '21': { nome: 'MEWTWO',     dex: 150, emoji: '🔮', frase: 'Misterioso e avassalador: você explora o desconhecido e ainda domina o jogo.' },
+      '23': { nome: 'MIMIKYU',    dex: 778, emoji: '🎭', frase: 'Mistério por fora, afeto por dentro: surpreende quem ganha sua confiança.' },
+      '3':  { nome: 'PIKACHU',    dex: 25,  emoji: '⚡', frase: 'Parceiro lendário: pra você, o que importa é com quem está.' },
+      '30': { nome: 'TOGEPI',     dex: 175, emoji: '🥚', frase: 'Felicidade pra você tem nome: estar junto. Puro carinho concentrado.' },
+      '31': { nome: 'LUCARIO',    dex: 448, emoji: '🥋', frase: 'Parceiro de batalha: leal até o fim, intenso em tudo que abraça.' },
+      '32': { nome: 'LAPRAS',     dex: 131, emoji: '🌊', frase: 'Você é quem leva todo mundo pra aventura: viajar bom é viajar acompanhado.' },
+      'eq': { nome: 'EEVEE',      dex: 133, emoji: '🦊', frase: 'Multipotencial: você quer de tudo um pouco.' }
+    };
+
+    /* Sprite clássico 96×96 do repositório aberto PokeAPI (só <img>, sem API) */
+    const SPRITE_URL = (dex) =>
+      'https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/' + dex + '.png';
 
     /* ==============================================================
        BLOCO 2 — ESTADO DO JOGO
@@ -763,6 +790,7 @@
     let fimTimer = 0;               // instante em que o tempo acaba
     let intervaloTimer = null;      // id do setInterval do timer
     let ultimoSegundoBip = -1;      // controla o bip de urgência (1 por segundo)
+    let resultadoFinal = null;      // { chave, lider, segundo } calculado na captura
 
     /* Atalho para pegar elementos pelo id (economiza repetição) */
     const $ = (id) => document.getElementById(id);
@@ -844,6 +872,7 @@
       pontuacao = 0;
       respostas = [];
       rapidas = 0;
+      resultadoFinal = null;
       atualizarPlacar();
       somSelecao();
       mostrarTela('telaPergunta');
@@ -989,7 +1018,7 @@
        Soma as afinidades de cada resposta e decide o Pokémon.
        ============================================================== */
     function calcularResultado() {
-      // Contadores dos 4 perfis-base (mesma ordem de MONS)
+      // Contadores dos 4 perfis (mesma ordem de PERFIS)
       const cont = [0, 0, 0, 0];
 
       respostas.forEach((r, i) => {
@@ -1002,20 +1031,20 @@
       // Bônus de intensidade: muitas respostas relâmpago puxam pro perfil 1
       if (rapidas >= 6) cont[1] += 2;
 
-      // Ordena os perfis do maior para o menor
+      // Ordena os perfis do maior para o menor (empate mantém a ordem 0..3)
       const ordem = [0, 1, 2, 3].sort((a, b) => cont[b] - cont[a]);
-      const lider = ordem[0];
-      const vantagem = cont[lider] - cont[ordem[1]];
-      const escolheuParceiro = respostas[9] && respostas[9].t1 === 'f4';
+      const lider = ordem[0], segundo = ordem[1];
 
-      // Líder claro (2+ pontos de vantagem) → é ele
-      if (vantagem >= 2 && cont[lider] > 0) return lider;
-
-      // Perfil equilibrado: companhia na P10 ou afinidade social alta → Pikachu
-      if (escolheuParceiro || cont[3] >= 3) return 3;
-
-      // Sem dominante nenhum → Eevee (multipotencial)
-      return 4;
+      // Tudo neutro (só timeouts) ou empate triplo+ → equilibrado (Eevee)
+      if (cont[lider] === 0 || cont[lider] === cont[ordem[2]]) {
+        return { chave: 'eq', lider: -1, segundo: -1 };
+      }
+      // Liderança com folga (3+), ou nenhum segundo perfil → perfil puro
+      if (cont[lider] - cont[segundo] >= 3 || cont[segundo] === 0) {
+        return { chave: String(lider), lider: lider, segundo: -1 };
+      }
+      // Caso geral: par líder + segundo
+      return { chave: String(lider) + String(segundo), lider: lider, segundo: segundo };
     }
 
     /* ==============================================================
@@ -1024,6 +1053,7 @@
        ============================================================== */
     function iniciarCaptura() {
       mostrarTela('telaCaptura');
+      resultadoFinal = calcularResultado();   // calcula já na captura
       const bola = $('bolaCaptura');
       bola.classList.remove('balanca');
       void bola.offsetWidth;            // reinicia a animação
@@ -1040,8 +1070,7 @@
     }
 
     function revelarResultado() {
-      const indice = calcularResultado();
-      const mon = MONS[indice];
+      const mon = RESULTADOS[resultadoFinal.chave];
 
       // Cabeçalho do cartão: Pokémon + frase de personalidade
       $('resEmoji').textContent = mon.emoji;
@@ -1079,7 +1108,7 @@
        BLOCO 8 — COMPARTILHAR E JOGAR DE NOVO
        ============================================================== */
     function textoCompartilhar() {
-      const mon = MONS[calcularResultado()];
+      const mon = RESULTADOS[resultadoFinal.chave];
       const pct = Math.max(60, Math.min(99, 60 + Math.round((pontuacao / 1500) * 39)));
       return '🎮 Quiz: Qual Pokémon combina com você?\n' +
              'Meu resultado: ' + mon.nome + ' ' + mon.emoji + '\n' +
