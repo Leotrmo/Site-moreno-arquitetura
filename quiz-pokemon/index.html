@@ -1,0 +1,1128 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <!-- ============================================================
+       QUIZ: "Qual Pokémon combina com você?"
+       Arquivo único e autocontido (HTML + CSS + JS vanilla).
+       Única dependência externa: Google Fonts.
+       ============================================================ -->
+  <meta charset="UTF-8">
+  <!-- viewport: essencial para o layout mobile-first funcionar no celular -->
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <meta name="description" content="Quiz de personalidade: descubra qual Pokémon combina com você. 10 perguntas, tempo limitado.">
+  <meta name="theme-color" content="#DC0A2D">
+  <title>Qual Pokémon combina com você?</title>
+
+  <!-- Google Fonts: Press Start 2P (pixelada, títulos/botões) e VT323 (legível, perguntas) -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&family=VT323&display=swap" rel="stylesheet">
+
+  <style>
+    /* ============================================================
+       1. RESET E BASE
+       Zera margens padrão do navegador e define a base mobile-first.
+       ============================================================ */
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+
+    :root {
+      /* Paleta oficial do projeto (variáveis CSS para reutilizar) */
+      --vermelho: #DC0A2D;
+      --vermelho-escuro: #8f0820;
+      --azul-lente: #28AAFD;
+      --amarelo: #FFCB05;
+      --azul-escuro: #2A75BB;
+      --preto: #1D1D1D;
+      --lcd: #dff2cf;          /* verde claro tipo tela de GameBoy */
+      --lcd-borda: #3a3a3a;
+      --hp-verde: #3ddc55;
+      --hp-amarelo: #FFCB05;
+      --hp-vermelho: #ff3b3b;
+    }
+
+    html, body { height: 100%; }
+
+    body {
+      /* Fundo escuro com leve gradiente para destacar a Pokédex */
+      background: radial-gradient(circle at 50% 20%, #2a3550 0%, #14141c 70%);
+      font-family: 'VT323', monospace;
+      color: var(--preto);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      min-height: 100dvh;       /* dvh = altura real da tela no celular */
+      padding: 10px;
+      -webkit-tap-highlight-color: transparent; /* remove flash azul no toque (iOS/Android) */
+    }
+
+    /* ============================================================
+       2. MOLDURA DA POKÉDEX
+       Container vermelho com lente azul, 3 luzes e a "tela" interna.
+       ============================================================ */
+    .pokedex {
+      width: 100%;
+      max-width: 430px;          /* no desktop fica um "cartão" centralizado */
+      background: var(--vermelho);
+      border: 3px solid var(--vermelho-escuro);
+      border-radius: 18px;
+      padding: 12px 12px 16px;
+      box-shadow: inset 0 -6px 0 rgba(0,0,0,.25), 0 12px 36px rgba(0,0,0,.5);
+    }
+
+    /* Barra superior: lente + luzes à esquerda, botão de som à direita */
+    .dex-top {
+      display: flex;
+      align-items: flex-start;
+      gap: 12px;
+      margin-bottom: 10px;
+    }
+
+    /* A clássica lente azul circular com "brilho" no canto */
+    .lens {
+      width: 54px; height: 54px;
+      border-radius: 50%;
+      background: radial-gradient(circle at 35% 30%, #cfeaff 0%, var(--azul-lente) 40%, #0a5ea8 100%);
+      border: 4px solid #fff;
+      box-shadow: 0 0 0 3px var(--vermelho-escuro), inset -4px -6px 10px rgba(0,0,0,.35);
+      position: relative;
+      flex-shrink: 0;
+    }
+    /* ::after cria o reflexo branco da lente sem precisar de imagem */
+    .lens::after {
+      content: '';
+      position: absolute;
+      top: 8px; left: 10px;
+      width: 12px; height: 8px;
+      background: rgba(255,255,255,.85);
+      border-radius: 50%;
+      transform: rotate(-25deg);
+    }
+
+    .lights { display: flex; gap: 7px; margin-top: 4px; }
+    .light {
+      width: 13px; height: 13px;
+      border-radius: 50%;
+      border: 2px solid rgba(0,0,0,.45);
+      box-shadow: inset -2px -2px 3px rgba(0,0,0,.3);
+    }
+    .l-red { background: #ff5a5a; animation: pisca 2.4s infinite; }
+    .l-yel { background: var(--amarelo); }
+    .l-grn { background: var(--hp-verde); }
+    @keyframes pisca { 0%, 90%, 100% { opacity: 1; } 95% { opacity: .35; } }
+
+    /* Botão de mute (🔊/🔇) no canto da Pokédex */
+    .btn-som {
+      margin-left: auto;
+      width: 44px; height: 44px;
+      border-radius: 50%;
+      border: 3px solid var(--preto);
+      background: var(--preto);
+      color: #fff;
+      font-size: 18px;
+      cursor: pointer;
+      box-shadow: inset 0 -3px 0 rgba(255,255,255,.15);
+    }
+    .btn-som:active { transform: translateY(1px); }
+
+    /* A "tela" interna: moldura preta + LCD esverdeado */
+    .dex-screen {
+      background: var(--preto);
+      border-radius: 12px;
+      padding: 8px;
+    }
+    .lcd {
+      background: var(--lcd);
+      border: 3px solid var(--lcd-borda);
+      border-radius: 8px;
+      min-height: 560px;
+      padding: 14px 12px 18px;
+      position: relative;
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+    }
+    /* Efeito sutil de "scanlines" de tela antiga, feito só com gradiente */
+    .lcd::before {
+      content: '';
+      position: absolute; inset: 0;
+      background: repeating-linear-gradient(0deg, rgba(0,0,0,.035) 0 1px, transparent 1px 3px);
+      pointer-events: none;     /* não bloqueia cliques */
+      z-index: 5;
+    }
+
+    /* ============================================================
+       3. TELAS (seções que aparecem/desaparecem via JS)
+       Só uma tela fica visível por vez; .ativa controla isso.
+       ============================================================ */
+    .tela { display: none; flex: 1; flex-direction: column; }
+    .tela.ativa { display: flex; }
+
+    /* Animação de "slide" rápida quando uma tela/pergunta entra */
+    @keyframes entra {
+      from { opacity: 0; transform: translateX(28px); }
+      to   { opacity: 1; transform: translateX(0); }
+    }
+    .anim-entra { animation: entra .22s ease-out; }
+
+    /* ============================================================
+       4. TELA INICIAL
+       ============================================================ */
+    .inicio-conteudo {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      text-align: center;
+      gap: 22px;
+      padding: 10px 4px;
+    }
+
+    h1 {
+      font-family: 'Press Start 2P', monospace;
+      font-size: 17px;
+      line-height: 1.7;
+      color: var(--preto);
+      text-shadow: 2px 2px 0 rgba(255,255,255,.6);
+    }
+
+    .subtitulo { font-size: 21px; line-height: 1.25; color: #3c4a36; max-width: 280px; }
+
+    /* Pokébola grande desenhada 100% em CSS:
+       gradiente vertical = metade vermelha / faixa preta / metade branca */
+    .pokebola {
+      width: 110px; height: 110px;
+      border-radius: 50%;
+      border: 4px solid var(--preto);
+      background: linear-gradient(to bottom,
+        #f23030 0 44%, var(--preto) 44% 56%, #fff 56% 100%);
+      position: relative;
+      box-shadow: inset -8px -10px 14px rgba(0,0,0,.25), 0 6px 14px rgba(0,0,0,.3);
+    }
+    /* ::after = o botão central da Pokébola */
+    .pokebola::after {
+      content: '';
+      position: absolute;
+      top: 50%; left: 50%;
+      transform: translate(-50%, -50%);
+      width: 26px; height: 26px;
+      background: #fff;
+      border: 5px solid var(--preto);
+      border-radius: 50%;
+      box-shadow: inset 0 0 0 3px #ddd;
+    }
+    .pulsa { animation: pulsa 1.6s ease-in-out infinite; }
+    @keyframes pulsa {
+      0%, 100% { transform: scale(1); }
+      50%      { transform: scale(1.07); }
+    }
+
+    /* ============================================================
+       5. BOTÕES DE AÇÃO (pixelados, estilo arcade)
+       ============================================================ */
+    .btn-px {
+      font-family: 'Press Start 2P', monospace;
+      font-size: 12px;
+      padding: 16px 20px;
+      min-height: 48px;          /* área mínima de toque acessível */
+      background: var(--amarelo);
+      color: var(--preto);
+      border: 3px solid var(--preto);
+      border-radius: 8px;
+      box-shadow: 0 4px 0 var(--preto);
+      cursor: pointer;
+      text-transform: uppercase;
+    }
+    .btn-px:active { transform: translateY(3px); box-shadow: 0 1px 0 var(--preto); }
+    .btn-px.azul { background: var(--azul-lente); color: #fff; }
+
+    /* ============================================================
+       6. TELA DE PERGUNTA: HUD (progresso + pontos), HP, opções
+       ============================================================ */
+    .hud {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 8px;
+      margin-bottom: 10px;
+    }
+
+    /* Progresso em 6 Pokébolas pequenas */
+    .progresso { display: flex; gap: 5px; }
+    .mini-bola {
+      width: 17px; height: 17px;
+      border-radius: 50%;
+      border: 2px solid var(--preto);
+      background: linear-gradient(to bottom, #f23030 0 42%, var(--preto) 42% 58%, #fff 58% 100%);
+      position: relative;
+      transition: filter .3s;
+    }
+    .mini-bola::after {
+      content: '';
+      position: absolute;
+      top: 50%; left: 50%;
+      transform: translate(-50%, -50%);
+      width: 4px; height: 4px;
+      background: #fff;
+      border: 1.5px solid var(--preto);
+      border-radius: 50%;
+    }
+    /* Bolas ainda não conquistadas ficam "apagadas" */
+    .mini-bola.off { filter: grayscale(1) opacity(.3); }
+
+    .placar {
+      font-family: 'Press Start 2P', monospace;
+      font-size: 10px;
+      background: var(--preto);
+      color: var(--amarelo);
+      padding: 6px 8px;
+      border-radius: 6px;
+    }
+
+    /* Barra de timer estilo barra de HP dos jogos */
+    .hp-wrap {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      background: #fffbe6;
+      border: 3px solid var(--preto);
+      border-radius: 10px;
+      padding: 5px 8px;
+      margin-bottom: 4px;
+    }
+    .hp-label {
+      font-family: 'Press Start 2P', monospace;
+      font-size: 10px;
+      color: #e8821e;            /* laranja clássico do rótulo HP */
+    }
+    .hp-track {
+      flex: 1;
+      height: 12px;
+      border: 2px solid var(--preto);
+      border-radius: 7px;
+      background: #4a4a4a;
+      overflow: hidden;
+    }
+    .hp-fill {
+      height: 100%;
+      width: 100%;
+      background: var(--hp-verde);
+      border-radius: 5px;
+      /* transição curta deixa o esvaziamento suave entre os ticks do JS */
+      transition: width .1s linear, background-color .3s;
+    }
+    .hp-fill.meio  { background: var(--hp-amarelo); }
+    .hp-fill.baixo { background: var(--hp-vermelho); }
+    /* Quando o HP está baixo, a barra inteira "treme" para dar urgência */
+    .hp-wrap.urgente { animation: treme .12s linear infinite; }
+    @keyframes treme {
+      0% { transform: translateX(0); }
+      25% { transform: translateX(-1.5px); }
+      75% { transform: translateX(1.5px); }
+      100% { transform: translateX(0); }
+    }
+
+    .contador-pergunta {
+      font-family: 'Press Start 2P', monospace;
+      font-size: 9px;
+      color: #5a6b52;
+      text-align: right;
+      margin-bottom: 8px;
+    }
+
+    .pergunta-texto {
+      font-size: 23px;
+      line-height: 1.2;
+      margin-bottom: 14px;
+      min-height: 84px;
+      color: #22301c;
+    }
+
+    /* Botões de alternativa: caixa de diálogo dos jogos clássicos.
+       A "borda dupla" é feita com border + box-shadow interno. */
+    .opcoes { display: flex; flex-direction: column; gap: 10px; }
+    .opt {
+      font-family: 'VT323', monospace;  /* legível (texto longo) */
+      font-size: 20px;
+      line-height: 1.1;
+      text-align: left;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      width: 100%;
+      min-height: 52px;
+      padding: 10px 12px 10px 28px;
+      background: #fff;
+      color: var(--preto);
+      border: 3px solid var(--preto);
+      border-radius: 8px;
+      box-shadow: inset 0 0 0 2px #fff, inset 0 0 0 4px var(--preto);
+      position: relative;
+      cursor: pointer;
+    }
+    /* Cursor "▶" pixelado que aparece no hover/foco (toque também foca) */
+    .opt::before {
+      content: '▶';
+      font-family: 'Press Start 2P', monospace;
+      font-size: 10px;
+      position: absolute;
+      left: 9px;
+      opacity: 0;
+      transition: opacity .1s;
+    }
+    .opt:hover::before, .opt:focus-visible::before, .opt:active::before { opacity: 1; }
+    .opt:focus-visible { outline: 3px dashed var(--azul-escuro); outline-offset: 2px; }
+    .opt .emoji { font-size: 24px; flex-shrink: 0; }
+    .opt:disabled { opacity: .55; cursor: default; }
+
+    /* Feedback ao tocar: pisca amarelo + micro shake antes de avançar */
+    .opt.escolhida { animation: escolha .35s ease; }
+    @keyframes escolha {
+      0%, 30%, 60% { background: var(--amarelo); }
+      15%, 45%     { background: #fff; }
+      70% { transform: translateX(-3px); }
+      85% { transform: translateX(3px); }
+      100% { transform: translateX(0); }
+    }
+
+    /* ============================================================
+       7. TELA DE CAPTURA (suspense antes do resultado)
+       ============================================================ */
+    .captura-conteudo {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 26px;
+    }
+    .captura-texto {
+      font-family: 'Press Start 2P', monospace;
+      font-size: 11px;
+      line-height: 1.9;
+      text-align: center;
+      color: #3c4a36;
+    }
+    /* A Pokébola balança 3 vezes (3 iterações da animação) */
+    .balanca { animation: balanca .6s ease-in-out 3; }
+    @keyframes balanca {
+      0%, 100% { transform: translateX(0) rotate(0); }
+      20% { transform: translateX(-14px) rotate(-20deg); }
+      50% { transform: translateX(12px) rotate(18deg); }
+      80% { transform: translateX(-5px) rotate(-6deg); }
+    }
+
+    /* Flash branco que cobre a tela quando a Pokébola "abre" */
+    .flash {
+      position: absolute; inset: 0;
+      background: #fff;
+      opacity: 0;
+      pointer-events: none;
+      z-index: 10;
+    }
+    .flash.vai { animation: flash .55s ease-out; }
+    @keyframes flash { 0% { opacity: 0; } 25% { opacity: 1; } 100% { opacity: 0; } }
+
+    /* ============================================================
+       8. TELA FINAL — "Perfil de Treinador" (cartão de Pokédex)
+       ============================================================ */
+    .resultado-scroll { flex: 1; overflow-y: auto; }
+
+    .cartao {
+      background: #fff;
+      border: 3px solid var(--preto);
+      border-radius: 12px;
+      box-shadow: inset 0 0 0 2px #fff, inset 0 0 0 4px var(--preto), 0 4px 0 rgba(0,0,0,.2);
+      overflow: hidden;
+    }
+    .cartao-topo {
+      background: linear-gradient(135deg, var(--vermelho) 0%, #a30722 100%);
+      color: #fff;
+      text-align: center;
+      padding: 18px 12px 14px;
+    }
+    .cartao-topo .rotulo {
+      font-family: 'Press Start 2P', monospace;
+      font-size: 8px;
+      letter-spacing: 1px;
+      opacity: .85;
+    }
+    .poke-emoji { font-size: 64px; display: block; margin: 8px 0 4px; filter: drop-shadow(0 4px 4px rgba(0,0,0,.35)); }
+    .poke-nome {
+      font-family: 'Press Start 2P', monospace;
+      font-size: 20px;
+      color: var(--amarelo);
+      text-shadow: 2px 2px 0 rgba(0,0,0,.45);
+    }
+    .poke-frase { font-size: 20px; line-height: 1.15; padding: 8px 6px 0; }
+
+    /* Caixa do "Instinto de Treinador": pontuação + porcentagem */
+    .instinto {
+      margin: 12px;
+      background: #fffbe6;
+      border: 3px solid var(--preto);
+      border-radius: 8px;
+      padding: 10px 12px;
+      text-align: center;
+    }
+    .instinto .titulo {
+      font-family: 'Press Start 2P', monospace;
+      font-size: 9px;
+      color: var(--azul-escuro);
+      margin-bottom: 8px;
+    }
+    .instinto .pontos {
+      font-family: 'Press Start 2P', monospace;
+      font-size: 16px;
+      color: var(--vermelho);
+      margin-bottom: 6px;
+    }
+    .instinto .frase { font-size: 19px; line-height: 1.1; }
+
+    /* Ficha de atributos (rótulo à esquerda, valor à direita) */
+    .ficha { padding: 4px 12px 14px; }
+    .ficha-titulo {
+      font-family: 'Press Start 2P', monospace;
+      font-size: 9px;
+      color: #5a6b52;
+      margin: 6px 2px 8px;
+    }
+    .atributo {
+      display: flex;
+      justify-content: space-between;
+      align-items: baseline;
+      gap: 10px;
+      padding: 7px 2px;
+      border-bottom: 2px dotted #b9c9ae;
+      font-size: 19px;
+    }
+    .atributo:last-child { border-bottom: none; }
+    .atributo .chave { white-space: nowrap; color: #44523c; }
+    .atributo .valor { text-align: right; font-weight: bold; color: var(--preto); }
+
+    .acoes-finais {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      margin-top: 14px;
+    }
+
+    /* Avisinho temporário ("copiado!") quando não há Web Share API */
+    .toast {
+      position: absolute;
+      left: 50%; bottom: 18px;
+      transform: translateX(-50%);
+      background: var(--preto);
+      color: #fff;
+      font-size: 18px;
+      padding: 8px 16px;
+      border-radius: 8px;
+      opacity: 0;
+      transition: opacity .25s;
+      z-index: 20;
+      pointer-events: none;
+    }
+    .toast.mostra { opacity: 1; }
+
+    /* Telas muito baixas (celulares deitados): reduz a altura mínima */
+    @media (max-height: 640px) { .lcd { min-height: 480px; } }
+  </style>
+</head>
+<body>
+
+  <!-- ============================================================
+       ESTRUTURA: a Pokédex inteira. Dentro do LCD vivem as 4 telas:
+       início, pergunta, captura e resultado. O JS alterna entre elas.
+       ============================================================ -->
+  <main class="pokedex">
+
+    <!-- Topo decorativo: lente, luzes e botão de som -->
+    <div class="dex-top">
+      <div class="lens" aria-hidden="true"></div>
+      <div class="lights" aria-hidden="true">
+        <span class="light l-red"></span>
+        <span class="light l-yel"></span>
+        <span class="light l-grn"></span>
+      </div>
+      <button class="btn-som" id="btnSom" type="button" aria-label="Ativar ou desativar som">🔊</button>
+    </div>
+
+    <div class="dex-screen">
+      <div class="lcd">
+
+        <!-- ===== TELA 1: INÍCIO ===== -->
+        <section class="tela ativa" id="telaInicio">
+          <div class="inicio-conteudo">
+            <h1>Qual Pokémon combina com você?</h1>
+            <div class="pokebola pulsa" aria-hidden="true"></div>
+            <p class="subtitulo">10 perguntas. Tempo limitado.<br>Mostre seu instinto de treinador.</p>
+            <button class="btn-px" id="btnIniciar" type="button">Iniciar Jornada</button>
+          </div>
+        </section>
+
+        <!-- ===== TELA 2: PERGUNTA ===== -->
+        <section class="tela" id="telaPergunta">
+          <!-- HUD: progresso em Pokébolas + pontuação -->
+          <div class="hud">
+            <div class="progresso" id="progresso" aria-hidden="true"></div>
+            <div class="placar" id="placar">PTS 0</div>
+          </div>
+
+          <!-- Timer estilo barra de HP -->
+          <div class="hp-wrap" id="hpWrap">
+            <span class="hp-label">HP</span>
+            <div class="hp-track"><div class="hp-fill" id="hpFill"></div></div>
+          </div>
+          <div class="contador-pergunta" id="contadorPergunta">P1/10</div>
+
+          <!-- Pergunta e alternativas (preenchidas pelo JS) -->
+          <div id="blocoPergunta" aria-live="polite">
+            <p class="pergunta-texto" id="perguntaTexto"></p>
+            <div class="opcoes" id="opcoes"></div>
+          </div>
+        </section>
+
+        <!-- ===== TELA 3: CAPTURA (suspense) ===== -->
+        <section class="tela" id="telaCaptura">
+          <div class="captura-conteudo">
+            <div class="pokebola" id="bolaCaptura" aria-hidden="true"></div>
+            <p class="captura-texto">Analisando seu<br>instinto de treinador...</p>
+          </div>
+        </section>
+
+        <!-- ===== TELA 4: RESULTADO — Perfil de Treinador ===== -->
+        <section class="tela" id="telaResultado">
+          <div class="resultado-scroll">
+            <div class="cartao">
+              <div class="cartao-topo">
+                <div class="rotulo">★ PERFIL DE TREINADOR ★</div>
+                <span class="poke-emoji" id="resEmoji">❓</span>
+                <div class="poke-nome" id="resNome">???</div>
+                <p class="poke-frase" id="resFrase"></p>
+              </div>
+
+              <div class="instinto">
+                <div class="titulo">⚡ INSTINTO DE TREINADOR ⚡</div>
+                <div class="pontos" id="resPontos">0 PTS</div>
+                <div class="frase" id="resPct"></div>
+              </div>
+
+              <div class="ficha">
+                <div class="ficha-titulo">— FICHA DO TREINADOR —</div>
+                <div id="fichaLinhas"><!-- linhas geradas pelo JS --></div>
+              </div>
+            </div>
+
+            <div class="acoes-finais">
+              <button class="btn-px azul" id="btnCompartilhar" type="button">Compartilhar</button>
+              <button class="btn-px" id="btnReiniciar" type="button">Jogar de novo</button>
+            </div>
+          </div>
+        </section>
+
+        <!-- Flash branco da captura + toast de "copiado" -->
+        <div class="flash" id="flash"></div>
+        <div class="toast" id="toast"></div>
+      </div>
+    </div>
+  </main>
+
+  <script>
+    'use strict';
+    /* ==============================================================
+       BLOCO 1 — DADOS DO JOGO
+       Cada pergunta tem o texto (q) e 4 alternativas (a).
+       Cada alternativa guarda:
+         e  = emoji exibido
+         x  = texto exibido
+         t1 = código interno (categoria + número) — nunca aparece na tela
+              durante o jogo; só é decodificado na ficha final
+         t2 = afinidade interna usada no cálculo do resultado
+              (0..3 = perfis internos, -1 = não conta)
+       ============================================================== */
+    const QS = [
+      { q: 'Seu time venceu o Ginásio e a Enfermeira Joy liberou vocês pro banquete da vitória. Pra onde vão?',
+        a: [
+          { e:'🍔', x:'A hamburgueria do Snorlax: lanche gigante, sem pressa', t1:'c1', t2:0 },
+          { e:'🥩', x:'O Braseiro do Charizard: carne na chama', t1:'c2', t2:1 },
+          { e:'🍕', x:'Forno do Magmar: pizza napolitana saída da lava', t1:'c3', t2:1 },
+          { e:'🍝', x:'Cantina de Kanto: massa e molho que recupera o HP inteiro', t1:'c4', t2:0 }
+        ] },
+      { q: 'Um Snorlax bloqueou a Rota 12 e só acorda com o cheiro do prato certo. O que você cozinha?',
+        a: [
+          { e:'🍗', x:'Receita clássica do Brock: comida caseira bem feita', t1:'c5', t2:0 },
+          { e:'🌮', x:'Prato exótico de Alola, ninguém nunca provou', t1:'c6', t2:2 },
+          { e:'🧀', x:'Fondue do Vanillite', t1:'c7', t2:0 },
+          { e:'🍰', x:'Pula direto pra Poképuff de sobremesa', t1:'c8', t2:0 }
+        ] },
+      { q: 'Hora de escolher onde seu time janta antes da Liga. Seu critério de mestre:',
+        a: [
+          { e:'🏆', x:'Restaurante 5 estrelas no guia da região, aprovado pela Elite', t1:'s1', t2:-1 },
+          { e:'🗺️', x:'Local secreto que acabou de aparecer no mapa', t1:'s2', t2:2 },
+          { e:'🏠', x:'Invocar o banquete em casa via Pidgeot Delivery', t1:'r1', t2:0 },
+          { e:'🌃', x:'Restaurante no topo da Torre Lumiose, vista da cidade toda', t1:'r2', t2:3 }
+        ] },
+      { q: 'Dia livre em Saffron City, carteira cheia de PokéCoins. Primeira parada:',
+        a: [
+          { e:'🛍️', x:'O Mega Mall de Celadon, loja por loja', t1:'r3', t2:3 },
+          { e:'🎬', x:'Pokéstar Studios: estreia do filme novo', t1:'r4', t2:0 },
+          { e:'🌳', x:'Rota selvagem: caminhar, explorar, capturar', t1:'r5', t2:1 },
+          { e:'🕹️', x:'Game Corner de Celadon', t1:'r6', t2:1 }
+        ] },
+      { q: 'Sábado à noite, seu time com energia máxima. Qual missão aceita?',
+        a: [
+          { e:'🍽️', x:'Jantar longo no Restaurante Le Wow, vários rounds de pratos', t1:'r7', t2:0 },
+          { e:'🎤', x:'Festival Pokémon: música, multidão, agito', t1:'r8', t2:1 },
+          { e:'🛋️', x:'Defender o sofá: maratona a dois com Poké-snacks', t1:'r9', t2:0 },
+          { e:'🚗', x:'Pegar a bike e descobrir a cidade vizinha', t1:'r10', t2:2 }
+        ] },
+      { q: 'Quanto tempo dura sua expedição ideal antes do time pedir Revive?',
+        a: [
+          { e:'⚡', x:'Raid rápida: 2-3 horas intensas', t1:'d1', t2:1 },
+          { e:'☀️', x:'Da abertura do Centro Pokémon até o pôr do sol', t1:'d2', t2:-1 },
+          { e:'🌙', x:'Missão noturna: começa no jantar, termina tarde', t1:'d3', t2:2 },
+          { e:'⛺', x:'Acampamento de fim de semana completo', t1:'d4', t2:3 }
+        ] },
+      { q: 'Você zerou a Loja de Celadon: pode levar UM item lendário. Qual?',
+        a: [
+          { e:'👟', x:'As botas de viagem do Treinador de elite', t1:'p1', t2:-1 },
+          { e:'📱', x:'O Pokédex última geração', t1:'p2', t2:2 },
+          { e:'🎮', x:'A edição de colecionador do Game Corner', t1:'p3', t2:0 },
+          { e:'🎟️', x:'Passe VIP pra um evento raro', t1:'p4', t2:1 }
+        ] },
+      { q: "Qual presente da Professora Carvalho te faria soltar um 'Effective!' de emoção?",
+        a: [
+          { e:'💎', x:'Uma Master Ball: caro, raro, eu nunca compraria pra mim', t1:'p5', t2:-1 },
+          { e:'🎯', x:'O item exato que faltava no meu inventário, como ela sabia??', t1:'p6', t2:3 },
+          { e:'😂', x:'Um Magikarp de pelúcia gigante', t1:'p7', t2:2 },
+          { e:'🤝', x:'Vale-compras: prefiro escolher pessoalmente na loja', t1:'p8', t2:3 }
+        ] },
+      { q: 'Um treinador misterioso aparece do nada e te desafia AGORA. Sua reação:',
+        a: [
+          { e:'🔥', x:'Battle surpresa é a melhor battle, bora', t1:'s3', t2:2 },
+          { e:'🤔', x:'Aceito, mas quero ver o type dele antes', t1:'s4', t2:-1 },
+          { e:'📋', x:'Só luto depois de estudar o adversário', t1:'s5', t2:-1 },
+          { e:'😈', x:'Surpresa é MINHA especialidade, eu que embosco', t1:'s6', t2:1 }
+        ] },
+      { q: 'Pergunta final do Professor: o que faz uma jornada ser LENDÁRIA?',
+        a: [
+          { e:'🍴', x:'Os banquetes no caminho', t1:'f1', t2:0 },
+          { e:'🎢', x:'As batalhas e aventuras', t1:'f2', t2:1 },
+          { e:'🎁', x:'Os tesouros conquistados', t1:'f3', t2:-1 },
+          { e:'👥', x:'O parceiro de jornada', t1:'f4', t2:3 }
+        ] }
+    ];
+
+    /* Tabela de decodificação: transforma os códigos internos em texto
+       legível. Só é consultada na montagem da ficha final. */
+    const TX = {
+      c1:'Hambúrguer 🍔', c2:'Churrasco 🥩', c3:'Pizza 🍕', c4:'Massas 🍝',
+      c5:'Comida caseira 🍗', c6:'Sabores novos e exóticos 🌮', c7:'Fondue 🧀', c8:'Doces e sobremesas 🍰',
+      r1:'Delivery em casa 🏠', r2:'Lugar com vista e clima 🌃', r3:'Shopping 🛍️', r4:'Cinema 🎬',
+      r5:'Ar livre e natureza 🌳', r6:'Fliperama e jogos 🕹️', r7:'Jantar demorado 🍽️',
+      r8:'Show e festival 🎤', r9:'Sofá e maratona a dois 🛋️', r10:'Bate-volta de carro 🚗',
+      p1:'Tênis e vestuário 👟', p2:'Tecnologia 📱', p3:'Games e hobbies 🎮', p4:'Uma experiência 🎟️',
+      p5:'Algo de luxo 💎', p6:'Presente personalizado 🎯', p7:'Algo divertido e geek 😂', p8:'Escolher juntos 🤝',
+      s1:'Aposta no clássico de qualidade 🏆', s2:'Adora descobrir lugares novos 🗺️',
+      s3:'Ama surpresas 🔥', s4:'Surpresa, mas com aviso 🤔', s5:'Tudo planejado 📋', s6:'Prefere planejar (e surpreender) 😈',
+      f1:'Os banquetes no caminho 🍴', f2:'As batalhas e aventuras 🎢',
+      f3:'Os tesouros conquistados 🎁', f4:'O parceiro de jornada 👥'
+    };
+
+    /* Categorias da ficha final: rótulo disfarçado + letra do código */
+    const FICHA = [
+      { rotulo: '🍴 Dieta do Treinador',        letra: 'c' },
+      { rotulo: '🗺️ Habitat Favorito',          letra: 'r' },
+      { rotulo: '💎 Tesouro Preferido',          letra: 'p' },
+      { rotulo: '⚡ Estilo de Batalha',          letra: 's' },
+      { rotulo: '⏱️ Duração de Expedição Ideal', letra: 'd' },
+      { rotulo: '🏆 Jornada lendária é...',      letra: 'f' }
+    ];
+
+    /* Os 5 resultados possíveis (índices 0-3 batem com t2; 4 = perfil
+       equilibrado, decidido por regra própria no cálculo final) */
+    const MONS = [
+      { nome: 'SNORLAX',  emoji: '😴', frase: 'Mestre dos banquetes: sua jornada é guiada pelo estômago, e está certíssimo.' },
+      { nome: 'CHARIZARD', emoji: '🔥', frase: 'Espírito de batalha: você vive pela intensidade.' },
+      { nome: 'GENGAR',   emoji: '👻', frase: 'Imprevisível: você ama o desconhecido.' },
+      { nome: 'PIKACHU',  emoji: '⚡', frase: 'Parceiro lendário: pra você, o que importa é com quem está.' },
+      { nome: 'EEVEE',    emoji: '🦊', frase: 'Multipotencial: você quer de tudo um pouco.' }
+    ];
+
+    /* ==============================================================
+       BLOCO 2 — ESTADO DO JOGO
+       Tudo em variáveis simples (sem localStorage, conforme pedido).
+       ============================================================== */
+    const TEMPO_PERGUNTA = 15000;   // 15 segundos em milissegundos
+
+    let perguntaAtual = 0;          // índice da pergunta na tela (0 a 9)
+    let pontuacao = 0;              // pontos acumulados
+    let respostas = [];             // uma entrada por pergunta respondida
+    let rapidas = 0;                // quantas respostas com 10s+ sobrando
+    let respondendo = false;        // trava para impedir clique duplo
+    let fimTimer = 0;               // instante em que o tempo acaba
+    let intervaloTimer = null;      // id do setInterval do timer
+    let ultimoSegundoBip = -1;      // controla o bip de urgência (1 por segundo)
+
+    /* Atalho para pegar elementos pelo id (economiza repetição) */
+    const $ = (id) => document.getElementById(id);
+
+    /* ==============================================================
+       BLOCO 3 — SONS 8-BIT VIA WEB AUDIO API
+       Nenhum arquivo externo: os bipes são ondas geradas na hora.
+       O AudioContext só é criado no primeiro toque (regra dos
+       navegadores de celular: áudio precisa de gesto do usuário).
+       ============================================================== */
+    let audioCtx = null;
+    let mudo = false;
+
+    function garantirAudio() {
+      if (!audioCtx) {
+        const AC = window.AudioContext || window.webkitAudioContext;
+        if (AC) audioCtx = new AC();
+      }
+      // Em iOS o contexto pode nascer "suspenso"; retomamos aqui
+      if (audioCtx && audioCtx.state === 'suspended') audioCtx.resume();
+    }
+
+    /* Toca uma nota: frequência (Hz), início relativo (s), duração (s) */
+    function nota(freq, inicio, duracao, tipo, volume) {
+      if (mudo || !audioCtx) return;
+      const osc = audioCtx.createOscillator();
+      const gain = audioCtx.createGain();
+      osc.type = tipo || 'square';            // onda quadrada = som 8-bit
+      osc.frequency.value = freq;
+      const t0 = audioCtx.currentTime + (inicio || 0);
+      const vol = volume || 0.05;
+      // envelope simples: ataca rápido e decai até o fim da nota
+      gain.gain.setValueAtTime(vol, t0);
+      gain.gain.exponentialRampToValueAtTime(0.001, t0 + duracao);
+      osc.connect(gain).connect(audioCtx.destination);
+      osc.start(t0);
+      osc.stop(t0 + duracao + 0.02);
+    }
+
+    const somSelecao  = () => nota(660, 0, 0.07);                         // bipe de clique
+    const somRapido   = () => { nota(523, 0, .08); nota(659, .09, .08); nota(784, .18, .12); }; // arpejo subindo
+    const somTimeout  = () => { nota(330, 0, .12); nota(220, .13, .2); }; // descendo (tempo acabou)
+    const somTique    = () => nota(880, 0, 0.04, 'square', 0.03);         // tique de urgência
+    function somFanfarra() {                                              // fanfarra da tela final
+      const m = [[523,0,.12],[659,.13,.12],[784,.26,.12],[1047,.4,.3],[784,.72,.1],[1047,.84,.45]];
+      m.forEach(n => nota(n[0], n[1], n[2], 'square', 0.06));
+    }
+
+    /* Botão de mute: alterna o ícone e a flag */
+    $('btnSom').addEventListener('click', () => {
+      mudo = !mudo;
+      $('btnSom').textContent = mudo ? '🔇' : '🔊';
+      garantirAudio();
+      if (!mudo) somSelecao(); // feedback imediato ao reativar
+    });
+
+    /* ==============================================================
+       BLOCO 4 — NAVEGAÇÃO ENTRE TELAS
+       Esconde todas as telas e mostra só a desejada, com animação.
+       ============================================================== */
+    function mostrarTela(id) {
+      document.querySelectorAll('.tela').forEach(t => t.classList.remove('ativa'));
+      const tela = $(id);
+      tela.classList.add('ativa');
+      // Reinicia a animação de entrada (truque: remove, força reflow, adiciona)
+      tela.classList.remove('anim-entra');
+      void tela.offsetWidth;
+      tela.classList.add('anim-entra');
+    }
+
+    /* ==============================================================
+       BLOCO 5 — FLUXO DO QUIZ
+       ============================================================== */
+
+    /* Começa (ou recomeça) o jogo do zero */
+    function iniciarJogo() {
+      garantirAudio();
+      perguntaAtual = 0;
+      pontuacao = 0;
+      respostas = [];
+      rapidas = 0;
+      atualizarPlacar();
+      somSelecao();
+      mostrarTela('telaPergunta');
+      mostrarPergunta();
+    }
+
+    /* Desenha a pergunta atual: texto, alternativas, progresso e timer */
+    function mostrarPergunta() {
+      const p = QS[perguntaAtual];
+      respondendo = false;
+
+      // Texto da pergunta e contador "P3/10"
+      $('perguntaTexto').textContent = p.q;
+      $('contadorPergunta').textContent = 'P' + (perguntaAtual + 1) + '/10';
+
+      // Progresso: 6 Pokébolas; acendem na proporção de 10 perguntas → 6 bolas
+      const acesas = Math.round((perguntaAtual + 1) * 0.6);
+      let htmlBolas = '';
+      for (let i = 0; i < 6; i++) {
+        htmlBolas += '<span class="mini-bola' + (i < acesas ? '' : ' off') + '"></span>';
+      }
+      $('progresso').innerHTML = htmlBolas;
+
+      // Cria os 4 botões de alternativa.
+      // Importante: nenhum dado interno (t1/t2) vai para o HTML —
+      // a escolha é ligada por índice, via addEventListener.
+      const caixa = $('opcoes');
+      caixa.innerHTML = '';
+      p.a.forEach((alt, i) => {
+        const btn = document.createElement('button');
+        btn.type = 'button';
+        btn.className = 'opt';
+        const em = document.createElement('span');
+        em.className = 'emoji';
+        em.textContent = alt.e;
+        btn.appendChild(em);
+        btn.appendChild(document.createTextNode(alt.x));
+        btn.addEventListener('click', () => responder(i, btn));
+        caixa.appendChild(btn);
+      });
+
+      // Animação de entrada do bloco da pergunta
+      const bloco = $('blocoPergunta');
+      bloco.classList.remove('anim-entra');
+      void bloco.offsetWidth;
+      bloco.classList.add('anim-entra');
+
+      iniciarTimer();
+    }
+
+    /* ----- TIMER (barra de HP) ----- */
+    function iniciarTimer() {
+      pararTimer();
+      fimTimer = performance.now() + TEMPO_PERGUNTA;
+      ultimoSegundoBip = -1;
+      atualizarBarra(TEMPO_PERGUNTA);
+      // Atualiza a cada 100ms para a barra esvaziar suavemente
+      intervaloTimer = setInterval(() => {
+        const restante = fimTimer - performance.now();
+        if (restante <= 0) {
+          pararTimer();
+          atualizarBarra(0);
+          tempoEsgotado();
+          return;
+        }
+        atualizarBarra(restante);
+        // Bipe curto de urgência nos últimos 4 segundos (1 por segundo)
+        const seg = Math.ceil(restante / 1000);
+        if (seg <= 4 && seg !== ultimoSegundoBip) {
+          ultimoSegundoBip = seg;
+          somTique();
+        }
+      }, 100);
+    }
+
+    function pararTimer() {
+      if (intervaloTimer) { clearInterval(intervaloTimer); intervaloTimer = null; }
+    }
+
+    /* Atualiza largura e cor da barra conforme o tempo restante */
+    function atualizarBarra(restanteMs) {
+      const pct = (restanteMs / TEMPO_PERGUNTA) * 100;
+      const fill = $('hpFill');
+      fill.style.width = pct + '%';
+      fill.classList.toggle('meio',  pct <= 50 && pct > 20);
+      fill.classList.toggle('baixo', pct <= 20);
+      // A barra inteira treme quando entra no vermelho
+      $('hpWrap').classList.toggle('urgente', pct <= 20 && pct > 0);
+    }
+
+    /* ----- RESPOSTA DO JOGADOR ----- */
+    function responder(indice, botao) {
+      if (respondendo) return;       // ignora cliques repetidos
+      respondendo = true;
+      pararTimer();
+      $('hpWrap').classList.remove('urgente');
+
+      // Pontos = segundos restantes × 10 (responder rápido vale mais)
+      const restante = Math.max(0, fimTimer - performance.now());
+      const segundos = Math.ceil(restante / 1000);
+      const pontos = segundos * 10;
+      pontuacao += pontos;
+      if (segundos >= 10) { rapidas++; somRapido(); } else { somSelecao(); }
+
+      // Guarda a alternativa escolhida para o cálculo e a ficha final
+      respostas.push(QS[perguntaAtual].a[indice]);
+      atualizarPlacar();
+
+      // Feedback visual: pisca + micro shake, desabilita as outras opções
+      document.querySelectorAll('.opt').forEach(b => b.disabled = true);
+      botao.classList.add('escolhida');
+
+      // Pequena pausa para o feedback ser percebido, depois avança
+      setTimeout(avancar, 420);
+    }
+
+    /* Tempo esgotado: registra alternativa "neutra" (sem pontos, sem perfil) */
+    function tempoEsgotado() {
+      if (respondendo) return;
+      respondendo = true;
+      somTimeout();
+      respostas.push({ t1: null, t2: -1 }); // resposta neutra
+      document.querySelectorAll('.opt').forEach(b => b.disabled = true);
+      setTimeout(avancar, 500);
+    }
+
+    /* Vai para a próxima pergunta ou, no fim, para a tela de captura */
+    function avancar() {
+      perguntaAtual++;
+      if (perguntaAtual < QS.length) {
+        mostrarPergunta();
+      } else {
+        iniciarCaptura();
+      }
+    }
+
+    function atualizarPlacar() {
+      $('placar').textContent = 'PTS ' + pontuacao;
+    }
+
+    /* ==============================================================
+       BLOCO 6 — CÁLCULO DO RESULTADO
+       Soma as afinidades de cada resposta e decide o Pokémon.
+       ============================================================== */
+    function calcularResultado() {
+      // Contadores dos 4 perfis-base (mesma ordem de MONS)
+      const cont = [0, 0, 0, 0];
+
+      respostas.forEach((r, i) => {
+        if (r.t2 >= 0) {
+          // A pergunta 10 (índice 9) vale peso 2: é o desempate oficial
+          cont[r.t2] += (i === 9 ? 2 : 1);
+        }
+      });
+
+      // Bônus de intensidade: muitas respostas relâmpago puxam pro perfil 1
+      if (rapidas >= 6) cont[1] += 2;
+
+      // Ordena os perfis do maior para o menor
+      const ordem = [0, 1, 2, 3].sort((a, b) => cont[b] - cont[a]);
+      const lider = ordem[0];
+      const vantagem = cont[lider] - cont[ordem[1]];
+      const escolheuParceiro = respostas[9] && respostas[9].t1 === 'f4';
+
+      // Líder claro (2+ pontos de vantagem) → é ele
+      if (vantagem >= 2 && cont[lider] > 0) return lider;
+
+      // Perfil equilibrado: companhia na P10 ou afinidade social alta → Pikachu
+      if (escolheuParceiro || cont[3] >= 3) return 3;
+
+      // Sem dominante nenhum → Eevee (multipotencial)
+      return 4;
+    }
+
+    /* ==============================================================
+       BLOCO 7 — TELA DE CAPTURA + REVELAÇÃO
+       Pokébola balança 3x (~2s), flash branco, e o resultado aparece.
+       ============================================================== */
+    function iniciarCaptura() {
+      mostrarTela('telaCaptura');
+      const bola = $('bolaCaptura');
+      bola.classList.remove('balanca');
+      void bola.offsetWidth;            // reinicia a animação
+      bola.classList.add('balanca');
+
+      // 1,8s de suspense (3 balanços de 0,6s) + flash + revelação
+      setTimeout(() => {
+        const flash = $('flash');
+        flash.classList.remove('vai');
+        void flash.offsetWidth;
+        flash.classList.add('vai');
+        setTimeout(revelarResultado, 250); // troca de tela no meio do flash
+      }, 1800);
+    }
+
+    function revelarResultado() {
+      const indice = calcularResultado();
+      const mon = MONS[indice];
+
+      // Cabeçalho do cartão: Pokémon + frase de personalidade
+      $('resEmoji').textContent = mon.emoji;
+      $('resNome').textContent = mon.nome;
+      $('resFrase').textContent = mon.frase;
+
+      // Instinto de Treinador: pontuação + porcentagem "competitiva".
+      // Fórmula simples: escala a pontuação (máx. 1500) para 60–99%.
+      $('resPontos').textContent = pontuacao + ' PTS';
+      const pct = Math.max(60, Math.min(99, 60 + Math.round((pontuacao / 1500) * 39)));
+      $('resPct').textContent = 'Você respondeu mais rápido que ' + pct + '% dos treinadores!';
+
+      // Ficha do treinador: agrupa os códigos por categoria e decodifica
+      let html = '';
+      FICHA.forEach(cat => {
+        // pega os códigos desta categoria, sem repetição
+        const valores = [];
+        respostas.forEach(r => {
+          if (r.t1 && r.t1.charAt(0) === cat.letra) {
+            const texto = TX[r.t1];
+            if (texto && valores.indexOf(texto) === -1) valores.push(texto);
+          }
+        });
+        const valor = valores.length ? valores.join(' · ') : '???';
+        html += '<div class="atributo"><span class="chave">' + cat.rotulo +
+                '</span><span class="valor">' + valor + '</span></div>';
+      });
+      $('fichaLinhas').innerHTML = html;
+
+      somFanfarra();
+      mostrarTela('telaResultado');
+    }
+
+    /* ==============================================================
+       BLOCO 8 — COMPARTILHAR E JOGAR DE NOVO
+       ============================================================== */
+    function textoCompartilhar() {
+      const mon = MONS[calcularResultado()];
+      const pct = Math.max(60, Math.min(99, 60 + Math.round((pontuacao / 1500) * 39)));
+      return '🎮 Quiz: Qual Pokémon combina com você?\n' +
+             'Meu resultado: ' + mon.nome + ' ' + mon.emoji + '\n' +
+             '🏆 ' + pontuacao + ' pontos — respondi mais rápido que ' + pct + '% dos treinadores!\n' +
+             'Jogue também: ' + location.href;
+    }
+
+    /* Mostra um avisinho temporário na parte de baixo da tela */
+    let timerToast = null;
+    function mostrarToast(msg) {
+      const t = $('toast');
+      t.textContent = msg;
+      t.classList.add('mostra');
+      clearTimeout(timerToast);
+      timerToast = setTimeout(() => t.classList.remove('mostra'), 2200);
+    }
+
+    $('btnCompartilhar').addEventListener('click', async () => {
+      somSelecao();
+      const texto = textoCompartilhar();
+      // 1ª opção: Web Share API (abre o menu nativo de compartilhar do celular)
+      if (navigator.share) {
+        try { await navigator.share({ text: texto }); } catch (e) { /* usuário cancelou */ }
+        return;
+      }
+      // 2ª opção: copiar para a área de transferência
+      try {
+        await navigator.clipboard.writeText(texto);
+        mostrarToast('Resultado copiado! 📋');
+      } catch (e) {
+        // 3ª opção (navegadores antigos): textarea temporária + execCommand
+        const ta = document.createElement('textarea');
+        ta.value = texto;
+        document.body.appendChild(ta);
+        ta.select();
+        try { document.execCommand('copy'); mostrarToast('Resultado copiado! 📋'); }
+        catch (e2) { mostrarToast('Não foi possível copiar 😕'); }
+        document.body.removeChild(ta);
+      }
+    });
+
+    $('btnReiniciar').addEventListener('click', iniciarJogo);
+    $('btnIniciar').addEventListener('click', iniciarJogo);
+  </script>
+</body>
+</html>
