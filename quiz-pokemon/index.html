@@ -48,8 +48,6 @@
       font-family: 'VT323', monospace;
       color: var(--preto);
       display: flex;
-      align-items: center;
-      justify-content: center;
       min-height: 100dvh;       /* dvh = altura real da tela no celular */
       padding: 10px;
       -webkit-tap-highlight-color: transparent; /* remove flash azul no toque (iOS/Android) */
@@ -62,6 +60,8 @@
     .pokedex {
       width: 100%;
       max-width: 430px;          /* no desktop fica um "cartão" centralizado */
+      margin: auto;              /* centraliza SEM cortar o topo quando o conteúdo
+                                    é mais alto que a tela (bug clássico do flexbox) */
       background: var(--vermelho);
       border: 3px solid var(--vermelho-escuro);
       border-radius: 18px;
@@ -448,6 +448,31 @@
       opacity: .85;
     }
     .poke-emoji { font-size: 64px; display: block; margin: 8px 0 4px; filter: drop-shadow(0 4px 4px rgba(0,0,0,.35)); }
+
+    /* Sprite pixelado real do Pokémon (96px ampliado, estética GameBoy) */
+    .poke-sprite {
+      width: 128px; height: 128px;
+      image-rendering: pixelated;
+      display: block;
+      margin: 6px auto 0;
+      filter: drop-shadow(0 4px 4px rgba(0,0,0,.35));
+    }
+
+    /* Bloco "POR QUE VOCÊ?": explica o resultado com as respostas da pessoa */
+    .porque {
+      margin: 12px 12px 0;
+      background: #fff;
+      border: 3px solid var(--preto);
+      border-radius: 8px;
+      padding: 10px 12px;
+    }
+    .porque .titulo {
+      font-family: 'Press Start 2P', monospace;
+      font-size: 9px;
+      color: var(--vermelho);
+      margin-bottom: 6px;
+    }
+    .porque .texto { font-size: 19px; line-height: 1.15; }
     .poke-nome {
       font-family: 'Press Start 2P', monospace;
       font-size: 20px;
@@ -458,26 +483,26 @@
 
     /* Caixa do "Instinto de Treinador": pontuação + porcentagem */
     .instinto {
-      margin: 12px;
+      margin: 10px 12px;
       background: #fffbe6;
       border: 3px solid var(--preto);
       border-radius: 8px;
-      padding: 10px 12px;
+      padding: 8px 10px;
       text-align: center;
     }
     .instinto .titulo {
       font-family: 'Press Start 2P', monospace;
-      font-size: 9px;
+      font-size: 8px;
       color: var(--azul-escuro);
-      margin-bottom: 8px;
+      margin-bottom: 6px;
     }
     .instinto .pontos {
       font-family: 'Press Start 2P', monospace;
-      font-size: 16px;
+      font-size: 12px;
       color: var(--vermelho);
-      margin-bottom: 6px;
+      margin-bottom: 4px;
     }
-    .instinto .frase { font-size: 19px; line-height: 1.1; }
+    .instinto .frase { font-size: 16px; line-height: 1.1; }
 
     /* Ficha de atributos (rótulo à esquerda, valor à direita) */
     .ficha { padding: 4px 12px 14px; }
@@ -595,10 +620,16 @@
           <div class="resultado-scroll">
             <div class="cartao">
               <div class="cartao-topo">
-                <div class="rotulo">★ PERFIL DE TREINADOR ★</div>
-                <span class="poke-emoji" id="resEmoji">❓</span>
+                <div class="rotulo">★ VOCÊ É... ★</div>
+                <img class="poke-sprite" id="resSprite" alt="">
+                <span class="poke-emoji" id="resEmoji" style="display:none">❓</span>
                 <div class="poke-nome" id="resNome">???</div>
                 <p class="poke-frase" id="resFrase"></p>
+              </div>
+
+              <div class="porque">
+                <div class="titulo">🔍 POR QUE VOCÊ?</div>
+                <p class="texto" id="resPorque"></p>
               </div>
 
               <div class="instinto">
@@ -1051,9 +1082,47 @@
        BLOCO 7 — TELA DE CAPTURA + REVELAÇÃO
        Pokébola balança 3x (~2s), flash branco, e o resultado aparece.
        ============================================================== */
+    /* Sprite + emoji do cartão. Chamado já na captura para o sprite
+       baixar durante o suspense da Pokébola (~2s). */
+    function prepararCartao(mon) {
+      const img = $('resSprite');
+      const emo = $('resEmoji');
+      emo.textContent = mon.emoji;
+      emo.style.display = 'none';
+      img.style.display = '';
+      // Sem internet (ou URL fora do ar): esconde a imagem e mostra o emoji
+      img.onerror = () => { img.style.display = 'none'; emo.style.display = 'block'; };
+      img.alt = 'Sprite do ' + mon.nome;
+      img.src = SPRITE_URL(mon.dex);
+    }
+
+    /* Monta o texto do "POR QUE VOCÊ?" com os perfis dominantes
+       e até 2 respostas reais da pessoa que votaram no perfil líder. */
+    function textoPorque(res) {
+      if (res.chave === 'eq') {
+        return 'Suas respostas se espalharam por todos os lados — versatilidade é o seu forte.';
+      }
+      const p1 = PERFIS[res.lider];
+      let texto;
+      if (res.segundo >= 0) {
+        const p2 = PERFIS[res.segundo];
+        texto = 'Seu lado mais forte é ' + p1.nome + ' ' + p1.emoji +
+                ', com um toque de ' + p2.nome + ' ' + p2.emoji + '.';
+      } else {
+        texto = 'Seu lado ' + p1.nome + ' ' + p1.emoji + ' dominou de longe.';
+      }
+      const provas = [];
+      respostas.forEach(r => {
+        if (r.t2 === res.lider && r.t1 && TX[r.t1] && provas.length < 2) provas.push(TX[r.t1]);
+      });
+      if (provas.length) texto += ' Deu pra ver quando você escolheu ' + provas.join(' e ') + '.';
+      return texto;
+    }
+
     function iniciarCaptura() {
       mostrarTela('telaCaptura');
       resultadoFinal = calcularResultado();   // calcula já na captura
+      prepararCartao(RESULTADOS[resultadoFinal.chave]);
       const bola = $('bolaCaptura');
       bola.classList.remove('balanca');
       void bola.offsetWidth;            // reinicia a animação
@@ -1072,10 +1141,10 @@
     function revelarResultado() {
       const mon = RESULTADOS[resultadoFinal.chave];
 
-      // Cabeçalho do cartão: Pokémon + frase de personalidade
-      $('resEmoji').textContent = mon.emoji;
+      // Cabeçalho do cartão: nome + frase (sprite/emoji já prontos via prepararCartao)
       $('resNome').textContent = mon.nome;
       $('resFrase').textContent = mon.frase;
+      $('resPorque').textContent = textoPorque(resultadoFinal);
 
       // Instinto de Treinador: pontuação + porcentagem "competitiva".
       // Fórmula simples: escala a pontuação (máx. 1500) para 60–99%.
@@ -1111,7 +1180,8 @@
       const mon = RESULTADOS[resultadoFinal.chave];
       const pct = Math.max(60, Math.min(99, 60 + Math.round((pontuacao / 1500) * 39)));
       return '🎮 Quiz: Qual Pokémon combina com você?\n' +
-             'Meu resultado: ' + mon.nome + ' ' + mon.emoji + '\n' +
+             'Meu Pokémon interior: ' + mon.nome + ' ' + mon.emoji + '\n' +
+             mon.frase + '\n' +
              '🏆 ' + pontuacao + ' pontos — respondi mais rápido que ' + pct + '% dos treinadores!\n' +
              'Jogue também: ' + location.href;
     }
