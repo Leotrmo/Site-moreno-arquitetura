@@ -1,3 +1,47 @@
+# Estética Pokédex na Página de Análise — Implementation Plan
+
+> **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
+
+**Goal:** Aplicar a estética de Pokédex retrô do quiz (`quiz-pokemon/index.html`) à página de análise (`pokemon/index.html`), sem mudar nenhum comportamento.
+
+**Architecture:** Reescrita do CSS e da marcação estática de `pokemon/index.html` apenas. O conteúdo passa a viver dentro de uma moldura `.pokedex` fixa na altura da janela; a lista rola num wrapper interno `.lcd-scroll` (opção A do spec). Todos os IDs e classes consumidos por `app.js`/`render.js` permanecem intactos — zero mudança em JS. Spec: `docs/superpowers/specs/2026-06-12-pokedex-estetica-analise-design.md`.
+
+**Tech Stack:** HTML/CSS vanilla, Google Fonts (Press Start 2P + VT323), PWA (manifest + service worker), testes `node --test`.
+
+**Restrições críticas (do spec):**
+- NÃO tocar em `pokemon/app.js`, `pokemon/lib/`, `pokemon/build/`, `pokemon/test/`, dados, nem `quiz-pokemon/`.
+- Preservar exatamente: IDs `updated, total, c-transfer, c-invest, c-keep, hero, chips, search, sort, clear-filters, transfer-controls, tf-filter, tf-clear, tf-progress, empty, list`; classes `hero-card (t/i/k, .n, .l), chip, pk, pk-top, pk-name, pk-stats, pk-detail, tf-check, done, refresh-btn (.spinning), sort-select, filt-btn, filter-btn, transfer-progress, empty, mon-list`; atributos `data-filter-verdict`; o `onclick="forcarAtualizacao(this)"` e os dois blocos `<script>` inline do final (registro do SW + `forcarAtualizacao`), que ficam idênticos aos atuais.
+- Lição do quiz: centralizar `.pokedex` com `margin: auto` (flex center corta o topo de conteúdo alto).
+- Scanlines ficam num `::before` do `.lcd` **fixo** (se ficassem no elemento que rola, rolariam junto).
+
+---
+
+### Task 0: Branch de trabalho
+
+**Files:** nenhum
+
+- [ ] **Step 1: Criar branch a partir da main atualizada**
+
+Run: `git checkout main && git pull && git checkout -b claude/pokedex-estetica-analise`
+Expected: `Switched to a new branch 'claude/pokedex-estetica-analise'`
+
+---
+
+### Task 1: Reescrever `pokemon/index.html` com a estética Pokédex
+
+**Files:**
+- Modify: `pokemon/index.html` (substituição completa do arquivo)
+
+- [ ] **Step 1: Rodar os testes ANTES para registrar a linha de base**
+
+Run: `cd pokemon; npm test`
+Expected: todos os testes passam (eles testam `lib/` e `build/`, não tocam o index — se algo falhar aqui, o problema é pré-existente; pare e reporte).
+
+- [ ] **Step 2: Substituir o conteúdo inteiro de `pokemon/index.html` pelo código abaixo**
+
+Atenção: os dois blocos `<script>` do final são idênticos aos atuais — confira por diff que nada neles mudou.
+
+```html
 <!DOCTYPE html>
 <html lang="pt-BR"><head><meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
@@ -26,7 +70,7 @@
   --investir: #1b7a2f;
   --transferir: #c21d1d;
   --manter: #5a6b52;
-  --dourado: #8a6200;
+  --dourado: #b8860b;
   --rosa: #b3186e;
   --roxo: #5b21b6;
   --petroleo: #0e7490;
@@ -37,7 +81,6 @@
   --tinta-fraca: #5a6b52;
 }
 * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
-:focus-visible { outline: 2px solid var(--azul-escuro); outline-offset: 2px; }
 
 html { height: 100%; }
 body {
@@ -219,7 +262,6 @@ h1 {
 .v-transfer { color: var(--transferir); }
 .pk-stats { display: flex; gap: 6px; align-items: center; flex-wrap: wrap; font-size: 17px; line-height: 1; }
 .cp { color: var(--tinta-fraca); }
-.iv { font-weight: 700; }
 .iv-perfect { color: var(--dourado); }
 .iv-great { color: var(--investir); }
 .iv-good { color: var(--azul-dado); }
@@ -233,7 +275,7 @@ h1 {
 .b-shiny { color: var(--rosa); }
 .b-shadow, .b-legendary, .b-rocket { color: var(--roxo); }
 .b-lucky, .b-tradeiv { color: var(--petroleo); }
-.b-size, .b-purified, .b-costume, .b-trade, .b-regional, .b-2nd { color: var(--azul-dado); }
+.b-size, .b-purified, .b-costume, .b-trade, .b-regional { color: var(--azul-dado); }
 .b-pve { color: var(--laranja); }
 .b-gymdef { color: var(--verde-gym); }
 .reason { font-size: 16px; line-height: 1.15; color: #3c4a36; }
@@ -359,3 +401,100 @@ h1 {
 </script>
 </body>
 </html>
+```
+
+- [ ] **Step 3: Rodar os testes de novo**
+
+Run: `cd pokemon; npm test`
+Expected: mesmos resultados da linha de base (o index não é testado, mas confirma que nada mais foi tocado).
+
+- [ ] **Step 4: Verificar no navegador (preview)**
+
+Subir um servidor estático na raiz do repo (preview tools ou `npx serve .`) e abrir `/pokemon/index.html`. Checklist:
+
+1. Sem erros no console (Google Fonts pode falhar offline — fallback monospace é aceitável).
+2. Moldura vermelha com lente azul, 3 luzes (vermelha piscando) e botão 🔄 preto redondo no topo.
+3. Tela LCD verde com scanlines; a lista de Pokémon rola **dentro** da tela e a moldura não se move; as scanlines ficam paradas durante a rolagem.
+4. Header/heros/chips rolam para fora; a barra de busca gruda no topo da rolagem com fundo opaco (cards não vazam por trás).
+5. Fontes: título/veredictos/botões em Press Start 2P; nomes/stats/motivos em VT323 legível.
+6. Cards brancos com borda preta, sombra dura e barra lateral colorida por veredicto; badges com borda preta e cores escuras distinguíveis sobre o LCD.
+7. Interações intactas: hero filtra por veredicto; chip filtra; busca filtra; select reordena; clicar num card expande o detalhe (bloco Competitivo e comparador legíveis); filtro TRANSFERIR mostra a barra de transferir, "✓ já transferi" marca o card como done (opacidade) e o progresso atualiza.
+8. Testar em ~390px (mobile) e desktop; em desktop a Pokédex fica um cartão centralizado de 520px.
+
+Se algo falhar: diagnosticar no CSS/markup do index (não tocar nos JS), corrigir e repetir o checklist.
+
+- [ ] **Step 5: Commit**
+
+```bash
+git add pokemon/index.html
+git commit -m "feat: estética Pokédex na página de análise"
+```
+
+---
+
+### Task 2: PWA — manifest e bump do service worker
+
+**Files:**
+- Modify: `pokemon/manifest.json:9-10`
+- Modify: `pokemon/sw.js:1`
+
+- [ ] **Step 1: Atualizar cores do manifest**
+
+Em `pokemon/manifest.json`, trocar:
+
+```json
+  "theme_color": "#0a0e14",
+  "background_color": "#0a0e14",
+```
+
+por:
+
+```json
+  "theme_color": "#DC0A2D",
+  "background_color": "#14141c",
+```
+
+- [ ] **Step 2: Bump da versão de cache do service worker**
+
+Em `pokemon/sw.js`, trocar:
+
+```js
+const CACHE = 'pokemon-leo-v14';
+```
+
+por:
+
+```js
+const CACHE = 'pokemon-leo-v15';
+```
+
+- [ ] **Step 3: Verificar no navegador que o app continua subindo**
+
+Recarregar `/pokemon/index.html` no preview: página carrega, sem erros novos no console (o SW pode logar atualização de cache — esperado).
+
+- [ ] **Step 4: Commit**
+
+```bash
+git add pokemon/manifest.json pokemon/sw.js
+git commit -m "chore: tema PWA vermelho Pokédex e bump do cache (v15)"
+```
+
+---
+
+### Task 3: Verificação final e integração
+
+**Files:** nenhum novo
+
+- [ ] **Step 1: Rodar a suíte completa uma última vez**
+
+Run: `cd pokemon; npm test`
+Expected: todos passam.
+
+- [ ] **Step 2: Conferir o diff completo da branch**
+
+Run: `git diff main --stat`
+Expected: exatamente 3 arquivos: `pokemon/index.html`, `pokemon/manifest.json`, `pokemon/sw.js` (+ o arquivo deste plano, se commitado na branch). Nenhum JS de `lib/`, `app.js` ou `quiz-pokemon/` alterado.
+
+- [ ] **Step 3: Usar a skill superpowers:finishing-a-development-branch**
+
+Decidir com o usuário entre merge local ou PR (o padrão do projeto tem sido PR — ver PRs #24/#25).
