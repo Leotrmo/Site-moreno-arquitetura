@@ -1,0 +1,500 @@
+# Estética Pokédex na Página de Análise — Implementation Plan
+
+> **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
+
+**Goal:** Aplicar a estética de Pokédex retrô do quiz (`quiz-pokemon/index.html`) à página de análise (`pokemon/index.html`), sem mudar nenhum comportamento.
+
+**Architecture:** Reescrita do CSS e da marcação estática de `pokemon/index.html` apenas. O conteúdo passa a viver dentro de uma moldura `.pokedex` fixa na altura da janela; a lista rola num wrapper interno `.lcd-scroll` (opção A do spec). Todos os IDs e classes consumidos por `app.js`/`render.js` permanecem intactos — zero mudança em JS. Spec: `docs/superpowers/specs/2026-06-12-pokedex-estetica-analise-design.md`.
+
+**Tech Stack:** HTML/CSS vanilla, Google Fonts (Press Start 2P + VT323), PWA (manifest + service worker), testes `node --test`.
+
+**Restrições críticas (do spec):**
+- NÃO tocar em `pokemon/app.js`, `pokemon/lib/`, `pokemon/build/`, `pokemon/test/`, dados, nem `quiz-pokemon/`.
+- Preservar exatamente: IDs `updated, total, c-transfer, c-invest, c-keep, hero, chips, search, sort, clear-filters, transfer-controls, tf-filter, tf-clear, tf-progress, empty, list`; classes `hero-card (t/i/k, .n, .l), chip, pk, pk-top, pk-name, pk-stats, pk-detail, tf-check, done, refresh-btn (.spinning), sort-select, filt-btn, filter-btn, transfer-progress, empty, mon-list`; atributos `data-filter-verdict`; o `onclick="forcarAtualizacao(this)"` e os dois blocos `<script>` inline do final (registro do SW + `forcarAtualizacao`), que ficam idênticos aos atuais.
+- Lição do quiz: centralizar `.pokedex` com `margin: auto` (flex center corta o topo de conteúdo alto).
+- Scanlines ficam num `::before` do `.lcd` **fixo** (se ficassem no elemento que rola, rolariam junto).
+
+---
+
+### Task 0: Branch de trabalho
+
+**Files:** nenhum
+
+- [ ] **Step 1: Criar branch a partir da main atualizada**
+
+Run: `git checkout main && git pull && git checkout -b claude/pokedex-estetica-analise`
+Expected: `Switched to a new branch 'claude/pokedex-estetica-analise'`
+
+---
+
+### Task 1: Reescrever `pokemon/index.html` com a estética Pokédex
+
+**Files:**
+- Modify: `pokemon/index.html` (substituição completa do arquivo)
+
+- [ ] **Step 1: Rodar os testes ANTES para registrar a linha de base**
+
+Run: `cd pokemon; npm test`
+Expected: todos os testes passam (eles testam `lib/` e `build/`, não tocam o index — se algo falhar aqui, o problema é pré-existente; pare e reporte).
+
+- [ ] **Step 2: Substituir o conteúdo inteiro de `pokemon/index.html` pelo código abaixo**
+
+Atenção: os dois blocos `<script>` do final são idênticos aos atuais — confira por diff que nada neles mudou.
+
+```html
+<!DOCTYPE html>
+<html lang="pt-BR"><head><meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Pokémon Leo">
+<meta name="theme-color" content="#DC0A2D">
+<link rel="manifest" href="./manifest.json">
+<link rel="apple-touch-icon" href="./icons/icon-180.png">
+<title>Análise Pokémon - Leo</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&family=VT323&display=swap" rel="stylesheet">
+<style>
+/* Paleta da Pokédex (igual ao quiz) + tons escuros p/ dados no LCD claro */
+:root {
+  --vermelho: #DC0A2D;
+  --vermelho-escuro: #8f0820;
+  --azul-lente: #28AAFD;
+  --amarelo: #FFCB05;
+  --azul-escuro: #2A75BB;
+  --preto: #1D1D1D;
+  --lcd: #dff2cf;
+  --lcd-borda: #3a3a3a;
+  --verde-hp: #3ddc55;
+  --investir: #1b7a2f;
+  --transferir: #c21d1d;
+  --manter: #5a6b52;
+  --dourado: #b8860b;
+  --rosa: #b3186e;
+  --roxo: #5b21b6;
+  --petroleo: #0e7490;
+  --azul-dado: #1d4ed8;
+  --laranja: #c2410c;
+  --verde-gym: #166534;
+  --tinta: #22301c;
+  --tinta-fraca: #5a6b52;
+}
+* { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+
+html { height: 100%; }
+body {
+  font-family: 'VT323', monospace;
+  background: radial-gradient(circle at 50% 20%, #2a3550 0%, #14141c 70%);
+  color: var(--tinta);
+  height: 100vh; height: 100dvh;
+  display: flex;
+  padding: calc(8px + env(safe-area-inset-top)) 8px calc(8px + env(safe-area-inset-bottom));
+}
+
+/* Moldura da Pokédex: aparelho fixo na altura da janela; a lista rola dentro */
+.pokedex {
+  width: 100%; max-width: 520px;
+  margin: auto; /* flex center cortaria o topo de conteúdo alto */
+  height: 100%;
+  display: flex; flex-direction: column;
+  background: var(--vermelho);
+  border: 3px solid var(--vermelho-escuro);
+  border-radius: 18px;
+  padding: 12px 12px 16px;
+  box-shadow: inset 0 -6px 0 rgba(0,0,0,.25), 0 12px 36px rgba(0,0,0,.5);
+}
+.dex-top { display: flex; align-items: flex-start; gap: 12px; margin-bottom: 10px; flex: 0 0 auto; }
+.lens {
+  width: 54px; height: 54px; border-radius: 50%;
+  background: radial-gradient(circle at 35% 30%, #cfeaff 0%, var(--azul-lente) 40%, #0a5ea8 100%);
+  border: 4px solid #fff;
+  box-shadow: 0 0 0 3px var(--vermelho-escuro), inset -4px -6px 10px rgba(0,0,0,.35);
+  position: relative; flex-shrink: 0;
+}
+.lens::after {
+  content: ''; position: absolute; top: 8px; left: 10px;
+  width: 12px; height: 8px; background: rgba(255,255,255,.85);
+  border-radius: 50%; transform: rotate(-25deg);
+}
+.lights { display: flex; gap: 7px; margin-top: 4px; }
+.light { width: 13px; height: 13px; border-radius: 50%; border: 2px solid rgba(0,0,0,.45); box-shadow: inset -2px -2px 3px rgba(0,0,0,.3); }
+.l-red { background: #ff5a5a; animation: pisca 2.4s infinite; }
+.l-yel { background: var(--amarelo); }
+.l-grn { background: var(--verde-hp); }
+@keyframes pisca { 0%, 90%, 100% { opacity: 1; } 95% { opacity: .35; } }
+
+/* Botão de atualizar vira o botão preto redondo do aparelho */
+.refresh-btn {
+  margin-left: auto; width: 44px; height: 44px; border-radius: 50%;
+  border: 3px solid var(--preto); background: var(--preto); color: #fff;
+  font-size: 18px; line-height: 1; cursor: pointer;
+  box-shadow: inset 0 -3px 0 rgba(255,255,255,.15);
+}
+.refresh-btn:active { transform: translateY(1px); }
+.refresh-btn.spinning { animation: refresh-spin .8s linear infinite; opacity: .7; }
+@keyframes refresh-spin { to { transform: rotate(360deg); } }
+
+/* Tela: moldura preta + LCD verde com scanlines; rolagem interna */
+.dex-screen { flex: 1; min-height: 0; display: flex; background: var(--preto); border-radius: 12px; padding: 8px; }
+.lcd {
+  flex: 1; min-height: 0;
+  display: flex; flex-direction: column;
+  background: var(--lcd);
+  border: 3px solid var(--lcd-borda);
+  border-radius: 8px;
+  position: relative; overflow: hidden;
+}
+/* scanlines no .lcd fixo: no elemento que rola, rolariam junto */
+.lcd::before {
+  content: ''; position: absolute; inset: 0;
+  background: repeating-linear-gradient(0deg, rgba(0,0,0,.035) 0 1px, transparent 1px 3px);
+  pointer-events: none; z-index: 5;
+}
+.lcd-scroll { flex: 1; min-height: 0; overflow-y: auto; padding: 0 10px 20px; }
+.lcd-scroll::-webkit-scrollbar { width: 6px; }
+.lcd-scroll::-webkit-scrollbar-thumb { background: var(--lcd-borda); border-radius: 3px; }
+
+/* Header (rola para fora junto com heros e chips) */
+header { text-align: center; padding-top: 12px; margin-bottom: 14px; }
+h1 {
+  font-family: 'Press Start 2P', monospace;
+  font-size: 14px; line-height: 1.6; color: var(--preto);
+  text-shadow: 2px 2px 0 rgba(255,255,255,.6);
+  margin-bottom: 6px;
+}
+.subtitle { font-size: 18px; color: var(--tinta-fraca); }
+.total-count {
+  display: inline-block; margin-top: 8px;
+  font-family: 'Press Start 2P', monospace; font-size: 9px;
+  background: var(--preto); color: var(--amarelo);
+  padding: 6px 9px; border-radius: 6px;
+}
+
+/* Hero: 3 contadores-botão pixelados */
+.hero { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; margin-bottom: 12px; }
+.hero-card {
+  font-family: inherit;
+  background: #fff; border: 3px solid var(--preto); border-radius: 8px;
+  box-shadow: 0 3px 0 var(--preto);
+  padding: 10px 4px 8px; cursor: pointer;
+  display: flex; flex-direction: column; gap: 5px; align-items: center;
+}
+.hero-card:active { transform: translateY(2px); box-shadow: 0 1px 0 var(--preto); }
+.hero-card.active { background: var(--amarelo); }
+.hero-card .n { font-family: 'Press Start 2P', monospace; font-size: 16px; line-height: 1; }
+.hero-card .l { font-size: 15px; line-height: 1; color: var(--tinta); text-transform: uppercase; }
+.hero-card.t .n { color: var(--transferir); }
+.hero-card.i .n { color: var(--investir); }
+.hero-card.k .n { color: var(--preto); }
+
+/* Chips de atalho */
+.chips { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 12px; }
+.chip {
+  font-family: inherit; font-size: 17px; line-height: 1;
+  background: #fff; color: var(--tinta);
+  border: 2px solid var(--preto); border-radius: 6px;
+  box-shadow: 0 2px 0 var(--preto);
+  padding: 5px 9px; cursor: pointer;
+}
+.chip:active { transform: translateY(2px); box-shadow: none; }
+.chip.active { background: var(--amarelo); }
+
+/* Toolbar sticky: busca + ordenação (+ barra de transferir quando visível) */
+.toolbar-wrap {
+  position: sticky; top: 0;
+  z-index: 4; /* acima dos cards, abaixo das scanlines (z-index 5) */
+  background: var(--lcd);
+  margin: 0 -10px 12px; padding: 8px 10px;
+  border-bottom: 2px solid var(--lcd-borda);
+}
+.toolbar { display: flex; gap: 8px; flex-wrap: wrap; }
+#search {
+  flex: 1 1 140px; min-width: 0;
+  font-family: inherit; font-size: 18px;
+  background: #fff; color: var(--preto);
+  border: 3px solid var(--preto); border-radius: 8px;
+  padding: 7px 10px;
+}
+#search::placeholder { color: #8a9b80; }
+.sort-select {
+  flex: 0 1 auto; font-family: inherit; font-size: 17px;
+  background: #fff; color: var(--preto);
+  border: 3px solid var(--preto); border-radius: 8px;
+  padding: 7px 8px; cursor: pointer;
+  -webkit-appearance: none; appearance: none;
+}
+.filt-btn, .filter-btn {
+  font-family: 'Press Start 2P', monospace; font-size: 8px;
+  background: var(--amarelo); color: var(--preto);
+  border: 2px solid var(--preto); border-radius: 6px;
+  box-shadow: 0 2px 0 var(--preto);
+  padding: 8px 10px; cursor: pointer; text-transform: uppercase;
+}
+.filt-btn:active, .filter-btn:active { transform: translateY(2px); box-shadow: none; }
+.transfer-controls { display: flex; gap: 8px; margin-top: 8px; flex-wrap: wrap; align-items: center; }
+.transfer-controls[hidden] { display: none; }
+.transfer-progress { font-size: 17px; color: var(--tinta-fraca); }
+
+/* Cards da lista: caixas de diálogo dos jogos */
+.mon-list { display: flex; flex-direction: column; gap: 10px; }
+.pk {
+  background: #fff;
+  border: 3px solid var(--preto); border-radius: 8px;
+  border-left-width: 8px;
+  box-shadow: 0 3px 0 var(--preto);
+  padding: 9px 11px;
+  display: flex; flex-direction: column; gap: 5px;
+  cursor: pointer;
+}
+.pk.invest { border-left-color: var(--investir); }
+.pk.keep { border-left-color: var(--manter); }
+.pk.transfer { border-left-color: var(--transferir); }
+.pk-top { display: flex; justify-content: space-between; align-items: center; gap: 8px; flex-wrap: wrap; }
+.pk-name { font-size: 22px; line-height: 1; }
+.verdict {
+  font-family: 'Press Start 2P', monospace; font-size: 7px;
+  border: 2px solid var(--preto); border-radius: 6px;
+  background: #fff; padding: 4px 6px; white-space: nowrap;
+}
+.v-invest { color: var(--investir); }
+.v-keep { color: var(--manter); }
+.v-transfer { color: var(--transferir); }
+.pk-stats { display: flex; gap: 6px; align-items: center; flex-wrap: wrap; font-size: 17px; line-height: 1; }
+.cp { color: var(--tinta-fraca); }
+.iv-perfect { color: var(--dourado); }
+.iv-great { color: var(--investir); }
+.iv-good { color: var(--azul-dado); }
+.iv-low { color: var(--tinta-fraca); }
+.badge {
+  font-size: 15px; line-height: 1;
+  background: #fff; border: 2px solid var(--preto); border-radius: 4px;
+  padding: 1px 5px; color: var(--tinta);
+}
+.b-hundo, .b-pvp { color: var(--dourado); }
+.b-shiny { color: var(--rosa); }
+.b-shadow, .b-legendary, .b-rocket { color: var(--roxo); }
+.b-lucky, .b-tradeiv { color: var(--petroleo); }
+.b-size, .b-purified, .b-costume, .b-trade, .b-regional { color: var(--azul-dado); }
+.b-pve { color: var(--laranja); }
+.b-gymdef { color: var(--verde-gym); }
+.reason { font-size: 16px; line-height: 1.15; color: #3c4a36; }
+.pk-action { font-size: 16px; line-height: 1.15; color: var(--dourado); }
+.trade-tip { font-size: 16px; line-height: 1.15; color: var(--petroleo); }
+
+/* Detalhe expandido */
+.pk-detail {
+  font-size: 17px; line-height: 1.25; color: var(--tinta);
+  display: flex; flex-direction: column; gap: 3px;
+  padding-top: 6px; border-top: 2px dashed var(--preto);
+}
+
+/* Blocos Competitivo e comparador (este vs melhor da espécie) */
+.pk-competitive, .pk-compare {
+  margin-top: 8px; background: #fffbe6;
+  border: 2px solid var(--preto); border-radius: 6px; padding: 8px;
+}
+.pk-competitive h4, .pk-compare h4 {
+  font-family: 'Press Start 2P', monospace; font-size: 7px;
+  text-transform: uppercase; margin-bottom: 8px;
+}
+.pk-competitive h4 { color: var(--laranja); }
+.pk-compare h4 { color: var(--azul-escuro); }
+.pk-competitive .comp-row { font-size: 16px; line-height: 1.2; padding: 3px 0; }
+.comp-est { font-size: 14px; color: var(--tinta-fraca); }
+.pk-compare .row { display: grid; grid-template-columns: 72px 1fr 24px 1fr; gap: 6px; align-items: center; padding: 4px 0; border-bottom: 1px solid #d4c896; font-size: 16px; }
+.pk-compare .row-wrap:last-child .row { border-bottom: 0; }
+.pk-compare .lbl { color: var(--tinta-fraca); }
+.pk-compare .val { color: var(--tinta); }
+.pk-compare .vs { text-align: center; color: var(--tinta-fraca); font-size: 13px; }
+.pk-compare .win { color: var(--investir); }
+.pk-compare .lose { color: var(--transferir); }
+.pk-compare .moves { font-size: 15px; line-height: 1.2; }
+.pk-compare .header .val { color: var(--tinta-fraca); font-size: 13px; text-transform: uppercase; }
+
+.pk.done { opacity: .5; }
+.pk .tf-check { margin-left: 8px; flex-shrink: 0; }
+.empty { text-align: center; font-size: 20px; color: var(--tinta-fraca); padding: 30px 10px; }
+</style></head>
+<body>
+<div class="pokedex">
+  <div class="dex-top">
+    <div class="lens" aria-hidden="true"></div>
+    <div class="lights" aria-hidden="true">
+      <span class="light l-red"></span>
+      <span class="light l-yel"></span>
+      <span class="light l-grn"></span>
+    </div>
+    <button type="button" class="refresh-btn" onclick="forcarAtualizacao(this)" aria-label="Atualizar" title="Atualizar">🔄</button>
+  </div>
+
+  <div class="dex-screen">
+    <div class="lcd">
+      <div class="lcd-scroll">
+        <header>
+          <h1>🎮 Análise da Coleção</h1>
+          <div class="subtitle" id="updated">carregando…</div>
+          <div class="total-count" id="total">—</div>
+        </header>
+
+        <!-- O que fazer agora -->
+        <div class="hero" id="hero">
+          <button class="hero-card t" data-filter-verdict="TRANSFERIR"><span class="n" id="c-transfer">—</span><span class="l">❌ Transferir</span></button>
+          <button class="hero-card i" data-filter-verdict="INVESTIR"><span class="n" id="c-invest">—</span><span class="l">💪 Investir</span></button>
+          <button class="hero-card k" data-filter-verdict="MANTER"><span class="n" id="c-keep">—</span><span class="l">🛡️ Manter</span></button>
+        </div>
+
+        <!-- Atalhos de destaque -->
+        <div class="chips" id="chips"></div>
+
+        <!-- Busca + filtros (gruda no topo da rolagem) -->
+        <div class="toolbar-wrap">
+          <div class="toolbar">
+            <input type="search" id="search" placeholder="🔎 Buscar por nome…" autocomplete="off">
+            <select id="sort" class="sort-select" aria-label="Ordenar Pokémons"></select>
+            <button class="filt-btn" id="clear-filters" hidden>✕ limpar filtros</button>
+          </div>
+          <!-- Barra do modo transferir (só aparece no filtro Transferir) -->
+          <div class="transfer-controls" id="transfer-controls" hidden>
+            <button class="filter-btn" id="tf-filter">🔍 Ver pendentes</button>
+            <button class="filter-btn" id="tf-clear">↩ Limpar marcações</button>
+            <span class="transfer-progress" id="tf-progress"></span>
+          </div>
+        </div>
+
+        <div id="empty" class="empty" hidden>Nenhum Pokémon com esse filtro.</div>
+        <div class="mon-list" id="list"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script src="./sizes.js"></script>
+<script src="./lib/refdata.js"></script>
+<script src="./lib/meta/match.js"></script>
+<script src="./lib/meta/pvp.js"></script>
+<script src="./lib/meta/pve.js"></script>
+<script src="./lib/analysis.js"></script>
+<script src="./lib/render.js"></script>
+<script src="./lib/sort.js"></script>
+<script src="./app.js"></script>
+
+<script>
+  if ('serviceWorker' in navigator) {
+    navigator.serviceWorker.register('./sw.js').then(reg => {
+      document.addEventListener('visibilitychange', () => {
+        if (document.visibilityState === 'visible') reg.update();
+      });
+      let reloaded = false;
+      navigator.serviceWorker.addEventListener('controllerchange', () => {
+        if (reloaded) return; reloaded = true; location.reload();
+      });
+    }).catch(() => {});
+  }
+  function forcarAtualizacao(btn) {
+    if (btn) { btn.classList.add('spinning'); btn.disabled = true; }
+    const done = () => location.reload();
+    if ('caches' in window) {
+      caches.keys().then(keys => Promise.all(keys.map(k => caches.delete(k)))).then(done).catch(done);
+    } else { done(); }
+  }
+</script>
+</body>
+</html>
+```
+
+- [ ] **Step 3: Rodar os testes de novo**
+
+Run: `cd pokemon; npm test`
+Expected: mesmos resultados da linha de base (o index não é testado, mas confirma que nada mais foi tocado).
+
+- [ ] **Step 4: Verificar no navegador (preview)**
+
+Subir um servidor estático na raiz do repo (preview tools ou `npx serve .`) e abrir `/pokemon/index.html`. Checklist:
+
+1. Sem erros no console (Google Fonts pode falhar offline — fallback monospace é aceitável).
+2. Moldura vermelha com lente azul, 3 luzes (vermelha piscando) e botão 🔄 preto redondo no topo.
+3. Tela LCD verde com scanlines; a lista de Pokémon rola **dentro** da tela e a moldura não se move; as scanlines ficam paradas durante a rolagem.
+4. Header/heros/chips rolam para fora; a barra de busca gruda no topo da rolagem com fundo opaco (cards não vazam por trás).
+5. Fontes: título/veredictos/botões em Press Start 2P; nomes/stats/motivos em VT323 legível.
+6. Cards brancos com borda preta, sombra dura e barra lateral colorida por veredicto; badges com borda preta e cores escuras distinguíveis sobre o LCD.
+7. Interações intactas: hero filtra por veredicto; chip filtra; busca filtra; select reordena; clicar num card expande o detalhe (bloco Competitivo e comparador legíveis); filtro TRANSFERIR mostra a barra de transferir, "✓ já transferi" marca o card como done (opacidade) e o progresso atualiza.
+8. Testar em ~390px (mobile) e desktop; em desktop a Pokédex fica um cartão centralizado de 520px.
+
+Se algo falhar: diagnosticar no CSS/markup do index (não tocar nos JS), corrigir e repetir o checklist.
+
+- [ ] **Step 5: Commit**
+
+```bash
+git add pokemon/index.html
+git commit -m "feat: estética Pokédex na página de análise"
+```
+
+---
+
+### Task 2: PWA — manifest e bump do service worker
+
+**Files:**
+- Modify: `pokemon/manifest.json:9-10`
+- Modify: `pokemon/sw.js:1`
+
+- [ ] **Step 1: Atualizar cores do manifest**
+
+Em `pokemon/manifest.json`, trocar:
+
+```json
+  "theme_color": "#0a0e14",
+  "background_color": "#0a0e14",
+```
+
+por:
+
+```json
+  "theme_color": "#DC0A2D",
+  "background_color": "#14141c",
+```
+
+- [ ] **Step 2: Bump da versão de cache do service worker**
+
+Em `pokemon/sw.js`, trocar:
+
+```js
+const CACHE = 'pokemon-leo-v14';
+```
+
+por:
+
+```js
+const CACHE = 'pokemon-leo-v15';
+```
+
+- [ ] **Step 3: Verificar no navegador que o app continua subindo**
+
+Recarregar `/pokemon/index.html` no preview: página carrega, sem erros novos no console (o SW pode logar atualização de cache — esperado).
+
+- [ ] **Step 4: Commit**
+
+```bash
+git add pokemon/manifest.json pokemon/sw.js
+git commit -m "chore: tema PWA vermelho Pokédex e bump do cache (v15)"
+```
+
+---
+
+### Task 3: Verificação final e integração
+
+**Files:** nenhum novo
+
+- [ ] **Step 1: Rodar a suíte completa uma última vez**
+
+Run: `cd pokemon; npm test`
+Expected: todos passam.
+
+- [ ] **Step 2: Conferir o diff completo da branch**
+
+Run: `git diff main --stat`
+Expected: exatamente 3 arquivos: `pokemon/index.html`, `pokemon/manifest.json`, `pokemon/sw.js` (+ o arquivo deste plano, se commitado na branch). Nenhum JS de `lib/`, `app.js` ou `quiz-pokemon/` alterado.
+
+- [ ] **Step 3: Usar a skill superpowers:finishing-a-development-branch**
+
+Decidir com o usuário entre merge local ou PR (o padrão do projeto tem sido PR — ver PRs #24/#25).
