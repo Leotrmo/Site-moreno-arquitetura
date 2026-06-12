@@ -26,7 +26,7 @@
   --investir: #1b7a2f;
   --transferir: #c21d1d;
   --manter: #5a6b52;
-  --dourado: #b8860b;
+  --dourado: #8a6200;
   --rosa: #b3186e;
   --roxo: #5b21b6;
   --petroleo: #0e7490;
@@ -37,6 +37,7 @@
   --tinta-fraca: #5a6b52;
 }
 * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+:focus-visible { outline: 2px solid var(--azul-escuro); outline-offset: 2px; }
 
 html { height: 100%; }
 body {
@@ -218,6 +219,7 @@ h1 {
 .v-transfer { color: var(--transferir); }
 .pk-stats { display: flex; gap: 6px; align-items: center; flex-wrap: wrap; font-size: 17px; line-height: 1; }
 .cp { color: var(--tinta-fraca); }
+.iv { font-weight: 700; }
 .iv-perfect { color: var(--dourado); }
 .iv-great { color: var(--investir); }
 .iv-good { color: var(--azul-dado); }
@@ -231,7 +233,7 @@ h1 {
 .b-shiny { color: var(--rosa); }
 .b-shadow, .b-legendary, .b-rocket { color: var(--roxo); }
 .b-lucky, .b-tradeiv { color: var(--petroleo); }
-.b-size, .b-purified, .b-costume, .b-trade, .b-regional { color: var(--azul-dado); }
+.b-size, .b-purified, .b-costume, .b-trade, .b-regional, .b-2nd { color: var(--azul-dado); }
 .b-pve { color: var(--laranja); }
 .b-gymdef { color: var(--verde-gym); }
 .reason { font-size: 16px; line-height: 1.15; color: #3c4a36; }
