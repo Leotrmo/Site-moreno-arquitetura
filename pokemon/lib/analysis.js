@@ -118,6 +118,7 @@
       reason: null,
       tags: [],
       tradeBoost: null,
+      movesetTip: null,
       // Fase 0 — casamento com o meta (null/[] quando meta ausente):
       speciesId: sid,
       moveIds: (meta && meta.movesPt && PokeMatch)
@@ -387,6 +388,21 @@
       e.pveMeta.movesetView = _movesetView(e.pveMeta.bestMoveset, e.moveIds, meta);
   }
 
+  // Aviso informativo (PvP): mon já tem moveset funcional mas falta o 2º carregado recomendado.
+  // Não altera veredito/ação — só sugere desbloquear o 2º carregado. null se não se aplica.
+  function _secondChargeTip(e, meta) {
+    const lg = _bestPvpLeague(e);
+    if (!lg || !e.pvpMeta) return null;
+    const L = e.pvpMeta[lg];
+    if (!L || !L.isMeta || !L.movesetOk || !L.moveset || L.moveset.length < 3) return null;
+    const mine = e.moveIds || [];
+    const charged = L.moveset.slice(1);                  // [carregado1, carregado2]
+    const missing = charged.filter(function (c) { return mine.indexOf(c) < 0; });
+    if (missing.length !== 1) return null;               // 0 = completo; 2 não ocorre (movesetOk exige >=1)
+    return { move: missing[0], league: lg,
+      reason: 'Desbloquear 2º carregado p/ ' + LEAGUE_PT[lg] + ': ' + _moveName(missing[0], meta) };
+  }
+
   // Moveset recomendado do gancho ativo (PvP da melhor liga; senão PvE bestMoveset).
   function _recommendedMoveset(e) {
     const lg = _bestPvpLeague(e);
@@ -509,6 +525,7 @@
       e.verdict = v.verdict;
       e.reason = v.reason;
       e.tradeBoost = tradeBoost(e);
+      e.movesetTip = _secondChargeTip(e, meta);
     }
     return list;
   }
