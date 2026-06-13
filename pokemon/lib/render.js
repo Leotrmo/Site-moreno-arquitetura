@@ -41,7 +41,7 @@
 
   const VERDICT_CLASS = { INVESTIR:'invest', MANTER:'keep', TRANSFERIR:'transfer' };
   const VERDICT_LABEL = { INVESTIR:'💪 INVESTIR', MANTER:'🛡️ MANTER', TRANSFERIR:'❌ TRANSFERIR' };
-  const ACTION_ICON = { FORTALECER:'⚔️', ENSINAR_TM:'⚔️', AGUARDAR_ROCKET:'🚀', AGUARDAR_EVENTO:'🗓️', TROCAR:'🔁' };
+  const ACTION_ICON = { FORTALECER:'⚔️', ENSINAR_TM:'⚔️', EVOLUIR:'⬆️', AGUARDAR_ROCKET:'🚀', AGUARDAR_EVENTO:'🗓️', TROCAR:'🔁' };
 
   function ivClass(iv) {
     if (iv === 100) return 'iv-perfect';

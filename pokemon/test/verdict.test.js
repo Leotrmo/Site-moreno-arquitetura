@@ -528,6 +528,86 @@ test('analyze (e2e): Machop NÃO-Sombrio não herda meta da evolução Sombria',
 });
 
 // ---------------------------------------------------------------------------
+// EVOLUIR — sinalizar quando vale evoluir (evolução é meta + cópia boa)
+// ---------------------------------------------------------------------------
+
+test('computeAction: melhor cópia c/ evolução meta → EVOLUIR (nomeia o alvo)', () => {
+  const a = computeAction({
+    isShadow: false, moveIds: [], tags: [], betterCopy: null,
+    pvpMeta: null, pveMeta: null, metaEvo: true, metaEvoTarget: 'Machamp',
+    isBestOfSpecies: true, ivPct: 72, isHundo: false,
+  });
+  assert.strictEqual(a.kind, 'EVOLUIR');
+  assert.strictEqual(a.target, 'Machamp');
+  assert.match(a.reason, /Evoluir p\/ Machamp/);
+});
+
+test('computeAction: duplicata IV>=90 c/ evolução meta → EVOLUIR', () => {
+  const a = computeAction({
+    isShadow: false, moveIds: [], tags: [], betterCopy: {},
+    pvpMeta: null, pveMeta: null, metaEvo: true, metaEvoTarget: 'Garchomp',
+    isBestOfSpecies: false, ivPct: 93, isHundo: false,
+  });
+  assert.strictEqual(a.kind, 'EVOLUIR');
+});
+
+test('computeAction: duplicata fraca (IV<90 e não-melhor) c/ evolução meta → NÃO EVOLUIR', () => {
+  const a = computeAction({
+    isShadow: false, moveIds: [], tags: [], betterCopy: {},
+    pvpMeta: null, pveMeta: null, metaEvo: true, metaEvoTarget: 'Garchomp',
+    isBestOfSpecies: false, ivPct: 80, isHundo: false,
+  });
+  assert.notStrictEqual(a && a.kind, 'EVOLUIR');
+});
+
+test('computeAction: forma própria já meta → NÃO EVOLUIR (gancho de moveset cuida)', () => {
+  const a = computeAction({
+    isShadow: false, moveIds: ['COUNTER'], tags: ['pvp_great'], betterCopy: null,
+    pvpMeta: { great: { isMeta: true, movesetOk: true, spPct: 0.98, ivRank: 1, speciesRank: 1 },
+               ultra: {}, master: {} },
+    pveMeta: null, metaEvo: true, metaEvoTarget: 'X', isBestOfSpecies: true, ivPct: 98, isHundo: false,
+  });
+  assert.strictEqual(a.kind, 'FORTALECER');   // pré-evolução não rouba o gancho da forma meta
+});
+
+test('analyze (e2e): Machop melhor cópia → EVOLUIR p/ Machamp (evolução é meta)', () => {
+  const { buildSpeciesIndex } = require('../lib/meta/match.js');
+  // pveRanks SINTÉTICO: só a evolução base (machamp) é meta; o Machop não tem entrada.
+  const meta = {
+    speciesIndex: buildSpeciesIndex(require('../data/species.json')),
+    movesPt: { 'golpe de carate': 'KARATE_CHOP' },
+    pveRanks: { machamp: { roles: ['raid', 'gym_atk'], bestType: 'fighting',
+      bestMoveset: ['COUNTER', 'CROSS_CHOP'], byType: {}, defBulkRank: 999 } },
+  };
+  const fd = { m: { mon_name:'Machop', mon_number:66, mon_cp:500, mon_attack:12, mon_defence:12, mon_stamina:12,
+                    mon_height:0.8, mon_isShiny:'NO', mon_isLucky:'NO', mon_move_1:'Golpe de Caratê' } };
+  const e = analyze(fd, getPokemonSize, refdata, getPokemonSizeScalar, meta)[0];
+  assert.strictEqual(e.pveMeta, null);                       // o Machop em si não é meta
+  assert.strictEqual(e.metaEvo, true);                       // a evolução base é
+  assert.strictEqual(e.action && e.action.kind, 'EVOLUIR');
+  assert.strictEqual(e.action.target, 'Machamp');
+  assert.strictEqual(e.metaEvoTarget, 'Machamp');
+});
+
+test('analyze (e2e): evolução regional não cruza região (Grimer de Alola → Muk de Alola)', () => {
+  const { buildSpeciesIndex } = require('../lib/meta/match.js');
+  // Só Muk de Alola (muk_alolan) é meta; o Muk comum NÃO. O alvo tem que ser o de Alola.
+  const meta = {
+    speciesIndex: buildSpeciesIndex(require('../data/species.json')),
+    movesPt: {},
+    pveRanks: { muk_alolan: { roles: ['raid'], bestType: 'dark',
+      bestMoveset: ['BITE', 'CRUNCH'], byType: {}, defBulkRank: 999 } },
+  };
+  const fd = { m: { mon_name:'Grimer', mon_number:88, mon_form:'GRIMER_ALOLA', mon_cp:500,
+                    mon_attack:14, mon_defence:14, mon_stamina:14, mon_height:0.7,
+                    mon_isShiny:'NO', mon_isLucky:'NO' } };
+  const e = analyze(fd, getPokemonSize, refdata, getPokemonSizeScalar, meta)[0];
+  assert.strictEqual(e.metaEvo, true);
+  assert.strictEqual(e.action && e.action.kind, 'EVOLUIR');
+  assert.match(e.metaEvoTarget, /Alolan/);                   // Muk Alolan, não Muk comum
+});
+
+// ---------------------------------------------------------------------------
 // Task 4 — PvE: razão ENSINAR_TM nomeia golpes faltantes
 // ---------------------------------------------------------------------------
 
