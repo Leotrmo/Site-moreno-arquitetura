@@ -656,16 +656,16 @@ test('analyze: anexa movesetView por liga PvP (nomes PT + has)', () => {
     pvpRanks: { azumarill: { great: { rank: 13, score: 90, moveset: ['BUBBLE', 'ICE_BEAM', 'PLAY_ROUGH'] },
                              ultra: null, master: null } },
     cpm: require('../data/cpm.json'),
-    moves: { BUBBLE: { namePt: 'Bolha' }, ICE_BEAM: { namePt: 'Raio Congelante' },
-             PLAY_ROUGH: { namePt: 'Jogo Duro' } },
+    moves: { BUBBLE: { namePt: 'Bolha', kind: 'fast' }, ICE_BEAM: { namePt: 'Raio Congelante', kind: 'charge' },
+             PLAY_ROUGH: { namePt: 'Jogo Duro', kind: 'charge' } },
   };
   const fd = { z: { mon_name:'Azumarill', mon_number:184, mon_cp:1498, mon_attack:0, mon_defence:15, mon_stamina:15,
                     mon_height:0.5, mon_isShiny:'NO', mon_isLucky:'NO', mon_move_1:'Bolha', mon_move_2:'Raio Congelante' } };
   const e = analyze(fd, getPokemonSize, refdata, getPokemonSizeScalar, meta)[0];
   assert.deepStrictEqual(e.pvpMeta.great.movesetView, [
-    { name: 'Bolha', has: true },
-    { name: 'Raio Congelante', has: true },
-    { name: 'Jogo Duro', has: false },
+    { name: 'Bolha', has: true, kind: 'fast' },
+    { name: 'Raio Congelante', has: true, kind: 'charge' },
+    { name: 'Jogo Duro', has: false, kind: 'charge' },
   ]);
   assert.strictEqual(e.pvpMeta.ultra.movesetView, null);   // liga fora do meta → null
 });
@@ -679,14 +679,14 @@ test('analyze: anexa movesetView no pveMeta e passa meta ao computeAction', () =
       bestMoveset: ['COUNTER','CROSS_CHOP'],
       byType: { fighting: { dps: 18, tdo: 500, er: 50, dpsRank: 3, erRank: 3, moveset: ['COUNTER','CROSS_CHOP'] } },
       defBulkRank: 999 } },
-    moves: { COUNTER: { namePt: 'Contra-ataque' }, CROSS_CHOP: { namePt: 'Golpe Cruzado' } },
+    moves: { COUNTER: { namePt: 'Contra-ataque', kind: 'fast' }, CROSS_CHOP: { namePt: 'Golpe Cruzado', kind: 'charge' } },
   };
   const fd = { s: { mon_name:'Machamp', mon_number:68, mon_cp:1500, mon_attack:15, mon_defence:15, mon_stamina:14,
                     mon_height:1.6, mon_isShiny:'NO', mon_isLucky:'NO', mon_move_1:'Palmada' } };
   const e = analyze(fd, getPokemonSize, refdata, getPokemonSizeScalar, meta)[0];
   assert.deepStrictEqual(e.pveMeta.movesetView, [
-    { name: 'Contra-ataque', has: true },
-    { name: 'Golpe Cruzado', has: false },
+    { name: 'Contra-ataque', has: true, kind: 'fast' },
+    { name: 'Golpe Cruzado', has: false, kind: 'charge' },
   ]);
   // analyze repassa meta → a razão da ação sai com nome PT. Não asserimos o kind:
   // hoje CROSS_CHOP não é elite do Machamp (→ ENSINAR_TM), mas se o upstream mudar

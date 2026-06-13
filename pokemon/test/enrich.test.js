@@ -222,3 +222,65 @@ test('analyze: sem meta.moves → isRocketReady=false e sem tag rocket (não-reg
   assert.strictEqual(e.isRocketReady, false);
   assert.ok(!e.tags.includes('rocket'));
 });
+
+// --- 2026-06-13: ágil/carregado + 2º carregado ---
+// Azumarill é meta em great com moveset de 3 golpes (["BUBBLE","ICE_BEAM","PLAY_ROUGH"]).
+// Lê o moveset real do dataset e monta meta.moves com kind/namePt controlados.
+function metaAzumarill() {
+  const ms = pvpRanksJson['azumarill'].great.moveset; // [ágil, carregado1, carregado2]
+  const moves = {};
+  moves[ms[0]] = { type:'water', kind:'fast',   pvp:{power:8,energy:11},  namePt:'Bolha' };
+  moves[ms[1]] = { type:'ice',   kind:'charge', pvp:{power:90,energy:55}, namePt:'Raio de Gelo' };
+  moves[ms[2]] = { type:'fairy', kind:'charge', pvp:{power:90,energy:60}, namePt:'Focinhada' };
+  return {
+    ms,
+    meta: {
+      speciesIndex: buildSpeciesIndex(speciesJson),
+      movesPt: { 'bolha': ms[0], 'raio de gelo': ms[1], 'focinhada': ms[2] },
+      pvpRanks: pvpRanksJson, cpm: realCpm, moves,
+    },
+  };
+}
+
+test('analyze com meta: movesetView carrega kind (1º ágil, demais carregados)', () => {
+  const { meta } = metaAzumarill();
+  const fd = { z: { mon_name:'Azumarill', mon_number:184, mon_cp:1498, mon_attack:0, mon_defence:15, mon_stamina:15,
+                    mon_height:0.5, mon_isShiny:'NO', mon_isLucky:'NO',
+                    mon_move_1:'Bolha', mon_move_2:'Raio de Gelo' } };
+  const e = analyze(fd, getPokemonSize, refdata, getPokemonSizeScalar, meta)[0];
+  const view = e.pvpMeta.great.movesetView;
+  assert.ok(view && view.length === 3, 'movesetView com 3 golpes');
+  assert.strictEqual(view[0].kind, 'fast');
+  assert.strictEqual(view[1].kind, 'charge');
+  assert.strictEqual(view[2].kind, 'charge');
+});
+
+test('analyze: mon meta com 1 só carregado ganha e.movesetTip nomeando o 2º carregado', () => {
+  const { meta, ms } = metaAzumarill();
+  const fd = { z: { mon_name:'Azumarill', mon_number:184, mon_cp:1498, mon_attack:0, mon_defence:15, mon_stamina:15,
+                    mon_height:0.5, mon_isShiny:'NO', mon_isLucky:'NO',
+                    mon_move_1:'Bolha', mon_move_2:'Raio de Gelo' } }; // ágil + carregado1, falta carregado2
+  const e = analyze(fd, getPokemonSize, refdata, getPokemonSizeScalar, meta)[0];
+  assert.ok(e.movesetTip, 'tem movesetTip');
+  assert.strictEqual(e.movesetTip.move, ms[2]);          // PLAY_ROUGH
+  assert.match(e.movesetTip.reason, /2º carregado/);
+  assert.match(e.movesetTip.reason, /Focinhada/);
+});
+
+test('analyze: mon meta com os 2 carregados → sem movesetTip', () => {
+  const { meta } = metaAzumarill();
+  const fd = { z: { mon_name:'Azumarill', mon_number:184, mon_cp:1498, mon_attack:0, mon_defence:15, mon_stamina:15,
+                    mon_height:0.5, mon_isShiny:'NO', mon_isLucky:'NO',
+                    mon_move_1:'Bolha', mon_move_2:'Raio de Gelo', mon_move_3:'Focinhada' } };
+  const e = analyze(fd, getPokemonSize, refdata, getPokemonSizeScalar, meta)[0];
+  assert.strictEqual(e.movesetTip, null);
+});
+
+test('analyze: mon meta sem nenhum carregado → sem movesetTip (Ensinar/TM já cobre)', () => {
+  const { meta } = metaAzumarill();
+  const fd = { z: { mon_name:'Azumarill', mon_number:184, mon_cp:1498, mon_attack:0, mon_defence:15, mon_stamina:15,
+                    mon_height:0.5, mon_isShiny:'NO', mon_isLucky:'NO',
+                    mon_move_1:'Bolha' } }; // só ágil → movesetOk false
+  const e = analyze(fd, getPokemonSize, refdata, getPokemonSizeScalar, meta)[0];
+  assert.strictEqual(e.movesetTip, null);
+});

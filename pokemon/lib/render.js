@@ -66,15 +66,19 @@
         '<div class="reason">' + esc(e.reason) + '</div>' +
         (e.action ? '<div class="pk-action">' + (ACTION_ICON[e.action.kind] || '⚔️') + ' ' + esc(e.action.reason) + '</div>' : '') +
         (e.tradeBoost ? '<div class="trade-tip">🔁 ' + esc(e.tradeBoost.reason) + '</div>' : '') +
+        (e.movesetTip ? '<div class="moveset-tip">💥 ' + esc(e.movesetTip.reason) + '</div>' : '') +
       '</div>'
     );
   }
 
   const LEAGUE_LABEL = { great: 'Liga Grande', ultra: 'Liga Ultra', master: 'Liga Mestre' };
 
-  // "Bolha ✓ · Jogo Duro (falta)" a partir do movesetView ([{name,has}]).
+  // "⚡ Bolha ✓ · 💥 Jogo Duro (falta)" a partir do movesetView ([{name,has,kind}]).
   function movesetLabel(view) {
-    return view.map(function (m) { return esc(m.name) + (m.has ? ' ✓' : ' (falta)'); }).join(' · ');
+    return view.map(function (m) {
+      const icon = m.kind === 'fast' ? '⚡' : '💥';
+      return icon + ' ' + esc(m.name) + (m.has ? ' ✓' : ' (falta)');
+    }).join(' · ');
   }
 
   function competitiveHtml(e) {
