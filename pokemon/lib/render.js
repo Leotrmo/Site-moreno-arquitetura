@@ -72,9 +72,12 @@
 
   const LEAGUE_LABEL = { great: 'Liga Grande', ultra: 'Liga Ultra', master: 'Liga Mestre' };
 
-  // "Bolha ✓ · Jogo Duro (falta)" a partir do movesetView ([{name,has}]).
+  // "⚡ Bolha ✓ · 💥 Jogo Duro (falta)" a partir do movesetView ([{name,has,kind}]).
   function movesetLabel(view) {
-    return view.map(function (m) { return esc(m.name) + (m.has ? ' ✓' : ' (falta)'); }).join(' · ');
+    return view.map(function (m) {
+      const icon = m.kind === 'fast' ? '⚡' : '💥';
+      return icon + ' ' + esc(m.name) + (m.has ? ' ✓' : ' (falta)');
+    }).join(' · ');
   }
 
   function competitiveHtml(e) {

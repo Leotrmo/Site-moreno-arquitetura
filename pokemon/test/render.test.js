@@ -268,11 +268,11 @@ test('detailHtml: linha PvP lista o moveset recomendado com ✓/(falta)', () => 
   const e = pvpStub({ verdict:'INVESTIR', moves:['Bolha','Raio Congelante'], height:0.5, weight:28.5,
     ivs:{atk:0,def:15,sta:15},
     pvpMeta: { great: { isMeta:true, speciesRank:13, ivRank:1, spPct:1, movesetOk:false,
-                        movesetView: [ { name:'Bolha', has:true }, { name:'Raio Congelante', has:true },
-                                       { name:'Jogo Duro', has:false } ] },
+                        movesetView: [ { name:'Bolha', has:true, kind:'fast' }, { name:'Raio Congelante', has:true, kind:'charge' },
+                                       { name:'Jogo Duro', has:false, kind:'charge' } ] },
                ultra:{isMeta:false}, master:{isMeta:false} } });
   const html = detailHtml(e);
-  assert.match(html, /recomendado: Bolha ✓ · Raio Congelante ✓ · Jogo Duro \(falta\)/);
+  assert.match(html, /recomendado: ⚡ Bolha ✓ · 💥 Raio Congelante ✓ · 💥 Jogo Duro \(falta\)/);
   assert.doesNotMatch(html, /falta o moveset recomendado/);
 });
 
@@ -285,14 +285,29 @@ test('detailHtml: linha PvP sem movesetView → texto antigo (fallback)', () => 
 test('detailHtml: linha PvE lista o moveset recomendado com ✓/(falta)', () => {
   const e = pveStub({ pveMeta: Object.assign(pveStub().pveMeta, {
     movesetOk: false,
-    movesetView: [ { name:'Lança de Gelo', has:true }, { name:'Avalanche', has:false } ],
+    movesetView: [ { name:'Lança de Gelo', has:true, kind:'fast' }, { name:'Avalanche', has:false, kind:'charge' } ],
   }) });
   const html = detailHtml(e);
-  assert.match(html, /recomendado: Lança de Gelo ✓ · Avalanche \(falta\)/);
+  assert.match(html, /recomendado: ⚡ Lança de Gelo ✓ · 💥 Avalanche \(falta\)/);
   assert.match(html, /estimativa/);
 });
 
 test('detailHtml: linha PvE sem movesetView → texto antigo (fallback)', () => {
   const html = detailHtml(pveStub());
   assert.match(html, /moveset de ataque ✓/);   // movesetOk:true no stub default
+});
+
+test('detailHtml: moveset recomendado mostra ⚡ (ágil) e 💥 (carregado)', () => {
+  const e = pvpStub({
+    moves:['Bolha','Raio de Gelo'], height:0.5, weight:28.5, ivs:{atk:0,def:15,sta:15},
+    pvpMeta: { great:{ isMeta:true, speciesRank:13, ivRank:1, spPct:1, movesetOk:true,
+                       movesetView:[ {name:'Bolha',has:true,kind:'fast'},
+                                     {name:'Raio de Gelo',has:true,kind:'charge'},
+                                     {name:'Focinhada',has:false,kind:'charge'} ] },
+               ultra:{isMeta:false}, master:{isMeta:false} },
+  });
+  const html = detailHtml(e);
+  assert.match(html, /⚡\s*Bolha/);
+  assert.match(html, /💥\s*Raio de Gelo/);
+  assert.match(html, /💥\s*Focinhada \(falta\)/);
 });
