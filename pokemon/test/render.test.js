@@ -311,3 +311,16 @@ test('detailHtml: moveset recomendado mostra ⚡ (ágil) e 💥 (carregado)', ()
   assert.match(html, /💥\s*Raio de Gelo/);
   assert.match(html, /💥\s*Focinhada \(falta\)/);
 });
+
+test('cardHtml: linha moveset-tip aparece quando há e.movesetTip', () => {
+  const html = cardHtml(pvpStub({ movesetTip:{ move:'PLAY_ROUGH', league:'great',
+    reason:'Desbloquear 2º carregado p/ Liga Grande: Focinhada' } }));
+  assert.match(html, /moveset-tip/);
+  assert.match(html, /Desbloquear 2º carregado/);
+  assert.match(html, /💥/);
+});
+
+test('cardHtml: sem movesetTip → sem linha moveset-tip (não-regressão)', () => {
+  const html = cardHtml(pvpStub());
+  assert.doesNotMatch(html, /moveset-tip/);
+});

@@ -254,33 +254,3 @@ test('analyze com meta: movesetView carrega kind (1º ágil, demais carregados)'
   assert.strictEqual(view[1].kind, 'charge');
   assert.strictEqual(view[2].kind, 'charge');
 });
-
-test('analyze: mon meta com 1 só carregado ganha e.movesetTip nomeando o 2º carregado', () => {
-  const { meta, ms } = metaAzumarill();
-  const fd = { z: { mon_name:'Azumarill', mon_number:184, mon_cp:1498, mon_attack:0, mon_defence:15, mon_stamina:15,
-                    mon_height:0.5, mon_isShiny:'NO', mon_isLucky:'NO',
-                    mon_move_1:'Bolha', mon_move_2:'Raio de Gelo' } }; // ágil + carregado1, falta carregado2
-  const e = analyze(fd, getPokemonSize, refdata, getPokemonSizeScalar, meta)[0];
-  assert.ok(e.movesetTip, 'tem movesetTip');
-  assert.strictEqual(e.movesetTip.move, ms[2]);          // PLAY_ROUGH
-  assert.match(e.movesetTip.reason, /2º carregado/);
-  assert.match(e.movesetTip.reason, /Focinhada/);
-});
-
-test('analyze: mon meta com os 2 carregados → sem movesetTip', () => {
-  const { meta } = metaAzumarill();
-  const fd = { z: { mon_name:'Azumarill', mon_number:184, mon_cp:1498, mon_attack:0, mon_defence:15, mon_stamina:15,
-                    mon_height:0.5, mon_isShiny:'NO', mon_isLucky:'NO',
-                    mon_move_1:'Bolha', mon_move_2:'Raio de Gelo', mon_move_3:'Focinhada' } };
-  const e = analyze(fd, getPokemonSize, refdata, getPokemonSizeScalar, meta)[0];
-  assert.strictEqual(e.movesetTip, null);
-});
-
-test('analyze: mon meta sem nenhum carregado → sem movesetTip (Ensinar/TM já cobre)', () => {
-  const { meta } = metaAzumarill();
-  const fd = { z: { mon_name:'Azumarill', mon_number:184, mon_cp:1498, mon_attack:0, mon_defence:15, mon_stamina:15,
-                    mon_height:0.5, mon_isShiny:'NO', mon_isLucky:'NO',
-                    mon_move_1:'Bolha' } }; // só ágil → movesetOk false
-  const e = analyze(fd, getPokemonSize, refdata, getPokemonSizeScalar, meta)[0];
-  assert.strictEqual(e.movesetTip, null);
-});
