@@ -468,6 +468,66 @@ test('analyze (e2e): Sombrio raid-meta com Frustração → AGUARDAR_ROCKET + MA
 });
 
 // ---------------------------------------------------------------------------
+// metaEvo — relevância de meta herdada da linha evolutiva (pré-evolução de meta)
+// ---------------------------------------------------------------------------
+
+test('computeAction: Sombrio com Frustração meta-via-evolução → AGUARDAR_ROCKET', () => {
+  // Sem pvpMeta/pveMeta próprios; só metaEvo (uma evolução é meta) destrava o gancho.
+  const a = computeAction({
+    isShadow: true, isShiny: false, ivPct: 90, betterCopy: null,
+    moveIds: ['KARATE_CHOP', 'FRUSTRATION'], eliteMoves: [], tags: [],
+    pvpMeta: null, pveMeta: null, metaEvo: true,
+  });
+  assert.strictEqual(a.kind, 'AGUARDAR_ROCKET');
+  assert.match(a.reason, /Rocket|Frustra/i);
+});
+
+test('computeAction: Frustração sem meta própria nem metaEvo → não AGUARDAR_ROCKET', () => {
+  const a = computeAction({
+    isShadow: true, isShiny: false, ivPct: 90, betterCopy: null,
+    moveIds: ['KARATE_CHOP', 'FRUSTRATION'], eliteMoves: [], tags: [],
+    pvpMeta: null, pveMeta: null, metaEvo: false,
+  });
+  assert.notStrictEqual(a && a.kind, 'AGUARDAR_ROCKET');
+});
+
+test('analyze (e2e): Machop Sombrio (Frustração) herda meta do Shadow Machamp → AGUARDAR_ROCKET', () => {
+  const { buildSpeciesIndex } = require('../lib/meta/match.js');
+  // species.json real (família/base stats reais da linha Machop); pveRanks SINTÉTICO que
+  // torna SÓ a evolução Sombria (machamp_shadow) meta — o Machop em si não tem entrada.
+  const meta = {
+    speciesIndex: buildSpeciesIndex(require('../data/species.json')),
+    movesPt: { 'golpe de carate': 'KARATE_CHOP', 'frustracao': 'FRUSTRATION' },
+    pveRanks: { machamp_shadow: { roles: ['pve', 'gym_atk'], bestType: 'fighting',
+      bestMoveset: ['COUNTER', 'CROSS_CHOP'], byType: {}, defBulkRank: 999 } },
+  };
+  const fd = { m: { mon_name:'Machop', mon_number:66, mon_cp:584, mon_attack:15, mon_defence:15, mon_stamina:15,
+                    mon_height:0.8, mon_alignment:'SHADOW', mon_isShiny:'NO', mon_isLucky:'NO',
+                    mon_move_1:'Golpe de Caratê', mon_move_2:'Frustração' } };
+  const e = analyze(fd, getPokemonSize, refdata, getPokemonSizeScalar, meta)[0];
+  assert.strictEqual(e.speciesId, 'machop');
+  assert.strictEqual(e.pveMeta, null);                  // o Machop em si não é meta
+  assert.strictEqual(e.metaEvo, true);                  // mas a evolução Sombria é
+  assert.strictEqual(e.action && e.action.kind, 'AGUARDAR_ROCKET');
+  assert.strictEqual(e.verdict, 'INVESTIR');            // hundo → INVESTIR
+});
+
+test('analyze (e2e): Machop NÃO-Sombrio não herda meta da evolução Sombria', () => {
+  const { buildSpeciesIndex } = require('../lib/meta/match.js');
+  const meta = {
+    speciesIndex: buildSpeciesIndex(require('../data/species.json')),
+    movesPt: { 'golpe de carate': 'KARATE_CHOP', 'soco dinamico': 'DYNAMIC_PUNCH' },
+    pveRanks: { machamp_shadow: { roles: ['pve', 'gym_atk'], bestType: 'fighting',
+      bestMoveset: ['COUNTER', 'CROSS_CHOP'], byType: {}, defBulkRank: 999 } },
+  };
+  const fd = { m: { mon_name:'Machop', mon_number:66, mon_cp:300, mon_attack:5, mon_defence:5, mon_stamina:5,
+                    mon_height:0.8, mon_isShiny:'NO', mon_isLucky:'NO',
+                    mon_move_1:'Golpe de Caratê', mon_move_2:'Soco Dinâmico' } };
+  const e = analyze(fd, getPokemonSize, refdata, getPokemonSizeScalar, meta)[0];
+  assert.strictEqual(e.metaEvo, false);  // só machamp_shadow é meta; a forma base não herda
+});
+
+// ---------------------------------------------------------------------------
 // Task 4 — PvE: razão ENSINAR_TM nomeia golpes faltantes
 // ---------------------------------------------------------------------------
 

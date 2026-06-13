@@ -131,6 +131,9 @@
       pvpMeta: null,
       pveMeta: null,
       isRocketReady: false,
+      // Fase 3+ — relevância de meta herdada da linha evolutiva (preenchida por analyze
+      // quando há meta): true se alguma forma mais evoluída da família é meta.
+      metaEvo: false,
       action: null,
     };
   }
@@ -162,6 +165,70 @@
 
   function isPveMeta(e) {
     return !!(e.pveMeta && (e.pveMeta.raid || e.pveMeta.pve || e.pveMeta.gymAtk || e.pveMeta.gymDef));
+  }
+
+  // Soma dos base stats — proxy de estágio evolutivo dentro de uma família.
+  function _bst(b) { return b ? (b.atk + b.def + b.hp) : 0; }
+
+  // Uma espécie é meta-relevante se é atacante PvE (raid/pve/gym_atk) OU aparece no
+  // ranking PvP de alguma liga. Sombrio prefere a entrada _shadow (como em evalMon).
+  function _isMetaSpecies(id, isShadow, meta) {
+    if (!meta) return false;
+    var pve = meta.pveRanks;
+    if (pve) {
+      var pid = (isShadow && pve[id + '_shadow']) ? id + '_shadow' : id;
+      var pr = pve[pid];
+      if (pr && (pr.roles || []).some(function (r) { return r === 'raid' || r === 'pve' || r === 'gym_atk'; })) return true;
+    }
+    var pvp = meta.pvpRanks;
+    if (pvp) {
+      var vid = (isShadow && pvp[id + '_shadow']) ? id + '_shadow' : id;
+      var vr = pvp[vid];
+      if (vr && (vr.great || vr.ultra || vr.master)) return true;
+    }
+    return false;
+  }
+
+  // Índice família → evolução-meta. Para cada espécie BASE, marca se alguma forma mais
+  // evoluída da mesma família (base stats maiores) é meta — separado por base/Sombrio.
+  // Sem arestas de evolução nos dados, usamos a soma de base stats como proxy de estágio.
+  function _buildEvoMetaIndex(meta) {
+    if (!meta || !meta.speciesIndex || !meta.speciesIndex.byId) return null;
+    var byId = meta.speciesIndex.byId;
+    var fam = {};
+    for (var id in byId) {
+      if (/_shadow$/.test(id)) continue;            // Sombrio não é espécie à parte aqui
+      var o = byId[id];
+      if (!o || !o.family || !o.baseStats) continue;
+      (fam[o.family] = fam[o.family] || []).push(id);
+    }
+    var base = {}, shadow = {};
+    for (var f in fam) {
+      var ids = fam[f];
+      for (var i = 0; i < ids.length; i++) {
+        var myBst = _bst(byId[ids[i]].baseStats);
+        for (var j = 0; j < ids.length; j++) {
+          if (i === j) continue;
+          if (_bst(byId[ids[j]].baseStats) <= myBst) continue;   // só formas mais evoluídas
+          if (_isMetaSpecies(ids[j], false, meta)) base[ids[i]] = true;
+          if (_isMetaSpecies(ids[j], true, meta))  shadow[ids[i]] = true;
+        }
+      }
+    }
+    return { base: base, shadow: shadow };
+  }
+
+  function _metaEvoFor(e, evoIdx) {
+    if (!evoIdx || !e.speciesId) return false;
+    var id = String(e.speciesId).replace(/_shadow$/, '');
+    return !!(e.isShadow ? evoIdx.shadow[id] : evoIdx.base[id]);
+  }
+
+  // Relevância de meta para o gancho de ação Aguardar-Rocket: a cópia é meta, OU é uma
+  // pré-evolução de uma espécie meta (herda a relevância da linha evolutiva). Não afeta
+  // proteção/transferência — só destrava o aviso de evento Rocket p/ Sombrios úteis.
+  function isMetaRelevant(e) {
+    return isPvpMeta(e) || isPveMeta(e) || !!e.metaEvo;
   }
 
   function isProtected(e) {
@@ -348,7 +415,8 @@
 
   function computeAction(e, meta) {
     // P1 (Fase 3): Sombrio meta com Frustração → aguardar evento Rocket (pré-empta Fortalecer).
-    if ((isPvpMeta(e) || isPveMeta(e)) && _isShadowFrustration(e)) {
+    // "meta" inclui pré-evoluções de espécies meta (ex.: Machop Sombrio → Shadow Machamp).
+    if (isMetaRelevant(e) && _isShadowFrustration(e)) {
       return { kind: 'AGUARDAR_ROCKET',
         reason: 'Aguardar Rocket — Sombrio com Frustração; troque o golpe em evento (Charged TM)' };
     }
@@ -385,12 +453,14 @@
 
   function analyze(fileData, getSize, refdata, getSizeScalar, meta) {
     const list = enrichCollection(fileData, getSize, refdata, getSizeScalar, meta);
+    const evoIdx = _buildEvoMetaIndex(meta);
     for (const e of list) {
       e.pvpMeta = (meta && meta.cpm && meta.pvpRanks && PokePvp) ? PokePvp.evalMon(e, meta) : null;
       e.pveMeta = (meta && meta.pveRanks && PokePve) ? PokePve.evalMon(e, meta) : null;
       _attachMovesetViews(e, meta);
       e.isRocketReady = (meta && meta.moves && PokePve)
         ? PokePve.rocketSpam(e.moveIds, meta.moves) : false;
+      e.metaEvo = _metaEvoFor(e, evoIdx);
       e.tags = computeTags(e);
       e.action = computeAction(e, meta);
       const v = computeVerdict(e);
@@ -428,6 +498,6 @@
     return c;
   }
 
-  return { ivPct, speciesKey, enrichOne, enrichCollection, isProtected, isPvpMeta, isPveMeta, computeVerdict, computeTags, computeAction, canBestFriendTrade, tradeBoost, analyze, computeCounts,
+  return { ivPct, speciesKey, enrichOne, enrichCollection, isProtected, isPvpMeta, isPveMeta, isMetaRelevant, computeVerdict, computeTags, computeAction, canBestFriendTrade, tradeBoost, analyze, computeCounts,
            TRADE_MIN_IV_PCT, TRADE_EXPECTED_IV_PCT };
 });
