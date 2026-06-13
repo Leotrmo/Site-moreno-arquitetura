@@ -368,12 +368,13 @@
     return (names.length > 1 ? 'faltam ' : 'falta ') + lista;
   }
 
-  // Visão de exibição do moveset recomendado: [{ name, has }] (render não conhece meta).
+  // Visão de exibição do moveset recomendado: [{ name, has, kind }] (render não conhece meta).
   function _movesetView(rec, mine, meta) {
     if (!rec || !rec.length) return null;
     const m = mine || [];
     return rec.map(function (id) {
-      return { name: _moveName(id, meta), has: m.indexOf(id) >= 0 };
+      const mv = meta && meta.moves && meta.moves[id];
+      return { name: _moveName(id, meta), has: m.indexOf(id) >= 0, kind: (mv && mv.kind) || 'charge' };
     });
   }
 
