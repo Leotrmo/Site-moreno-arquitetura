@@ -68,6 +68,7 @@
       ['raid',    '🔥 Raid ' + c.raid,           e => e.tags.includes('raid')],
       ['gym_def', '🛡️ Def. Ginásio ' + c.gymDef, e => e.tags.includes('gym_def')],
       ['rocket',  '🚀 Rocket ' + c.rocket,    e => e.tags.includes('rocket')],
+      ['evoluir', '⬆️ Evoluir ' + c.evoluir,  e => e.action && e.action.kind === 'EVOLUIR'],
     ];
     const wrap = document.getElementById('chips');
     wrap.innerHTML = '';

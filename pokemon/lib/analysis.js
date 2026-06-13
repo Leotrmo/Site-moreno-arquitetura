@@ -132,8 +132,10 @@
       pveMeta: null,
       isRocketReady: false,
       // Fase 3+ — relevância de meta herdada da linha evolutiva (preenchida por analyze
-      // quando há meta): true se alguma forma mais evoluída da família é meta.
+      // quando há meta): true se alguma forma mais evoluída da família é meta, e o nome
+      // da evolução-meta alvo (p/ o aviso "Evoluir → <alvo>").
       metaEvo: false,
+      metaEvoTarget: null,
       action: null,
     };
   }
@@ -170,6 +172,13 @@
   // Soma dos base stats — proxy de estágio evolutivo dentro de uma família.
   function _bst(b) { return b ? (b.atk + b.def + b.hp) : 0; }
 
+  // Sufixo regional de um speciesId (ou '' p/ a forma normal). Uma forma regional só
+  // evolui dentro da própria região, então a evolução-meta tem que casar a região.
+  function _regionOf(id) {
+    var m = /_(alolan|galarian|hisuian|paldean)$/.exec(String(id || ''));
+    return m ? m[1] : '';
+  }
+
   // Uma espécie é meta-relevante se é atacante PvE (raid/pve/gym_atk) OU aparece no
   // ranking PvP de alguma liga. Sombrio prefere a entrada _shadow (como em evalMon).
   function _isMetaSpecies(id, isShadow, meta) {
@@ -189,9 +198,10 @@
     return false;
   }
 
-  // Índice família → evolução-meta. Para cada espécie BASE, marca se alguma forma mais
-  // evoluída da mesma família (base stats maiores) é meta — separado por base/Sombrio.
-  // Sem arestas de evolução nos dados, usamos a soma de base stats como proxy de estágio.
+  // Índice família → evolução-meta. Para cada espécie BASE, guarda o id da forma mais
+  // evoluída e meta da mesma família (a de maior base stats, quando há várias) — separado
+  // por base/Sombrio. Sem arestas de evolução nos dados, usamos a soma de base stats como
+  // proxy de estágio. O id do alvo serve para nomear o aviso "Evoluir → <alvo>".
   function _buildEvoMetaIndex(meta) {
     if (!meta || !meta.speciesIndex || !meta.speciesIndex.byId) return null;
     var byId = meta.speciesIndex.byId;
@@ -207,21 +217,33 @@
       var ids = fam[f];
       for (var i = 0; i < ids.length; i++) {
         var myBst = _bst(byId[ids[i]].baseStats);
+        var myRegion = _regionOf(ids[i]);
+        var bBest = null, bBst = -1, sBest = null, sBst = -1;
         for (var j = 0; j < ids.length; j++) {
           if (i === j) continue;
-          if (_bst(byId[ids[j]].baseStats) <= myBst) continue;   // só formas mais evoluídas
-          if (_isMetaSpecies(ids[j], false, meta)) base[ids[i]] = true;
-          if (_isMetaSpecies(ids[j], true, meta))  shadow[ids[i]] = true;
+          if (_regionOf(ids[j]) !== myRegion) continue;           // evolui dentro da região
+          var jb = _bst(byId[ids[j]].baseStats);
+          if (jb <= myBst) continue;                              // só formas mais evoluídas
+          if (jb > bBst && _isMetaSpecies(ids[j], false, meta)) { bBest = ids[j]; bBst = jb; }
+          if (jb > sBst && _isMetaSpecies(ids[j], true, meta))  { sBest = ids[j]; sBst = jb; }
         }
+        if (bBest) base[ids[i]] = bBest;
+        if (sBest) shadow[ids[i]] = sBest;
       }
     }
     return { base: base, shadow: shadow };
   }
 
+  // id da evolução-meta desta cópia (ou null). Trata a variante Sombria.
   function _metaEvoFor(e, evoIdx) {
-    if (!evoIdx || !e.speciesId) return false;
+    if (!evoIdx || !e.speciesId) return null;
     var id = String(e.speciesId).replace(/_shadow$/, '');
-    return !!(e.isShadow ? evoIdx.shadow[id] : evoIdx.base[id]);
+    return (e.isShadow ? evoIdx.shadow[id] : evoIdx.base[id]) || null;
+  }
+
+  // Humaniza um speciesId p/ exibição: 'machamp' → 'Machamp', 'mr_mime' → 'Mr Mime'.
+  function _humanSpecies(id) {
+    return String(id || '').replace(/_/g, ' ').replace(/\b\w/g, function (c) { return c.toUpperCase(); });
   }
 
   // Relevância de meta para o gancho de ação Aguardar-Rocket: a cópia é meta, OU é uma
@@ -413,6 +435,20 @@
     return null;
   }
 
+  // Evoluir: a forma evoluída desta cópia é meta (metaEvo) e a cópia vale o investimento
+  // — melhor da espécie OU IV alto (>=90%). Não dispara se a própria forma já é meta
+  // (nesse caso o gancho de moveset/Fortalecer cuida) nem se nada herda relevância.
+  const EVOLVE_MIN_IV = 90;
+  function _evolveAction(e) {
+    if (!e.metaEvo) return null;
+    if (isPvpMeta(e) || isPveMeta(e)) return null;
+    if (!(e.isBestOfSpecies || e.ivPct >= EVOLVE_MIN_IV)) return null;
+    const alvo = e.metaEvoTarget || 'forma evoluída';
+    const qual = e.isHundo ? '100%' : 'IV ' + e.ivPct + '%';
+    return { kind: 'EVOLUIR', target: e.metaEvoTarget || null,
+      reason: 'Evoluir p/ ' + alvo + ' — evolução é meta e esta cópia vale (' + qual + ')' };
+  }
+
   function computeAction(e, meta) {
     // P1 (Fase 3): Sombrio meta com Frustração → aguardar evento Rocket (pré-empta Fortalecer).
     // "meta" inclui pré-evoluções de espécies meta (ex.: Machop Sombrio → Shadow Machamp).
@@ -420,6 +456,9 @@
       return { kind: 'AGUARDAR_ROCKET',
         reason: 'Aguardar Rocket — Sombrio com Frustração; troque o golpe em evento (Charged TM)' };
     }
+    // P1b: evoluir cópia boa cuja evolução é meta (pré-evolução; própria forma não é meta).
+    const evo = _evolveAction(e);
+    if (evo) return evo;
     // P2–P4: gancho de moveset (PvP tem prioridade; senão PvE) → Fortalecer / Aguardar Evento / Ensinar-TM.
     const lg = _bestPvpLeague(e);
     if (lg && e.pvpMeta) {
@@ -460,7 +499,9 @@
       _attachMovesetViews(e, meta);
       e.isRocketReady = (meta && meta.moves && PokePve)
         ? PokePve.rocketSpam(e.moveIds, meta.moves) : false;
-      e.metaEvo = _metaEvoFor(e, evoIdx);
+      const evoTarget = _metaEvoFor(e, evoIdx);
+      e.metaEvo = !!evoTarget;
+      e.metaEvoTarget = evoTarget ? _humanSpecies(evoTarget) : null;
       e.tags = computeTags(e);
       e.action = computeAction(e, meta);
       const v = computeVerdict(e);
@@ -475,7 +516,7 @@
     const c = { total: list.length, INVESTIR:0, MANTER:0, TRANSFERIR:0,
                 hundos:0, shinies:0, shadows:0, purified:0, extremeSizes:0, legendaries:0, luckies:0, tradeBoost:0,
                 pvpGreat:0, pvpUltra:0, pvpMaster:0,
-                raid:0, pve:0, gymAtk:0, gymDef:0, rocket:0 };
+                raid:0, pve:0, gymAtk:0, gymDef:0, rocket:0, evoluir:0 };
     for (const e of list) {
       c[e.verdict]++;
       if (e.isHundo) c.hundos++;
@@ -494,6 +535,7 @@
       if (e.tags.includes('gym_atk')) c.gymAtk++;
       if (e.tags.includes('gym_def')) c.gymDef++;
       if (e.tags.includes('rocket')) c.rocket++;
+      if (e.action && e.action.kind === 'EVOLUIR') c.evoluir++;
     }
     return c;
   }
