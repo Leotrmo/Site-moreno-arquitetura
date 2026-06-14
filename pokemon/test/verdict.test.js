@@ -592,6 +592,12 @@ test('computeAction: já possuo a evolução como keeper (evoOwned) → NÃO EVO
   assert.strictEqual(computeAction(evoMon({ evoOwned: true })), null);
 });
 
+test('computeAction: Sombrio com Frustração + evoProj → AGUARDAR_ROCKET pré-empta EVOLUIR', () => {
+  // Prioridade: o gancho Rocket (P1) vem antes do evoluir (P1b). metaEvo destrava isMetaRelevant.
+  const a = computeAction(evoMon({ isShadow: true, moveIds: ['KARATE_CHOP', 'FRUSTRATION'], metaEvo: true }));
+  assert.strictEqual(a.kind, 'AGUARDAR_ROCKET');
+});
+
 test('analyze (e2e): Machop melhor cópia → EVOLUIR p/ Machamp (evolução é meta)', () => {
   const { buildSpeciesIndex } = require('../lib/meta/match.js');
   // pveRanks SINTÉTICO: só a evolução base (machamp) é meta; o Machop não tem entrada.
