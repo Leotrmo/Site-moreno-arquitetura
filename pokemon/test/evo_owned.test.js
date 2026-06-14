@@ -31,10 +31,20 @@ test('sem possuir a evolução: Bulbasaur bom → EVOLUIR', () => {
   assert.strictEqual(e.action && e.action.kind, 'EVOLUIR');
 });
 
-test('já possuo Venusaur keeper: Bulbasaur duplicado → NÃO EVOLUIR (evoOwned)', () => {
-  const fd = { b: bulba(), v: venu() };   // Venusaur é raid-meta → keeper
+test('já possuo Venusaur keeper (hundo): Bulbasaur duplicado → NÃO EVOLUIR (evoOwned)', () => {
+  const fd = { b: bulba(), v: venu() };   // Venusaur 100% → keeper
   const list = analyze(fd, getPokemonSize, refdata, getPokemonSizeScalar, metaVenusaurRaid());
   const b = list.find(x => x.id === 'b');
   assert.strictEqual(b.evoOwned, true);
-  assert.notStrictEqual(b.action && b.action.kind, 'EVOLUIR');
+  assert.strictEqual(b.action, null);   // sem EVOLUIR e sem outro gancho → null
+});
+
+test('possuo só um Venusaur FRACO (não-keeper): Bulbasaur bom → ainda EVOLUIR', () => {
+  // Venusaur 53% (8/8/8): espécie é raid-meta, mas a CÓPIA não é keeper (IV baixo, sem tag PvP).
+  // Ter uma cópia ruim não deve suprimir evoluir uma boa pré-evolução.
+  const fd = { b: bulba(), v: venu({ mon_attack: 8, mon_defence: 8, mon_stamina: 8 }) };
+  const list = analyze(fd, getPokemonSize, refdata, getPokemonSizeScalar, metaVenusaurRaid());
+  const b = list.find(x => x.id === 'b');
+  assert.strictEqual(b.evoOwned, false);
+  assert.strictEqual(b.action && b.action.kind, 'EVOLUIR');
 });

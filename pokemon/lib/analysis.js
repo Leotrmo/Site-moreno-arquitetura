@@ -537,17 +537,24 @@
     return tags;
   }
 
-  // Conjunto de speciesId (base, sem _shadow) que já têm ao menos uma cópia "keeper":
-  // cópia com selo de meta (pvp/pve) OU melhor da espécie com IV>=90. Base só em tags+IV
-  // (não no veredito) para não depender da ordem das passadas.
+  // Cópia "keeper" da evolução: vale tê-la em vez de evoluir outra pré-evolução. Espécie SER
+  // meta não basta (uma cópia fraca de espécie meta não substitui evoluir uma boa) — exige
+  // qualidade da cópia: hundo/quase, melhor da espécie com IV alto, ou pick de PvP (tag IV-gated).
+  function _isEvoKeeper(e) {
+    if (e.isHundo || e.isNearPerfect) return true;
+    if (e.isBestOfSpecies && e.ivPct >= 90) return true;
+    for (var i = 0; i < PVP_TAG_ORDER.length; i++) if (e.tags.indexOf(PVP_TAG_ORDER[i]) >= 0) return true;
+    return false;
+  }
+
+  // Conjunto de speciesId (base, sem _shadow) que já têm ao menos uma cópia keeper. Base só em
+  // flags+IV+tags (não no veredito) para não depender da ordem das passadas.
   function _buildOwnedKeepers(list) {
     var owned = {};
     for (var i = 0; i < list.length; i++) {
       var e = list[i];
       if (!e.speciesId) continue;
-      if (isPvpMeta(e) || isPveMeta(e) || (e.isBestOfSpecies && e.ivPct >= 90)) {
-        owned[String(e.speciesId).replace(/_shadow$/, '')] = true;
-      }
+      if (_isEvoKeeper(e)) owned[String(e.speciesId).replace(/_shadow$/, '')] = true;
     }
     return owned;
   }

@@ -94,9 +94,11 @@ Substitui a lógica frouxa de `_buildEvoMetaIndex` + `_metaEvoFor` + gate de `_e
 ## 5. Componente 2 — Travas de posse e colecionável
 
 - **Índice de posse:** após a passada 1 (§7), monta `ownedKeepers` = `Set` de `speciesId` que
-  têm ao menos uma cópia "keeper": cópia com selo de meta (`pvpMeta`/`pveMeta` tag) **ou**
-  melhor da espécie com IV≥90. Definição baseada só em tags+IV (não no veredito) para evitar
-  dependência de ordem.
+  têm ao menos uma cópia **keeper de verdade**. "Keeper" mede a **qualidade da cópia**, não o
+  fato de a espécie ser meta — uma cópia fraca de espécie meta (ex.: Venusaur 53%) **não** deve
+  suprimir evoluir uma boa pré-evolução. Regra (`_isEvoKeeper`): `isHundo || isNearPerfect`,
+  **ou** `isBestOfSpecies && ivPct >= 90`, **ou** tem tag PvP IV-gated (`pvp_great/ultra/master`).
+  Baseada só em flags+IV+tags (não no veredito) para evitar dependência de ordem entre as passadas.
 - **`_ownsKeeper(evolvedId, owned)`** → suprime EVOLUIR quando já tenho a forma evoluída boa.
 - **Colecionável de tamanho/fantasia:** conforme §4.3.
 
