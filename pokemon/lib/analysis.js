@@ -20,6 +20,9 @@
   var TYPE_PT = ((typeof require === 'function')
     ? require('./refdata.js') : (typeof globalThis !== 'undefined' ? globalThis : {})).TYPE_PT || {};
 
+  var MOVE_PT_OVERRIDE = ((typeof require === 'function')
+    ? require('./refdata.js') : (typeof globalThis !== 'undefined' ? globalThis : {})).MOVE_PT_OVERRIDE || {};
+
   function speciesScalar(getSizeScalar, mon) {
     if (typeof getSizeScalar !== 'function') return null;
     return getSizeScalar(mon.mon_number, mon.mon_height, mon.mon_form) || null;
@@ -342,10 +345,10 @@
     return String(id || '').toLowerCase().replace(/_/g, ' ').replace(/\b\w/g, function (c) { return c.toUpperCase(); });
   }
 
-  // Nome de exibição de um moveId: namePt (moves.json) → senão inglês humanizado.
+  // Nome de exibição de um moveId: namePt (moves.json) → override PT → inglês humanizado.
   function _moveName(id, meta) {
     const m = meta && meta.moves && meta.moves[id];
-    return (m && m.namePt) || _humanMove(id);
+    return (m && m.namePt) || MOVE_PT_OVERRIDE[id] || _humanMove(id);
   }
 
   // Golpes que faltam segundo o critério do movesetOk PvP: o rápido se não o tem;
