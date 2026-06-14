@@ -65,19 +65,31 @@ Substitui a lógica frouxa de `_buildEvoMetaIndex` + `_metaEvoFor` + gate de `_e
   e roda `PokePvp.evalMon` + `PokePve.evalMon` + `pvpTags` + `pveTags` — exatamente os mesmos
   de um mon capturado. (Rank PvP independe dos golpes; papéis PvE são por espécie; moveset
   pós-evolução é escolhido no ato de evoluir, então `moveIds: []` é correto.) Retorna
-  `{ tags, league, role, speciesRank, spPct }` do selo mais forte, ou null se não tagueia.
+  `{ target, targetId, kind:'pvp'|'pve', league, role, speciesRank, spPct, erRank, tipo }`
+  do selo mais forte (ordem pvp_great > ultra > master > raid > gym_atk), ou null se não tagueia.
 
-- **`_evolveAction(e, evoCandidates, owned, meta)`** dispara EVOLUIR só quando:
-  1. a forma atual **não** é meta (senão o gancho de moveset cuida — comportamento atual);
-  2. **alguma** projeção de candidato tagueia (`_projectEvolution` != null) — isto é o piso de
-     valor + "evolução meta de verdade", de graça;
-  3. **não** é colecionável de tamanho/fantasia: suprime se
-     `e.isCostume || e.isExtremeSize || e.isXSComfort || e.isXLComfort`
-     (shiny/lucky **não** entram aqui);
-  4. **não** possuo a evolução como keeper (ver §5).
-  - Escolhe o alvo de selo mais forte (ordem pvp_great > ultra > master > raid > gym_atk).
-  - Mensagem: `"Evoluir → <Alvo> · seria pick de <Liga/Papel> (rank <speciesRank> da espécie · seu IV PvP <round(spPct*100)>%)"`.
-    Para alvo PvE: `"... seria Top <erRank> atacante de <tipo> (estimativa)"`.
+- **Piso de valor — diferença PvP vs PvE.** O `pve.js` calcula rank assumindo IV 15/15/15 e os
+  papéis PvE (raid/gym_atk) são por-espécie, **independentes do IV da cópia**. Então:
+  - selo **PvP**: o próprio `pvpTags` já gateia por `spPct`/`ivRank` → piso de graça;
+  - selo **só PvE**: aplicar piso explícito `EVOLVE_PVE_MIN_IV = 80` sobre `e.ivPct`
+    (corta Zweilous 58% → Hydreigon-raid; mantém cópias decentes). Constante nomeada, ajustável,
+    validada no harness.
+  - A projeção só conta como **value-ok** se PvP-taggeou **ou** (PvE-taggeou **e** `ivPct >= 80`).
+
+- **Campos no objeto enriquecido** (definidos em `enrichOne`, preenchidos em `analyze`):
+  - `e.evoProj`: o objeto de projeção **value-ok** (ou null). Fonte única da relevância.
+  - `e.metaEvo` = `!!e.evoProj` (substitui o bool frouxo antigo; gateia AGUARDAR_ROCKET via
+    `isMetaRelevant`). `e.metaEvoTarget` = `e.evoProj ? e.evoProj.target : null` (back-compat).
+  - `e.evoOwned`: bool — já possuo a evolução como keeper (preenchido na passada 2, §5).
+
+- **`_evolveAction(e)`** (em `computeAction`, lê só campos de `e`) dispara EVOLUIR só quando:
+  1. `e.evoProj` existe (projeção value-ok);
+  2. a forma atual **não** é meta: `!(isPvpMeta(e) || isPveMeta(e))` (senão o gancho de moveset cuida);
+  3. **não** é colecionável de tamanho/fantasia:
+     `!(e.isCostume || e.isExtremeSize || e.isXSComfort || e.isXLComfort)` (shiny/lucky **não** entram);
+  4. **não** possuo a evolução como keeper: `!e.evoOwned`.
+  - Mensagem PvP: `"Evoluir → <Alvo> · seria pick de <Liga> (rank <speciesRank> da espécie · seu IV PvP <round(spPct*100)>%)"`.
+  - Mensagem PvE: `"Evoluir → <Alvo> · seria Top <erRank> atacante de <tipo> (estimativa)"`.
 
 ## 5. Componente 2 — Travas de posse e colecionável
 
@@ -91,9 +103,11 @@ Substitui a lógica frouxa de `_buildEvoMetaIndex` + `_metaEvoFor` + gate de `_e
 ## 6. Componente 3 — AGUARDAR_ROCKET com piso
 
 Hoje: `isMetaRelevant(e) && _isShadowFrustration(e)`, onde `isMetaRelevant` herda a barra
-frouxa via `metaEvo`. Novo: dispara só quando o sombrio é **investment-worthy** pelo mesmo
-critério — `isPvpMeta(e) || isPveMeta(e) || (alguma projeção de evolução tagueia)`. Um
-Charmander Sombrio 40% não projeta selo (IV baixo não cruza o limiar) → some.
+frouxa via `metaEvo`. A correção é **gratuita**: como `e.metaEvo` agora é `!!e.evoProj`
+(projeção **value-ok**, §4), `isMetaRelevant` automaticamente fica `isPvpMeta(e) ||
+isPveMeta(e) || !!e.evoProj`. Um Charmander Sombrio 40% não produz `evoProj` value-ok (Charizard
+meta de PvE exige `ivPct >= 80`) → `metaEvo` false → sem AGUARDAR_ROCKET. Nenhuma mudança em
+`computeAction` além de a fonte de `metaEvo` ter ficado estrita.
 
 ## 7. Componente 4 — ENSINAR_TM / FORTALECER
 
