@@ -181,6 +181,13 @@ h1 {
   padding: 7px 8px; cursor: pointer;
   -webkit-appearance: none; appearance: none;
 }
+.sort-dir {
+  flex: 0 0 auto; font-family: inherit; font-size: 18px; line-height: 1;
+  background: #fff; color: var(--preto);
+  border: 3px solid var(--preto); border-radius: 8px;
+  padding: 7px 11px; cursor: pointer;
+}
+.sort-dir.rev { background: var(--amarelo); }
 .filt-btn, .filter-btn {
   font-family: 'Press Start 2P', monospace; font-size: 8px;
   background: var(--amarelo); color: var(--preto);
@@ -311,6 +318,7 @@ h1 {
           <div class="toolbar">
             <input type="search" id="search" placeholder="🔎 Buscar por nome…" autocomplete="off">
             <select id="sort" class="sort-select" aria-label="Ordenar Pokémons"></select>
+            <button id="sort-dir" class="sort-dir" type="button" aria-label="Inverter ordem" aria-pressed="false">↓</button>
             <button class="filt-btn" id="clear-filters" hidden>✕ limpar filtros</button>
           </div>
           <!-- Barra do modo transferir (só aparece no filtro Transferir) -->

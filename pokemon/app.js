@@ -2,11 +2,16 @@
 (function () {
   let allMons = [];            // lista enriquecida
   const SORT_KEY = 'pokemon-sort';
-  const state = { verdict: null, special: null, query: '', sort: loadSort() };
+  const DIR_KEY = 'pokemon-sort-dir';
+  const state = { verdict: null, special: null, query: '', sort: loadSort(), dirRev: loadDir() };
 
   function loadSort() {
     const saved = localStorage.getItem(SORT_KEY);
     return SORT_OPTIONS.some(o => o.key === saved) ? saved : 'recomendado';
+  }
+
+  function loadDir() {
+    return localStorage.getItem(DIR_KEY) === 'rev';
   }
 
   async function loadMeta() {
@@ -100,6 +105,16 @@
     sel.innerHTML = SORT_OPTIONS
       .map(o => '<option value="' + o.key + '">' + o.label + '</option>').join('');
     sel.value = state.sort;
+    syncSortDir();
+  }
+
+  function syncSortDir() {
+    const btn = document.getElementById('sort-dir');
+    if (!btn) return;
+    btn.textContent = state.dirRev ? '↑' : '↓';
+    btn.classList.toggle('rev', state.dirRev);
+    btn.setAttribute('aria-pressed', String(state.dirRev));
+    btn.title = state.dirRev ? 'Ordem invertida (toque p/ normal)' : 'Ordem normal (toque p/ inverter)';
   }
 
   function applyFilters() {
@@ -110,7 +125,7 @@
     // Com um chip competitivo ranqueável ativo, ordena pelo rank daquela dimensão (melhor primeiro).
     const sorter = (state.special && COMP_RANK_KEYS.includes(state.special))
       ? competitiveRankSorter(state.special)
-      : getSorter(state.sort);
+      : getSorter(state.sort, state.dirRev);
     rows = rows.slice().sort(sorter);
 
     const list = document.getElementById('list');
@@ -136,6 +151,12 @@
   document.getElementById('sort').addEventListener('change', e => {
     state.sort = e.target.value;
     try { localStorage.setItem(SORT_KEY, state.sort); } catch {}
+    applyFilters();
+  });
+  document.getElementById('sort-dir').addEventListener('click', () => {
+    state.dirRev = !state.dirRev;
+    try { localStorage.setItem(DIR_KEY, state.dirRev ? 'rev' : 'nat'); } catch {}
+    syncSortDir();
     applyFilters();
   });
   document.getElementById('clear-filters').addEventListener('click', () => {
