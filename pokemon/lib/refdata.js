@@ -50,5 +50,26 @@
     psychic:'Psíquico', bug:'Inseto', rock:'Pedra', ghost:'Fantasma', dragon:'Dragão',
     dark:'Sombrio', steel:'Aço', fairy:'Fada' };
 
-  return { LEGENDARY, REGIONAL, TRADE_EVO, TYPE_PT };
+  // Nomes PT de exibição para golpes que o i18n upstream (PokeMiners) ainda não traduz.
+  // Consumido por _moveName (analysis.js) como fallback ANTES do humanizado-inglês.
+  // Robusto a regenerações de data/moves.json (gerado por build/refresh-meta.js).
+  const MOVE_PT_OVERRIDE = {
+    AURA_WHEEL_DARK: 'Roda de Aura (Sombrio)',
+    AURA_WHEEL_ELECTRIC: 'Roda de Aura (Elétrico)',
+    BEAK_BLAST: 'Rajada de Bico',
+    CHILLING_WATER: 'Água Refrescante',
+    DRUM_BEATING: 'Batida de Tambor',
+    DYNAMAX_CANNON: 'Canhão Dynamax',
+    FUTURE_SIGHT: 'Premonição',
+    GIGATON_HAMMER: 'Martelo Gigatônico',
+    HIDDEN_POWER_NORMAL: 'Poder Oculto',
+    MIND_BLOWN: 'Explosão Mental',
+    PLASMA_FISTS: 'Punhos de Plasma',
+    PYRO_BALL: 'Bola Pirotécnica',
+    SECRET_SWORD: 'Espada Secreta',
+    SPRINGTIDE_STORM: 'Tempestade Primaveril',
+    TECHNO_BLAST_DOUSE: 'Tecnorrajada (Água)',
+  };
+
+  return { LEGENDARY, REGIONAL, TRADE_EVO, TYPE_PT, MOVE_PT_OVERRIDE };
 });
