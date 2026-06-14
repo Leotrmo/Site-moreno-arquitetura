@@ -137,6 +137,7 @@
       isRocketReady: false,
       // Fase 3+ — relevância de meta da linha evolutiva (preenchida por analyze):
       // evoProj = projeção value-ok da forma evoluída (ou null); metaEvo = !!evoProj.
+      // evoOwned (já tenho a evolução como keeper) é preenchido na passada de posse.
       metaEvo: false,
       metaEvoTarget: null,
       evoProj: null,
@@ -214,9 +215,12 @@
     return out;
   }
 
-  var PVP_TAG_ORDER = ['pvp_great', 'pvp_ultra', 'pvp_master'];
+  const PVP_PREFIX = 'pvp_';
+  const PVP_TAG_ORDER = [PVP_PREFIX + 'great', PVP_PREFIX + 'ultra', PVP_PREFIX + 'master'];
+  // Força relativa das projeções (maior = preferida) ao escolher entre vários candidatos.
+  const EVO_SCORE = { pvp: { great: 5, ultra: 4, master: 3 }, pve: { raid: 2, gym_atk: 1, pve: 0 } };
   // Papéis PvE não filtram por IV (pve.js assume 15/15/15) → evolução só-PvE exige piso de IV.
-  var EVOLVE_PVE_MIN_IV = 80;
+  const EVOLVE_PVE_MIN_IV = 80;
 
   // Projeta UMA evolução com os IVs desta cópia pelos avaliadores reais. Retorna objeto
   // value-ok { target, targetId, kind, league, role, speciesRank, spPct, erRank, tipo } ou null.
@@ -229,7 +233,7 @@
     // PvP tem prioridade e já vem gateado por spPct/ivRank (pvpTags).
     for (var i = 0; i < PVP_TAG_ORDER.length; i++) {
       if (pvpTags.indexOf(PVP_TAG_ORDER[i]) >= 0) {
-        var lg = PVP_TAG_ORDER[i].slice(4);                        // great|ultra|master
+        var lg = PVP_TAG_ORDER[i].slice(PVP_PREFIX.length);        // great|ultra|master
         var L = pvp[lg];
         return { target: target, targetId: evolvedId, kind: 'pvp', league: lg,
                  speciesRank: L.speciesRank, spPct: L.spPct, role: null, erRank: null, tipo: null };
@@ -254,12 +258,11 @@
     var base = String(e.speciesId).replace(/_shadow$/, '');
     var cands = evoCandidates[base];
     if (!cands) return null;
-    var SCORE = { pvp: { great: 5, ultra: 4, master: 3 }, pve: { raid: 2, gym_atk: 1, pve: 0 } };
     var best = null, bestScore = -1;
     for (var i = 0; i < cands.length; i++) {
       var p = _projectEvolution(e, cands[i], meta);
       if (!p) continue;
-      var s = p.kind === 'pvp' ? SCORE.pvp[p.league] : SCORE.pve[p.role];
+      var s = p.kind === 'pvp' ? EVO_SCORE.pvp[p.league] : EVO_SCORE.pve[p.role];
       if (s > bestScore) { best = p; bestScore = s; }
     }
     return best;

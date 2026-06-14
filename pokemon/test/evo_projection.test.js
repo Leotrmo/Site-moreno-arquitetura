@@ -34,7 +34,7 @@ test('projeção PvE com IV alto → e.evoProj (kind pve) + metaEvo + alvo', () 
 });
 
 test('projeção PvE com IV abaixo do piso (58%) → SEM evoProj (corta Zweilous-like)', () => {
-  const fd = { m: machop({ mon_attack: 9, mon_defence: 9, mon_stamina: 8 }) }; // 26/45 = 58%
+  const fd = { m: machop({ mon_attack: 9, mon_defence: 9, mon_stamina: 8 }) }; // 9+9+8 = 26/45 → 58%
   const e = analyze(fd, getPokemonSize, refdata, getPokemonSizeScalar, metaMachampRaid())[0];
   assert.strictEqual(e.evoProj, null);
   assert.strictEqual(e.metaEvo, false);
@@ -47,6 +47,21 @@ test('evolução não-meta → SEM evoProj', () => {
   const e = analyze(fd, getPokemonSize, refdata, getPokemonSizeScalar, meta)[0];
   assert.strictEqual(e.evoProj, null);
   assert.strictEqual(e.metaEvo, false);
+});
+
+test('projeção PvP vence e escolhe o melhor candidato (Azurill → Azumarill, não Marill)', () => {
+  // Azurill (FAMILY_MARILL) tem candidatos marill + azumarill; só azumarill é meta (great).
+  // 0/15/15 (bulky) → azumarill é pick de Liga Grande. Usa dados reais de pvp/cpm.
+  const meta = { speciesIndex: buildSpeciesIndex(require('../data/species.json')),
+    movesPt: {}, pvpRanks: require('../data/pvp_ranks.json'), cpm: require('../data/cpm.json') };
+  const fd = { a: { mon_name: 'Azurill', mon_number: 298, mon_cp: 200,
+    mon_attack: 0, mon_defence: 15, mon_stamina: 15, mon_height: 0.2, mon_isShiny: 'NO', mon_isLucky: 'NO' } };
+  const e = analyze(fd, getPokemonSize, refdata, getPokemonSizeScalar, meta)[0];
+  assert.ok(e.evoProj, 'tem evoProj');
+  assert.strictEqual(e.evoProj.kind, 'pvp');
+  assert.strictEqual(e.evoProj.league, 'great');
+  assert.strictEqual(e.evoProj.targetId, 'azumarill');   // venceu o marill (não-meta)
+  assert.strictEqual(e.metaEvoTarget, 'Azumarill');
 });
 
 test('evolução regional respeita a região (Grimer Alola → Muk Alolan)', () => {
