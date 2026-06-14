@@ -135,11 +135,12 @@
       pvpMeta: null,
       pveMeta: null,
       isRocketReady: false,
-      // Fase 3+ — relevância de meta herdada da linha evolutiva (preenchida por analyze
-      // quando há meta): true se alguma forma mais evoluída da família é meta, e o nome
-      // da evolução-meta alvo (p/ o aviso "Evoluir → <alvo>").
+      // Fase 3+ — relevância de meta da linha evolutiva (preenchida por analyze):
+      // evoProj = projeção value-ok da forma evoluída (ou null); metaEvo = !!evoProj.
       metaEvo: false,
       metaEvoTarget: null,
+      evoProj: null,
+      evoOwned: false,
       action: null,
     };
   }
@@ -183,66 +184,85 @@
     return m ? m[1] : '';
   }
 
-  // Uma espécie é meta-relevante se é atacante PvE (raid/pve/gym_atk) OU aparece no
-  // ranking PvP de alguma liga. Sombrio prefere a entrada _shadow (como em evalMon).
-  function _isMetaSpecies(id, isShadow, meta) {
-    if (!meta) return false;
-    var pve = meta.pveRanks;
-    if (pve) {
-      var pid = (isShadow && pve[id + '_shadow']) ? id + '_shadow' : id;
-      var pr = pve[pid];
-      if (pr && (pr.roles || []).some(function (r) { return r === 'raid' || r === 'pve' || r === 'gym_atk'; })) return true;
-    }
-    var pvp = meta.pvpRanks;
-    if (pvp) {
-      var vid = (isShadow && pvp[id + '_shadow']) ? id + '_shadow' : id;
-      var vr = pvp[vid];
-      if (vr && (vr.great || vr.ultra || vr.master)) return true;
-    }
-    return false;
-  }
-
-  // Índice família → evolução-meta. Para cada espécie BASE, guarda o id da forma mais
-  // evoluída e meta da mesma família (a de maior base stats, quando há várias) — separado
-  // por base/Sombrio. Sem arestas de evolução nos dados, usamos a soma de base stats como
-  // proxy de estágio. O id do alvo serve para nomear o aviso "Evoluir → <alvo>".
-  function _buildEvoMetaIndex(meta) {
+  // Candidatos de evolução por speciesId base: formas MAIS evoluídas da mesma família e mesma
+  // região (proxy: soma de base stats maior). Sem arestas reais de evolução nos dados.
+  function _buildEvoCandidates(meta) {
     if (!meta || !meta.speciesIndex || !meta.speciesIndex.byId) return null;
     var byId = meta.speciesIndex.byId;
     var fam = {};
     for (var id in byId) {
-      if (/_shadow$/.test(id)) continue;            // Sombrio não é espécie à parte aqui
+      if (/_shadow$/.test(id)) continue;
       var o = byId[id];
       if (!o || !o.family || !o.baseStats) continue;
       (fam[o.family] = fam[o.family] || []).push(id);
     }
-    var base = {}, shadow = {};
+    var out = {};
     for (var f in fam) {
       var ids = fam[f];
       for (var i = 0; i < ids.length; i++) {
         var myBst = _bst(byId[ids[i]].baseStats);
         var myRegion = _regionOf(ids[i]);
-        var bBest = null, bBst = -1, sBest = null, sBst = -1;
+        var cand = [];
         for (var j = 0; j < ids.length; j++) {
           if (i === j) continue;
-          if (_regionOf(ids[j]) !== myRegion) continue;           // evolui dentro da região
-          var jb = _bst(byId[ids[j]].baseStats);
-          if (jb <= myBst) continue;                              // só formas mais evoluídas
-          if (jb > bBst && _isMetaSpecies(ids[j], false, meta)) { bBest = ids[j]; bBst = jb; }
-          if (jb > sBst && _isMetaSpecies(ids[j], true, meta))  { sBest = ids[j]; sBst = jb; }
+          if (_regionOf(ids[j]) !== myRegion) continue;            // evolui dentro da região
+          if (_bst(byId[ids[j]].baseStats) > myBst) cand.push(ids[j]);
         }
-        if (bBest) base[ids[i]] = bBest;
-        if (sBest) shadow[ids[i]] = sBest;
+        if (cand.length) out[ids[i]] = cand;
       }
     }
-    return { base: base, shadow: shadow };
+    return out;
   }
 
-  // id da evolução-meta desta cópia (ou null). Trata a variante Sombria.
-  function _metaEvoFor(e, evoIdx) {
-    if (!evoIdx || !e.speciesId) return null;
-    var id = String(e.speciesId).replace(/_shadow$/, '');
-    return (e.isShadow ? evoIdx.shadow[id] : evoIdx.base[id]) || null;
+  var PVP_TAG_ORDER = ['pvp_great', 'pvp_ultra', 'pvp_master'];
+  // Papéis PvE não filtram por IV (pve.js assume 15/15/15) → evolução só-PvE exige piso de IV.
+  var EVOLVE_PVE_MIN_IV = 80;
+
+  // Projeta UMA evolução com os IVs desta cópia pelos avaliadores reais. Retorna objeto
+  // value-ok { target, targetId, kind, league, role, speciesRank, spPct, erRank, tipo } ou null.
+  function _projectEvolution(e, evolvedId, meta) {
+    var syn = { speciesId: evolvedId, ivs: e.ivs, ivPct: e.ivPct, isShadow: e.isShadow, moveIds: [] };
+    var pvp = (meta && meta.cpm && meta.pvpRanks && PokePvp) ? PokePvp.evalMon(syn, meta) : null;
+    var pve = (meta && meta.pveRanks && PokePve) ? PokePve.evalMon(syn, meta) : null;
+    var pvpTags = (pvp && PokePvp) ? PokePvp.pvpTags(pvp, e.ivPct) : [];
+    var target = _humanSpecies(evolvedId);
+    // PvP tem prioridade e já vem gateado por spPct/ivRank (pvpTags).
+    for (var i = 0; i < PVP_TAG_ORDER.length; i++) {
+      if (pvpTags.indexOf(PVP_TAG_ORDER[i]) >= 0) {
+        var lg = PVP_TAG_ORDER[i].slice(4);                        // great|ultra|master
+        var L = pvp[lg];
+        return { target: target, targetId: evolvedId, kind: 'pvp', league: lg,
+                 speciesRank: L.speciesRank, spPct: L.spPct, role: null, erRank: null, tipo: null };
+      }
+    }
+    // Só PvE (atacante): exige piso de IV explícito.
+    var pveAttacker = !!(pve && (pve.raid || pve.gymAtk || pve.pve));
+    if (pveAttacker && e.ivPct >= EVOLVE_PVE_MIN_IV) {
+      var role = pve.raid ? 'raid' : (pve.gymAtk ? 'gym_atk' : 'pve');
+      var bt = pve.bestType && pve.byType ? pve.byType[pve.bestType] : null;
+      return { target: target, targetId: evolvedId, kind: 'pve', league: null,
+               role: role, speciesRank: null, spPct: null,
+               erRank: (bt && typeof bt.erRank === 'number') ? bt.erRank : null,
+               tipo: TYPE_PT[pve.bestType] || pve.bestType || 'ataque' };
+    }
+    return null;
+  }
+
+  // Melhor projeção entre os candidatos. Força: pvp_great>ultra>master>raid>gym_atk>pve.
+  function _bestEvolveProjection(e, evoCandidates, meta) {
+    if (!evoCandidates || !e.speciesId) return null;
+    var base = String(e.speciesId).replace(/_shadow$/, '');
+    var cands = evoCandidates[base];
+    if (!cands) return null;
+    var SCORE = { pvp: { great: 5, ultra: 4, master: 3 }, pve: { raid: 2, gym_atk: 1, pve: 0 } };
+    var best = null, bestScore = -1;
+    for (var i = 0; i < cands.length; i++) {
+      var p = _projectEvolution(e, cands[i], meta);
+      if (!p) continue;
+      var s = p.kind === 'pvp' ? SCORE.pvp[p.league] : SCORE.pve[p.role];
+      if (s > bestScore) { best = p; bestScore = s; }
+    }
+    return best;
   }
 
   // Humaniza um speciesId p/ exibição: 'machamp' → 'Machamp', 'mr_mime' → 'Mr Mime'.
@@ -512,16 +532,16 @@
 
   function analyze(fileData, getSize, refdata, getSizeScalar, meta) {
     const list = enrichCollection(fileData, getSize, refdata, getSizeScalar, meta);
-    const evoIdx = _buildEvoMetaIndex(meta);
+    const evoCandidates = _buildEvoCandidates(meta);
     for (const e of list) {
       e.pvpMeta = (meta && meta.cpm && meta.pvpRanks && PokePvp) ? PokePvp.evalMon(e, meta) : null;
       e.pveMeta = (meta && meta.pveRanks && PokePve) ? PokePve.evalMon(e, meta) : null;
       _attachMovesetViews(e, meta);
       e.isRocketReady = (meta && meta.moves && PokePve)
         ? PokePve.rocketSpam(e.moveIds, meta.moves) : false;
-      const evoTarget = _metaEvoFor(e, evoIdx);
-      e.metaEvo = !!evoTarget;
-      e.metaEvoTarget = evoTarget ? _humanSpecies(evoTarget) : null;
+      e.evoProj = _bestEvolveProjection(e, evoCandidates, meta);
+      e.metaEvo = !!e.evoProj;
+      e.metaEvoTarget = e.evoProj ? e.evoProj.target : null;
       e.tags = computeTags(e);
       e.action = computeAction(e, meta);
       const v = computeVerdict(e);
