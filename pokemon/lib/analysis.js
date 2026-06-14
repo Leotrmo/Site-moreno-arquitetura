@@ -479,7 +479,8 @@
   }
 
   // Evoluir: a forma evoluída desta cópia é meta value-ok (e.evoProj) e a cópia vale evoluir.
-  // Travas: forma própria já meta (gancho de moveset cuida), colecionável de TAMANHO/FANTASIA
+  // _bestEvolveProjection NÃO filtra colecionável/posse — estas travas são o ponto de enforcement:
+  // forma própria já meta (gancho de moveset cuida), colecionável de TAMANHO/FANTASIA
   // (shiny/lucky sobrevivem à evolução → não travam) e já possuir a evolução como keeper.
   function _evolveAction(e) {
     if (!e.evoProj) return null;
