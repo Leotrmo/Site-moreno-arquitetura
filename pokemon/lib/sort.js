@@ -14,8 +14,12 @@
 
   // Cada comparador usa critérios de desempate para uma ordem estável e previsível.
   const COMPARATORS = {
+    // Investir primeiro: melhor veredito no topo, melhor IV antes.
     recomendado: (a, b) =>
       (VERDICT_ORDER[a.verdict] - VERDICT_ORDER[b.verdict]) || (b.ivPct - a.ivPct) || byName(a, b),
+    // Espelho de "recomendado": o que se livrar primeiro no topo, pior IV antes.
+    descartar: (a, b) =>
+      (VERDICT_ORDER[b.verdict] - VERDICT_ORDER[a.verdict]) || (a.ivPct - b.ivPct) || byName(a, b),
     nome:   (a, b) => byName(a, b) || (b.ivPct - a.ivPct),
     numero: (a, b) => (a.number - b.number) || byName(a, b) || (b.ivPct - a.ivPct),
     cp:     (a, b) => (b.cp - a.cp) || byName(a, b),
@@ -24,7 +28,8 @@
 
   // Ordem em que as opções aparecem no seletor da tela.
   const SORT_OPTIONS = [
-    { key: 'recomendado', label: '⭐ Recomendado' },
+    { key: 'recomendado', label: '⭐ Investir primeiro' },
+    { key: 'descartar',   label: '🗑️ Transferir primeiro' },
     { key: 'nome',        label: '🔤 Nome (A-Z)' },
     { key: 'numero',      label: '# Nº do Pokédex' },
     { key: 'cp',          label: '⚔️ PC (maior)' },

@@ -62,6 +62,36 @@ test('recomendado: dentro do mesmo veredito, maior IV primeiro', () => {
   assert.deepStrictEqual(names(list), ['high', 'low']);
 });
 
+test('descartar: TRANSFERIR vem antes de MANTER e de INVESTIR', () => {
+  const list = [
+    mon({ name: 'B', verdict: 'INVESTIR' }),
+    mon({ name: 'A', verdict: 'MANTER' }),
+    mon({ name: 'C', verdict: 'TRANSFERIR' }),
+  ];
+  list.sort(getSorter('descartar'));
+  assert.deepStrictEqual(list.map(m => m.verdict), ['TRANSFERIR', 'MANTER', 'INVESTIR']);
+});
+
+test('descartar: dentro do mesmo veredito, menor IV primeiro', () => {
+  const list = [
+    mon({ name: 'high', verdict: 'TRANSFERIR', ivPct: 98 }),
+    mon({ name: 'low', verdict: 'TRANSFERIR', ivPct: 70 }),
+  ];
+  list.sort(getSorter('descartar'));
+  assert.deepStrictEqual(names(list), ['low', 'high']);
+});
+
+test('descartar é o espelho de recomendado sobre os mesmos mons', () => {
+  const list = [
+    mon({ name: 'A', verdict: 'INVESTIR', ivPct: 90 }),
+    mon({ name: 'B', verdict: 'MANTER', ivPct: 80 }),
+    mon({ name: 'C', verdict: 'TRANSFERIR', ivPct: 60 }),
+  ];
+  const rec = names(list.slice().sort(getSorter('recomendado')));
+  const desc = names(list.slice().sort(getSorter('descartar')));
+  assert.deepStrictEqual(desc, rec.slice().reverse());
+});
+
 test('nome: empate de nome desempata por maior IV', () => {
   const list = [
     mon({ name: 'Eevee', ivPct: 60 }),
