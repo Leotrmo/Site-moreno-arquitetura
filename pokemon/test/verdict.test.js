@@ -531,43 +531,65 @@ test('analyze (e2e): Machop NÃO-Sombrio não herda meta da evolução Sombria',
 // EVOLUIR — sinalizar quando vale evoluir (evolução é meta + cópia boa)
 // ---------------------------------------------------------------------------
 
-test('computeAction: melhor cópia c/ evolução meta → EVOLUIR (nomeia o alvo)', () => {
-  const a = computeAction({
-    isShadow: false, moveIds: [], tags: [], betterCopy: null,
-    pvpMeta: null, pveMeta: null, metaEvo: true, metaEvoTarget: 'Machamp',
-    isBestOfSpecies: true, ivPct: 72, isHundo: false,
-  });
+const evoProjPvP  = { target: 'Azumarill', targetId: 'azumarill', kind: 'pvp',
+                      league: 'great', speciesRank: 13, spPct: 0.97, role: null, erRank: null, tipo: null };
+const evoProjPvE  = { target: 'Machamp', targetId: 'machamp', kind: 'pve',
+                      league: null, speciesRank: null, spPct: null, role: 'raid', erRank: 8, tipo: 'Lutador' };
+
+function evoMon(over) {
+  return Object.assign({
+    isShadow: false, moveIds: [], tags: [], betterCopy: null, pvpMeta: null, pveMeta: null,
+    isCostume: false, isExtremeSize: false, isXSComfort: false, isXLComfort: false,
+    evoProj: evoProjPvE, evoOwned: false, ivPct: 91,
+  }, over || {});
+}
+
+test('computeAction: evoProj PvE + cópia limpa → EVOLUIR (mensagem PvE)', () => {
+  const a = computeAction(evoMon());
   assert.strictEqual(a.kind, 'EVOLUIR');
   assert.strictEqual(a.target, 'Machamp');
-  assert.match(a.reason, /Evoluir p\/ Machamp/);
+  assert.match(a.reason, /Evoluir → Machamp/);
+  assert.match(a.reason, /Top 8/);
+  assert.match(a.reason, /Lutador/);
 });
 
-test('computeAction: duplicata IV>=90 c/ evolução meta → EVOLUIR', () => {
-  const a = computeAction({
-    isShadow: false, moveIds: [], tags: [], betterCopy: {},
-    pvpMeta: null, pveMeta: null, metaEvo: true, metaEvoTarget: 'Garchomp',
-    isBestOfSpecies: false, ivPct: 93, isHundo: false,
-  });
+test('computeAction: evoProj PvP → EVOLUIR (mensagem PvP com rank e IV PvP)', () => {
+  const a = computeAction(evoMon({ evoProj: evoProjPvP }));
   assert.strictEqual(a.kind, 'EVOLUIR');
+  assert.match(a.reason, /Evoluir → Azumarill/);
+  assert.match(a.reason, /Liga Grande/);
+  assert.match(a.reason, /rank 13/);
+  assert.match(a.reason, /97%/);
 });
 
-test('computeAction: duplicata fraca (IV<90 e não-melhor) c/ evolução meta → NÃO EVOLUIR', () => {
-  const a = computeAction({
-    isShadow: false, moveIds: [], tags: [], betterCopy: {},
-    pvpMeta: null, pveMeta: null, metaEvo: true, metaEvoTarget: 'Garchomp',
-    isBestOfSpecies: false, ivPct: 80, isHundo: false,
-  });
-  assert.notStrictEqual(a && a.kind, 'EVOLUIR');
+test('computeAction: sem evoProj → NÃO EVOLUIR', () => {
+  assert.strictEqual(computeAction(evoMon({ evoProj: null })), null);
 });
 
 test('computeAction: forma própria já meta → NÃO EVOLUIR (gancho de moveset cuida)', () => {
-  const a = computeAction({
-    isShadow: false, moveIds: ['COUNTER'], tags: ['pvp_great'], betterCopy: null,
+  const a = computeAction(evoMon({
+    tags: ['pvp_great'], moveIds: ['COUNTER'],
     pvpMeta: { great: { isMeta: true, movesetOk: true, spPct: 0.98, ivRank: 1, speciesRank: 1 },
                ultra: {}, master: {} },
-    pveMeta: null, metaEvo: true, metaEvoTarget: 'X', isBestOfSpecies: true, ivPct: 98, isHundo: false,
-  });
-  assert.strictEqual(a.kind, 'FORTALECER');   // pré-evolução não rouba o gancho da forma meta
+  }));
+  assert.strictEqual(a.kind, 'FORTALECER');
+});
+
+test('computeAction: colecionável de tamanho (XS comfort) → NÃO EVOLUIR', () => {
+  assert.strictEqual(computeAction(evoMon({ isXSComfort: true })), null);
+});
+
+test('computeAction: fantasia (costume) → NÃO EVOLUIR', () => {
+  assert.strictEqual(computeAction(evoMon({ isCostume: true })), null);
+});
+
+test('computeAction: shiny SOBREVIVE à evolução → EVOLUIR (não travado por shiny)', () => {
+  const a = computeAction(evoMon({ isShiny: true }));
+  assert.strictEqual(a.kind, 'EVOLUIR');
+});
+
+test('computeAction: já possuo a evolução como keeper (evoOwned) → NÃO EVOLUIR', () => {
+  assert.strictEqual(computeAction(evoMon({ evoOwned: true })), null);
 });
 
 test('analyze (e2e): Machop melhor cópia → EVOLUIR p/ Machamp (evolução é meta)', () => {

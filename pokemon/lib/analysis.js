@@ -478,18 +478,21 @@
     return null;
   }
 
-  // Evoluir: a forma evoluída desta cópia é meta (metaEvo) e a cópia vale o investimento
-  // — melhor da espécie OU IV alto (>=90%). Não dispara se a própria forma já é meta
-  // (nesse caso o gancho de moveset/Fortalecer cuida) nem se nada herda relevância.
-  const EVOLVE_MIN_IV = 90;
+  // Evoluir: a forma evoluída desta cópia é meta value-ok (e.evoProj) e a cópia vale evoluir.
+  // Travas: forma própria já meta (gancho de moveset cuida), colecionável de TAMANHO/FANTASIA
+  // (shiny/lucky sobrevivem à evolução → não travam) e já possuir a evolução como keeper.
   function _evolveAction(e) {
-    if (!e.metaEvo) return null;
+    if (!e.evoProj) return null;
     if (isPvpMeta(e) || isPveMeta(e)) return null;
-    if (!(e.isBestOfSpecies || e.ivPct >= EVOLVE_MIN_IV)) return null;
-    const alvo = e.metaEvoTarget || 'forma evoluída';
-    const qual = e.isHundo ? '100%' : 'IV ' + e.ivPct + '%';
-    return { kind: 'EVOLUIR', target: e.metaEvoTarget || null,
-      reason: 'Evoluir p/ ' + alvo + ' — evolução é meta e esta cópia vale (' + qual + ')' };
+    if (e.isCostume || e.isExtremeSize || e.isXSComfort || e.isXLComfort) return null;
+    if (e.evoOwned) return null;
+    var p = e.evoProj;
+    var reason = (p.kind === 'pvp')
+      ? 'Evoluir → ' + p.target + ' · seria pick de ' + LEAGUE_PT[p.league] +
+        ' (rank ' + p.speciesRank + ' da espécie · seu IV PvP ' + Math.round(p.spPct * 100) + '%)'
+      : 'Evoluir → ' + p.target + ' · seria Top ' + (p.erRank != null ? p.erRank : '?') +
+        ' atacante de ' + p.tipo + ' (estimativa)';
+    return { kind: 'EVOLUIR', target: p.target, reason: reason };
   }
 
   function computeAction(e, meta) {
