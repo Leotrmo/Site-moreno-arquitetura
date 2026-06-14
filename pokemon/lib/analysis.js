@@ -537,9 +537,25 @@
     return tags;
   }
 
+  // Conjunto de speciesId (base, sem _shadow) que já têm ao menos uma cópia "keeper":
+  // cópia com selo de meta (pvp/pve) OU melhor da espécie com IV>=90. Base só em tags+IV
+  // (não no veredito) para não depender da ordem das passadas.
+  function _buildOwnedKeepers(list) {
+    var owned = {};
+    for (var i = 0; i < list.length; i++) {
+      var e = list[i];
+      if (!e.speciesId) continue;
+      if (isPvpMeta(e) || isPveMeta(e) || (e.isBestOfSpecies && e.ivPct >= 90)) {
+        owned[String(e.speciesId).replace(/_shadow$/, '')] = true;
+      }
+    }
+    return owned;
+  }
+
   function analyze(fileData, getSize, refdata, getSizeScalar, meta) {
     const list = enrichCollection(fileData, getSize, refdata, getSizeScalar, meta);
     const evoCandidates = _buildEvoCandidates(meta);
+    // Passada 1: meta + tags + projeção (sem ações/veredito).
     for (const e of list) {
       e.pvpMeta = (meta && meta.cpm && meta.pvpRanks && PokePvp) ? PokePvp.evalMon(e, meta) : null;
       e.pveMeta = (meta && meta.pveRanks && PokePve) ? PokePve.evalMon(e, meta) : null;
@@ -550,6 +566,11 @@
       e.metaEvo = !!e.evoProj;
       e.metaEvoTarget = e.evoProj ? e.evoProj.target : null;
       e.tags = computeTags(e);
+    }
+    const owned = _buildOwnedKeepers(list);
+    // Passada 2: posse → ações + veredito.
+    for (const e of list) {
+      e.evoOwned = !!(e.evoProj && owned[e.evoProj.targetId]);
       e.action = computeAction(e, meta);
       const v = computeVerdict(e);
       e.verdict = v.verdict;
