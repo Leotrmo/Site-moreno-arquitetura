@@ -12,32 +12,36 @@
     return a.name.localeCompare(b.name, 'pt-BR', { sensitivity: 'base' });
   }
 
-  // Cada comparador usa critérios de desempate para uma ordem estável e previsível.
-  const COMPARATORS = {
-    // Investir primeiro: melhor veredito no topo, melhor IV antes.
-    recomendado: (a, b) =>
-      (VERDICT_ORDER[a.verdict] - VERDICT_ORDER[b.verdict]) || (b.ivPct - a.ivPct) || byName(a, b),
-    // Espelho de "recomendado": o que se livrar primeiro no topo, pior IV antes.
-    descartar: (a, b) =>
-      (VERDICT_ORDER[b.verdict] - VERDICT_ORDER[a.verdict]) || (a.ivPct - b.ivPct) || byName(a, b),
-    nome:   (a, b) => byName(a, b) || (b.ivPct - a.ivPct),
-    numero: (a, b) => (a.number - b.number) || byName(a, b) || (b.ivPct - a.ivPct),
-    cp:     (a, b) => (b.cp - a.cp) || byName(a, b),
-    iv:     (a, b) => (b.ivPct - a.ivPct) || (b.cp - a.cp) || byName(a, b),
+  // Critério principal de cada ordenação, na direção "natural" (a que o rótulo anuncia).
+  // O desempate por nome (A-Z) é aplicado depois, em getSorter, e NÃO inverte com a direção —
+  // assim alternar a direção vira o critério (veredito/IV/PC/nº) sem bagunçar a ordem alfabética.
+  const PRIMARY = {
+    recomendado: (a, b) => (VERDICT_ORDER[a.verdict] - VERDICT_ORDER[b.verdict]) || (b.ivPct - a.ivPct),
+    nome:        (a, b) => byName(a, b) || (b.ivPct - a.ivPct),
+    numero:      (a, b) => (a.number - b.number) || (b.ivPct - a.ivPct),
+    cp:          (a, b) => (b.cp - a.cp) || (b.ivPct - a.ivPct),
+    iv:          (a, b) => (b.ivPct - a.ivPct) || (b.cp - a.cp),
   };
 
-  // Ordem em que as opções aparecem no seletor da tela.
+  // Mantido por compatibilidade: os comparadores completos na direção natural.
+  const COMPARATORS = {};
+  for (const k in PRIMARY) COMPARATORS[k] = (a, b) => PRIMARY[k](a, b) || byName(a, b);
+
+  // Ordem em que as opções aparecem no seletor da tela. O sentido entre parênteses
+  // é a direção natural; o botão ↑/↓ ao lado inverte qualquer uma delas.
   const SORT_OPTIONS = [
-    { key: 'recomendado', label: '⭐ Investir primeiro' },
-    { key: 'descartar',   label: '🗑️ Transferir primeiro' },
+    { key: 'recomendado', label: '⭐ Recomendado (investir → transferir)' },
     { key: 'nome',        label: '🔤 Nome (A-Z)' },
-    { key: 'numero',      label: '# Nº do Pokédex' },
+    { key: 'numero',      label: '# Nº do Pokédex (menor)' },
     { key: 'cp',          label: '⚔️ PC (maior)' },
     { key: 'iv',          label: '📊 IV (maior)' },
   ];
 
-  function getSorter(key) {
-    return COMPARATORS[key] || COMPARATORS.recomendado;
+  // reversed=true inverte só o critério principal; o desempate por nome segue A-Z.
+  function getSorter(key, reversed) {
+    const primary = PRIMARY[key] || PRIMARY.recomendado;
+    const sign = reversed ? -1 : 1;
+    return (a, b) => (sign * primary(a, b)) || byName(a, b);
   }
 
   // Dimensões competitivas com rank (rocket não tem rank → fora).

@@ -15,8 +15,14 @@ test('SORT_OPTIONS sempre inclui "recomendado" como primeira opção', () => {
 });
 
 test('getSorter cai em "recomendado" para chave inválida ou ausente', () => {
-  assert.strictEqual(getSorter('xpto'), COMPARATORS.recomendado);
-  assert.strictEqual(getSorter(undefined), COMPARATORS.recomendado);
+  const list = [
+    mon({ name: 'C', verdict: 'TRANSFERIR' }),
+    mon({ name: 'A', verdict: 'MANTER' }),
+    mon({ name: 'B', verdict: 'INVESTIR' }),
+  ];
+  const order = m => m.map(x => x.verdict);
+  assert.deepStrictEqual(order(list.slice().sort(getSorter('xpto'))), ['INVESTIR', 'MANTER', 'TRANSFERIR']);
+  assert.deepStrictEqual(order(list.slice().sort(getSorter(undefined))), ['INVESTIR', 'MANTER', 'TRANSFERIR']);
 });
 
 test('ordena por nome (A-Z), ignorando acentos e maiúsculas', () => {
@@ -62,34 +68,38 @@ test('recomendado: dentro do mesmo veredito, maior IV primeiro', () => {
   assert.deepStrictEqual(names(list), ['high', 'low']);
 });
 
-test('descartar: TRANSFERIR vem antes de MANTER e de INVESTIR', () => {
+test('direção invertida: recomendado joga TRANSFERIR pro topo', () => {
   const list = [
     mon({ name: 'B', verdict: 'INVESTIR' }),
     mon({ name: 'A', verdict: 'MANTER' }),
     mon({ name: 'C', verdict: 'TRANSFERIR' }),
   ];
-  list.sort(getSorter('descartar'));
+  list.sort(getSorter('recomendado', true));
   assert.deepStrictEqual(list.map(m => m.verdict), ['TRANSFERIR', 'MANTER', 'INVESTIR']);
 });
 
-test('descartar: dentro do mesmo veredito, menor IV primeiro', () => {
+test('direção invertida: dentro do mesmo veredito, menor IV primeiro', () => {
   const list = [
     mon({ name: 'high', verdict: 'TRANSFERIR', ivPct: 98 }),
     mon({ name: 'low', verdict: 'TRANSFERIR', ivPct: 70 }),
   ];
-  list.sort(getSorter('descartar'));
+  list.sort(getSorter('recomendado', true));
   assert.deepStrictEqual(names(list), ['low', 'high']);
 });
 
-test('descartar é o espelho de recomendado sobre os mesmos mons', () => {
+test('direção invertida vale para qualquer critério (IV menor primeiro)', () => {
+  const list = [mon({ ivPct: 80 }), mon({ ivPct: 100 }), mon({ ivPct: 96 })];
+  list.sort(getSorter('iv', true));
+  assert.deepStrictEqual(list.map(m => m.ivPct), [80, 96, 100]);
+});
+
+test('inverter o critério mantém o desempate por nome em A-Z', () => {
   const list = [
-    mon({ name: 'A', verdict: 'INVESTIR', ivPct: 90 }),
-    mon({ name: 'B', verdict: 'MANTER', ivPct: 80 }),
-    mon({ name: 'C', verdict: 'TRANSFERIR', ivPct: 60 }),
+    mon({ name: 'Zubat', verdict: 'MANTER', ivPct: 50 }),
+    mon({ name: 'Abra', verdict: 'MANTER', ivPct: 50 }),
   ];
-  const rec = names(list.slice().sort(getSorter('recomendado')));
-  const desc = names(list.slice().sort(getSorter('descartar')));
-  assert.deepStrictEqual(desc, rec.slice().reverse());
+  list.sort(getSorter('recomendado', true));
+  assert.deepStrictEqual(names(list), ['Abra', 'Zubat']); // veredito/IV empatam → nome A-Z, sem inverter
 });
 
 test('nome: empate de nome desempata por maior IV', () => {
