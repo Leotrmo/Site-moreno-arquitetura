@@ -28,6 +28,23 @@
     return getSizeScalar(mon.mon_number, mon.mon_height, mon.mon_form) || null;
   }
 
+  // Resolve os nomes PT dos golpes do mon em moveIds. Prioriza o casamento ESCOPADO pela
+  // espécie (mata colisões: "Jato d'Água" → HYDRO_PUMP, não HYDRO_PUMP_BLASTOISE); cai no
+  // matchMove global (meta.movesPt) quando falta espécie/lista/meta.moves ou nada casa.
+  function resolveMoveIds(mon, sid, meta) {
+    if (!meta || !PokeMatch) return [];
+    var sp = (sid && meta.speciesIndex && meta.speciesIndex.byId) ? meta.speciesIndex.byId[sid] : null;
+    var allowed = sp ? (sp.fastMoves || []).concat(sp.chargedMoves || []) : null;
+    return [mon.mon_move_1, mon.mon_move_2, mon.mon_move_3].map(function (name) {
+      if (!name) return null;
+      if (allowed && allowed.length && meta.moves && PokeMatch.matchMoveInSpecies) {
+        var hit = PokeMatch.matchMoveInSpecies(name, allowed, meta.moves, MOVE_PT_OVERRIDE);
+        if (hit) return hit;
+      }
+      return meta.movesPt ? PokeMatch.matchMove(name, meta.movesPt) : null;
+    }).filter(Boolean);
+  }
+
   function ivPct(mon) {
     return Math.round((mon.mon_attack + mon.mon_defence + mon.mon_stamina) / 45 * 100);
   }
@@ -124,11 +141,7 @@
       movesetTip: null,
       // Fase 0 — casamento com o meta (null/[] quando meta ausente):
       speciesId: sid,
-      moveIds: (meta && meta.movesPt && PokeMatch)
-        ? [mon.mon_move_1, mon.mon_move_2, mon.mon_move_3]
-            .map(function (m) { return PokeMatch.matchMove(m, meta.movesPt); })
-            .filter(Boolean)
-        : [],
+      moveIds: resolveMoveIds(mon, sid, meta),
       eliteMoves: eliteMoves,
       // Fase 1 — avaliação PvP (preenchida por analyze quando há meta).
       // ATENÇÃO: chamar de pvpMeta, não pvp — pvp já existe (mon_pvp_stats).

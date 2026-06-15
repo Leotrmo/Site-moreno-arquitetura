@@ -284,3 +284,26 @@ test('analyze: mon meta sem nenhum carregado → sem movesetTip (Ensinar/TM já 
   const e = analyze(fd, getPokemonSize, refdata, getPokemonSizeScalar, meta)[0];
   assert.strictEqual(e.movesetTip, null);
 });
+
+// --- 2026-06-15 Fase 1: resolução escopada mata a colisão "Jato d'Água" ---
+const movesJson = require('../data/moves.json');
+
+function metaScoped() {
+  return {
+    speciesIndex: buildSpeciesIndex(speciesJson),
+    movesPt: {},                 // vazio de propósito: força o caminho escopado
+    moves: movesJson,
+    pvpRanks: pvpRanksJson, cpm: realCpm, pveRanks: pveRanksJson,
+  };
+}
+
+test('payoff: Gyarados "Cachoeira"+"Jato d\'Água" → HYDRO_PUMP e pveMeta.movesetOk', () => {
+  const fd = { g: { mon_name:'Gyarados', mon_number:130, mon_cp:3000,
+                    mon_attack:15, mon_defence:15, mon_stamina:15, mon_height:6.5,
+                    mon_isShiny:'NO', mon_isLucky:'NO',
+                    mon_move_1:'Cachoeira', mon_move_2:"Jato d'Água" } };
+  const e = analyze(fd, getPokemonSize, refdata, getPokemonSizeScalar, metaScoped())[0];
+  assert.ok(e.moveIds.includes('HYDRO_PUMP'), 'resolveu HYDRO_PUMP');
+  assert.ok(!e.moveIds.includes('HYDRO_PUMP_BLASTOISE'), 'NÃO pegou a variante Blastoise');
+  assert.strictEqual(e.pveMeta.movesetOk, true);   // antes do fix: false (moveIds vazio)
+});
