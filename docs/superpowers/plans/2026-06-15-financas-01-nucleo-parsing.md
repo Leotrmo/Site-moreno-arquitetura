@@ -62,7 +62,7 @@ samples-local/
 
 - [ ] **Step 3: Verificar que o runner de testes funciona (sem testes ainda)**
 
-Run: `node --test financas-app`
+Run: `npm test --prefix financas-app`  (auto-discovery; `node --test <dir>` não escaneia o diretório nesta versão do Node)
 Expected: Sai sem erro, reportando `tests 0` (nenhum teste encontrado ainda).
 
 - [ ] **Step 4: Commit**
@@ -807,7 +807,7 @@ Expected: PASS (4 testes).
 
 - [ ] **Step 5: Rodar a suíte inteira**
 
-Run: `node --test financas-app`
+Run: `npm test --prefix financas-app`  (auto-discovery; `node --test <dir>` não escaneia o diretório nesta versão do Node)
 Expected: PASS — todos os testes (shared, hash, bradesco, itau, parsers-index).
 
 - [ ] **Step 6: Commit**
