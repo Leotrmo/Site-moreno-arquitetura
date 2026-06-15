@@ -45,3 +45,39 @@ test('matchMove: golpe sem casar → null', () => {
   assert.strictEqual(matchMove('Golpe Inexistente', movesPt), null);
   assert.strictEqual(matchMove(undefined, movesPt), null);
 });
+
+const { matchMoveInSpecies } = require('../lib/meta/match.js');
+
+// IDs com nome PT colidente; uma espécie nunca tem mais de um deles na lista.
+const movesById = {
+  HYDRO_PUMP:           { namePt: "Jato d'Água" },
+  HYDRO_PUMP_BLASTOISE: { namePt: "Jato d'Água" },
+  WATERFALL:            { namePt: 'Cachoeira' },
+  HURRICANE:            { namePt: 'Furacão' },
+  DRILL_RUN:            { namePt: 'Perfurar' },
+};
+
+test('matchMoveInSpecies: resolve dentro dos golpes da espécie (mata a colisão)', () => {
+  // Gyarados tem HYDRO_PUMP na lista, não a variante Blastoise.
+  assert.strictEqual(
+    matchMoveInSpecies("Jato d'Água", ['WATERFALL', 'HYDRO_PUMP', 'AQUA_TAIL'], movesById, {}),
+    'HYDRO_PUMP');
+});
+
+test('matchMoveInSpecies: nome fora da lista da espécie → null (deixa o fallback agir)', () => {
+  assert.strictEqual(
+    matchMoveInSpecies("Jato d'Água", ['WATERFALL', 'AQUA_TAIL'], movesById, {}),
+    null);
+});
+
+test('matchMoveInSpecies: usa override quando falta namePt', () => {
+  const mb = { CHILLING_WATER: {} }; // sem namePt
+  assert.strictEqual(
+    matchMoveInSpecies('Água Refrescante', ['CHILLING_WATER'], mb, { CHILLING_WATER: 'Água Refrescante' }),
+    'CHILLING_WATER');
+});
+
+test('matchMoveInSpecies: degrada gracioso (sem nome/lista → null)', () => {
+  assert.strictEqual(matchMoveInSpecies('', ['HYDRO_PUMP'], movesById, {}), null);
+  assert.strictEqual(matchMoveInSpecies("Jato d'Água", [], movesById, {}), null);
+});
