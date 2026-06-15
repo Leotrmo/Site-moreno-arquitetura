@@ -50,3 +50,9 @@ export function mesMaisFrequente(datasISO) {
   }
   return melhor;
 }
+
+// Detecta parcelamento 'N/M' ancorado no FIM do histórico.
+export function detectarParcela(historico) {
+  const m = String(historico).match(/(\d+)\/(\d+)\s*$/);
+  return m ? { atual: Number(m[1]), total: Number(m[2]) } : null;
+}

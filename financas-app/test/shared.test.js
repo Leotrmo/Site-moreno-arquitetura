@@ -1,6 +1,6 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { parseValorBR, limparDescricao, inferirMesRefDoNome, inferirDataCompra, mesMaisFrequente } from '../src/lib/shared.js';
+import { parseValorBR, limparDescricao, inferirMesRefDoNome, inferirDataCompra, mesMaisFrequente, detectarParcela } from '../src/lib/shared.js';
 
 test('parseValorBR converte decimal brasileiro', () => {
   assert.equal(parseValorBR('30,14'), 30.14);
@@ -46,4 +46,15 @@ test('inferirDataCompra resolve o ano de parcelas antigas', () => {
 test('mesMaisFrequente escolhe o mês com mais lançamentos', () => {
   const datas = ['2026-06-09', '2026-06-08', '2026-06-04', '2026-03-15'];
   assert.equal(mesMaisFrequente(datas), '2026-06');
+});
+
+test('detectarParcela lê N/M no fim do histórico', () => {
+  assert.deepEqual(detectarParcela('PICPAY*LUIS GABRIEL 1/3'), { atual: 1, total: 3 });
+  assert.deepEqual(detectarParcela('Converse All Sta 7/10'), { atual: 7, total: 10 });
+});
+
+test('detectarParcela ignora números que não estão no fim', () => {
+  assert.equal(detectarParcela('10 PASTEIS UNIVERSIDAD'), null);
+  assert.equal(detectarParcela('99Food *Lancheria do Brab'), null);
+  assert.equal(detectarParcela('CONDOR SITIO CERCADO'), null);
 });
