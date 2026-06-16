@@ -12,6 +12,23 @@
 
 ---
 
+> ## ✅ STATUS (2026-06-16): IMPLEMENTADO E NO AR
+> App placeholder em produção: **https://moreno.arq.br/financas** ("Supabase conectado ✓",
+> sem erros de console). SQL rodado e confirmado por sonda REST. Desvios na execução vs. o
+> texto abaixo (a máquina do Leo é Google Drive, onde `npm install` não roda):
+> - **Modelo CI-only:** `node_modules` nunca é instalado localmente. A GitHub Action faz
+>   `npm ci` + `generate-pwa-assets` + `build`. Localmente só edita-se código e roda-se
+>   `npm test` (lógica pura, sem deps). O `package-lock.json` foi gerado com
+>   `npm install --package-lock-only` (1 arquivo, sem extrair nada no Drive).
+> - **Sem geração local de ícones** (Task 4) nem build local (Task 7 passos 2-4): tudo no CI.
+>   Os PNGs gerados são gitignorados; só o build em `/financas` (que os inclui) é commitado.
+> - **Action** (`.github/workflows/deploy-financas.yml`): node 22, passo extra
+>   `generate-pwa-assets`, e o passo de commit faz `git add financas` ANTES de
+>   `git diff --cached --quiet` (senão o 1º deploy, todo untracked, não commitaria nada).
+> - **Roteamento:** decidido HashRouter no Plano 4; este plano não cria `404.html`.
+
+---
+
 ## Nota sobre verificação (infra não é TDD)
 
 Os planos 1 e 2 eram lógica pura → TDD clássico (test→red→green). Este plano é
