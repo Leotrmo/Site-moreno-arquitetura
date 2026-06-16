@@ -38,7 +38,7 @@ pizza, barras Leo×Luis, alertas, recomendações, parcelamentos, top 10), confi
   depois do realtime pronto.
 
 ### Stack
-React + Vite + Tailwind + React Router v6 + Chart.js/react-chartjs-2 + PapaParse +
+React + Vite + Tailwind + React Router (HashRouter) + Chart.js/react-chartjs-2 + PapaParse +
 `@supabase/supabase-js` + `vite-plugin-pwa`. Backend Supabase (Auth + Postgres + Realtime).
 
 O **realtime justifica o React**: a re-renderização automática ao receber eventos do
@@ -65,7 +65,7 @@ família, sem código de convite.
 /financas-app/          código-fonte Vite/React (o projeto)
    vite.config.js       base:'/financas/', build.outDir:'../financas', emptyOutDir
    .env                 VITE_SUPABASE_URL + VITE_SUPABASE_ANON_KEY (publicáveis — ok commitar)
-   public/404.html      cópia do index.html (React Router no GitHub Pages)
+   (sem 404.html — roteamento via HashRouter; ver §10)
 .github/workflows/deploy-financas.yml   build + commit de /financas no push a financas-app/**
 ```
 
@@ -291,7 +291,7 @@ score conforme o prompt. Testada isoladamente com dados sintéticos.
 `/` Login/Cadastro → redireciona logado para `/dashboard`. Protegidas por
 `ProtectedRoute`: `/dashboard`, `/upload`, `/categorizar` (badge de pendentes),
 `/relatorio`, `/configuracoes`. Layout: sidebar (desktop) / bottom-nav (mobile,
-mobile-first 390px). `public/404.html` = cópia do `index.html`.
+mobile-first 390px). Roteamento via **HashRouter** (`/financas/#/...`) — GitHub Pages não tem rewrite e usa o `404.html` da raiz, então não criamos `404.html`.
 
 - **Upload:** banco + (Itaú) de quem é + **seletor de mês de referência pré-preenchido**;
   preview "X encontradas · Y já processadas · Z novas · W auto-categorizadas".
