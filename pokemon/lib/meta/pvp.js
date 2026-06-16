@@ -7,13 +7,14 @@
 
   var CP_CAPS    = { great: 1500, ultra: 2500, master: Infinity };
   var LEVEL_CAP  = 50;
-  // Limiares de "essa cópia presta?" — calibrados p/ shortlist útil (Fase 4):
-  // ~20 picks PvP na coleção real de 592 mons [great 10 · ultra 9 · master 1].
-  // spPct = stat product / melhor da liga; ivRank = posição entre os 4096 IVs.
+  // Gate de tag PvP = relevância da espécie (speciesRank) ANDada com "essa cópia presta?".
+  // Calibração moderada (Fase 2): ~13 picks na coleção real de 725 [great 7 · ultra 6 · master 0].
+  // maxRank = corte de rank da espécie por liga; spPct = stat product / melhor da liga;
+  // ivRank = posição entre os 4096 IVs (degenerado em Mestre → master usa ivPct cru).
   var THRESHOLDS = {
-    great:  { spPct: 0.95, ivRank: 600 },
-    ultra:  { spPct: 0.95, ivRank: 600 },
-    master: { ivPct: 95 },
+    great:  { spPct: 0.95, ivRank: 600, maxRank: 50 },
+    ultra:  { spPct: 0.95, ivRank: 600, maxRank: 50 },
+    master: { ivPct: 95,                maxRank: 20 },
   };
 
   // CP = max(10, floor( (atk+iv) * sqrt(def+iv) * sqrt(sta+iv) * cpm² / 10 ))
@@ -133,17 +134,21 @@
     return out;
   }
 
-  // Tags pvp_* a partir do objeto pvp + IV% simples (master usa ivPct).
+  // Tags pvp_* = espécie relevante (speciesRank <= maxRank) E cópia boa.
+  // great/ultra: qualidade = spPct OU ivRank. master: qualidade = ivPct cru (ivRank degenera sem cap).
   function pvpTags(pvp, ivPct) {
     if (!pvp) return [];
     var tags = [];
     ['great', 'ultra'].forEach(function (lg) {
       var L = pvp[lg];
-      if (L && L.isMeta && (L.spPct >= THRESHOLDS[lg].spPct || L.ivRank <= THRESHOLDS[lg].ivRank))
+      if (L && L.isMeta && L.speciesRank <= THRESHOLDS[lg].maxRank
+          && (L.spPct >= THRESHOLDS[lg].spPct || L.ivRank <= THRESHOLDS[lg].ivRank))
         tags.push('pvp_' + lg);
     });
     var m = pvp.master;
-    if (m && m.isMeta && ivPct >= THRESHOLDS.master.ivPct) tags.push('pvp_master');
+    if (m && m.isMeta && m.speciesRank <= THRESHOLDS.master.maxRank
+        && ivPct >= THRESHOLDS.master.ivPct)
+      tags.push('pvp_master');
     return tags;
   }
 

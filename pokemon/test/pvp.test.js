@@ -121,16 +121,26 @@ test('evalMon: liga fora do meta → ivRank/spPct null (sem calcular distribuiç
   assert.strictEqual(r.great.movesetOk, false);
 });
 
-test('pvpTags: aplica THRESHOLDS (great por spPct/ivRank; master por ivPct)', () => {
-  // pvp sintético
+test('pvpTags: aplica THRESHOLDS (great por spPct/ivRank + speciesRank; master por ivPct + speciesRank)', () => {
+  // pvp sintético — agora com speciesRank em cada liga (gate novo da Fase 2).
   const pvp = {
-    great:  { isMeta: true,  ivRank: 1,   spPct: 1,    movesetOk: true },
-    ultra:  { isMeta: true,  ivRank: 999, spPct: 0.90, movesetOk: false }, // não passa limiar
-    master: { isMeta: true,  ivRank: 50,  spPct: 0.97, movesetOk: false },
+    great:  { isMeta: true, speciesRank: 13, ivRank: 1,   spPct: 1,    movesetOk: true },
+    ultra:  { isMeta: true, speciesRank: 30, ivRank: 999, spPct: 0.90, movesetOk: false }, // reprova na qualidade
+    master: { isMeta: true, speciesRank: 15, ivRank: 50,  spPct: 0.97, movesetOk: false },
   };
-  assert.deepStrictEqual(pvpTags(pvp, 100).sort(), ['pvp_great', 'pvp_master']); // ivPct 100>=98
-  assert.deepStrictEqual(pvpTags(pvp, 90).sort(), ['pvp_great']);                // ivPct 90<98 → sem master
+  assert.deepStrictEqual(pvpTags(pvp, 100).sort(), ['pvp_great', 'pvp_master']); // ivPct 100>=95, ranks ok
+  assert.deepStrictEqual(pvpTags(pvp, 90).sort(), ['pvp_great']);                // ivPct 90<95 → sem master
   assert.deepStrictEqual(pvpTags(null, 100), []);
+});
+
+test('pvpTags: speciesRank acima do corte → sem tag mesmo com cópia perfeita (mata o falso positivo)', () => {
+  // Gyarados: great rank 92 (>50) e master rank 57 (>20) — cópia perfeita não salva.
+  const pvp = {
+    great:  { isMeta: true,  speciesRank: 92,  ivRank: 1,   spPct: 1,    movesetOk: true },
+    ultra:  { isMeta: false, speciesRank: null, ivRank: null, spPct: null },
+    master: { isMeta: true,  speciesRank: 57,  ivRank: 1,   spPct: 1,    movesetOk: false },
+  };
+  assert.deepStrictEqual(pvpTags(pvp, 100), []); // nem great (r92>50) nem master (r57>20)
 });
 
 test('evalMon: expõe o moveset recomendado da liga (great) e null fora do meta', () => {
