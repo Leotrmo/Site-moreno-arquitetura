@@ -104,7 +104,11 @@
     var byId = meta.speciesIndex && meta.speciesIndex.byId;
     var sp = byId && byId[e.speciesId];
     if (!sp || !sp.baseStats) return null;
-    var ranks = meta.pvpRanks[e.speciesId] || {};
+    // Sombrio prefere a entrada _shadow (rank/moveset PvP da forma Sombria); degrada p/ a base
+    // se não existir. baseStats continua da espécie base — Sombrio não muda o rank de IV.
+    var pvpId = (e.isShadow && meta.pvpRanks[e.speciesId + '_shadow'])
+      ? e.speciesId + '_shadow' : e.speciesId;
+    var ranks = meta.pvpRanks[pvpId] || {};
     var out = {};
     LEAGUES.forEach(function (lg) {
       var rankEntry = ranks[lg] || null;     // null = espécie fora do Top N daquela liga

@@ -143,6 +143,24 @@ test('evalMon: expõe o moveset recomendado da liga (great) e null fora do meta'
   if (offLeague) assert.strictEqual(r[offLeague].moveset, null);
 });
 
+test('evalMon: Sombrio com entrada _shadow lê o rank/moveset da forma Sombria', () => {
+  // Gyarados Sombrio 15/15/15: deve ler gyarados_shadow (master rank 32), não gyarados (57).
+  const e = { speciesId: 'gyarados', isShadow: true, ivs: { atk: 15, def: 15, sta: 15 },
+              moveIds: ['DRAGON_BREATH', 'AQUA_TAIL', 'TWISTER'] };
+  const r = evalMon(e, metaObj());
+  assert.strictEqual(r.master.speciesRank, pvpRanks.gyarados_shadow.master.rank); // 32, não 57
+  assert.notStrictEqual(r.master.speciesRank, pvpRanks.gyarados.master.rank);     // != 57
+  assert.deepStrictEqual(r.master.moveset, pvpRanks.gyarados_shadow.master.moveset);
+  assert.strictEqual(r.master.movesetOk, true);  // tem o set Sombrio de Mestre
+});
+
+test('evalMon: Sombrio SEM entrada _shadow degrada para o rank base', () => {
+  // azumarill não tem azumarill_shadow → mesmo Sombrio, lê a base.
+  const e = { speciesId: 'azumarill', isShadow: true, ivs: { atk: 0, def: 15, sta: 15 }, moveIds: [] };
+  const r = evalMon(e, metaObj());
+  assert.strictEqual(r.great.speciesRank, pvpRanks.azumarill.great.rank); // 13 (base)
+});
+
 const { THRESHOLDS } = require('../lib/meta/pvp.js');
 
 test('pvpTags: cópia "muito boa" (não perfeita) de espécie meta agora ganha tag', () => {
