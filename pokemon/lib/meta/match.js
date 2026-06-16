@@ -53,5 +53,24 @@
     return Object.prototype.hasOwnProperty.call(movesPt, key) ? movesPt[key] : null;
   }
 
-  return { normalizeName, buildSpeciesIndex, matchSpecies, matchMove };
+  // Nome PT de exibição de um moveId p/ casamento: namePt → override → o próprio id
+  // (que normalizeName reduz a "close combat" etc.). Mesma cadeia do _moveName de analysis.js.
+  function _displayPt(id, movesById, override) {
+    var m = movesById && movesById[id];
+    return (m && m.namePt) || (override && override[id]) || id;
+  }
+
+  // Casa um nome PT de golpe APENAS dentro dos golpes que a espécie pode ter (allowedIds).
+  // Mata colisões de nome PT entre IDs (ex.: "Jato d'Água" → HYDRO_PUMP, nunca a variante
+  // HYDRO_PUMP_BLASTOISE, que não está na lista do Gyarados). null se nada casar.
+  function matchMoveInSpecies(ptName, allowedIds, movesById, override) {
+    if (!ptName || !allowedIds || !allowedIds.length) return null;
+    var key = normalizeName(ptName);
+    for (var i = 0; i < allowedIds.length; i++) {
+      if (normalizeName(_displayPt(allowedIds[i], movesById, override)) === key) return allowedIds[i];
+    }
+    return null;
+  }
+
+  return { normalizeName, buildSpeciesIndex, matchSpecies, matchMove, matchMoveInSpecies };
 });
