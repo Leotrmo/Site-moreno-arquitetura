@@ -121,16 +121,26 @@ test('evalMon: liga fora do meta → ivRank/spPct null (sem calcular distribuiç
   assert.strictEqual(r.great.movesetOk, false);
 });
 
-test('pvpTags: aplica THRESHOLDS (great por spPct/ivRank; master por ivPct)', () => {
-  // pvp sintético
+test('pvpTags: aplica THRESHOLDS (great por spPct/ivRank + speciesRank; master por ivPct + speciesRank)', () => {
+  // pvp sintético — agora com speciesRank em cada liga (gate novo da Fase 2).
   const pvp = {
-    great:  { isMeta: true,  ivRank: 1,   spPct: 1,    movesetOk: true },
-    ultra:  { isMeta: true,  ivRank: 999, spPct: 0.90, movesetOk: false }, // não passa limiar
-    master: { isMeta: true,  ivRank: 50,  spPct: 0.97, movesetOk: false },
+    great:  { isMeta: true, speciesRank: 13, ivRank: 1,   spPct: 1,    movesetOk: true },
+    ultra:  { isMeta: true, speciesRank: 30, ivRank: 999, spPct: 0.90, movesetOk: false }, // reprova na qualidade
+    master: { isMeta: true, speciesRank: 15, ivRank: 50,  spPct: 0.97, movesetOk: false },
   };
-  assert.deepStrictEqual(pvpTags(pvp, 100).sort(), ['pvp_great', 'pvp_master']); // ivPct 100>=98
-  assert.deepStrictEqual(pvpTags(pvp, 90).sort(), ['pvp_great']);                // ivPct 90<98 → sem master
+  assert.deepStrictEqual(pvpTags(pvp, 100).sort(), ['pvp_great', 'pvp_master']); // ivPct 100>=95, ranks ok
+  assert.deepStrictEqual(pvpTags(pvp, 90).sort(), ['pvp_great']);                // ivPct 90<95 → sem master
   assert.deepStrictEqual(pvpTags(null, 100), []);
+});
+
+test('pvpTags: speciesRank acima do corte → sem tag mesmo com cópia perfeita (mata o falso positivo)', () => {
+  // Gyarados: great rank 92 (>50) e master rank 57 (>20) — cópia perfeita não salva.
+  const pvp = {
+    great:  { isMeta: true,  speciesRank: 92,  ivRank: 1,   spPct: 1,    movesetOk: true },
+    ultra:  { isMeta: false, speciesRank: null, ivRank: null, spPct: null },
+    master: { isMeta: true,  speciesRank: 57,  ivRank: 1,   spPct: 1,    movesetOk: false },
+  };
+  assert.deepStrictEqual(pvpTags(pvp, 100), []); // nem great (r92>50) nem master (r57>20)
 });
 
 test('evalMon: expõe o moveset recomendado da liga (great) e null fora do meta', () => {
@@ -141,6 +151,24 @@ test('evalMon: expõe o moveset recomendado da liga (great) e null fora do meta'
   // liga em que a espécie não é meta → moveset null
   const offLeague = ['great','ultra','master'].find(lg => !r[lg].isMeta);
   if (offLeague) assert.strictEqual(r[offLeague].moveset, null);
+});
+
+test('evalMon: Sombrio com entrada _shadow lê o rank/moveset da forma Sombria', () => {
+  // Gyarados Sombrio 15/15/15: deve ler gyarados_shadow (master rank 32), não gyarados (57).
+  const e = { speciesId: 'gyarados', isShadow: true, ivs: { atk: 15, def: 15, sta: 15 },
+              moveIds: ['DRAGON_BREATH', 'AQUA_TAIL', 'TWISTER'] };
+  const r = evalMon(e, metaObj());
+  assert.strictEqual(r.master.speciesRank, pvpRanks.gyarados_shadow.master.rank); // 32, não 57
+  assert.notStrictEqual(r.master.speciesRank, pvpRanks.gyarados.master.rank);     // != 57
+  assert.deepStrictEqual(r.master.moveset, pvpRanks.gyarados_shadow.master.moveset);
+  assert.strictEqual(r.master.movesetOk, true);  // tem o set Sombrio de Mestre
+});
+
+test('evalMon: Sombrio SEM entrada _shadow degrada para o rank base', () => {
+  // azumarill não tem azumarill_shadow → mesmo Sombrio, lê a base.
+  const e = { speciesId: 'azumarill', isShadow: true, ivs: { atk: 0, def: 15, sta: 15 }, moveIds: [] };
+  const r = evalMon(e, metaObj());
+  assert.strictEqual(r.great.speciesRank, pvpRanks.azumarill.great.rank); // 13 (base)
 });
 
 const { THRESHOLDS } = require('../lib/meta/pvp.js');
