@@ -33,10 +33,12 @@ jobs:
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
-          if ! git diff --quiet -- financas; then
-            git add financas
+          # git add antes do diff: detecta arquivos NOVOS (untracked), não só
+          # modificações em arquivos já versionados (caso do 1º deploy de /financas).
+          git add financas
+          if git diff --cached --quiet; then
+            echo "Sem mudanças no build."
+          else
             git commit -m "chore(financas): build automático [skip ci]"
             git push
-          else
-            echo "Sem mudanças no build."
           fi
