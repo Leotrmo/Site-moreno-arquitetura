@@ -71,6 +71,14 @@ var ranks = meta.pvpRanks[pvpId] || {};
 Efeito no Gyarados Sombrio: master rank 57 (errado) → **32** (correto); moveset recomendado
 de Mestre vira `DRAGON_BREATH/AQUA_TAIL/TWISTER` (set PvP) em vez do set de raid.
 
+> **Nota — Purificado ≠ Sombrio.** O roadmap fala em "Shadow Gyarados", mas o export
+> atual traz o Gyarados como **`PURIFIED`** (alignment; `isPurified` em `analysis.js:119`).
+> Um purificado luta com stats **normais** (sem o bônus de Sombrio), então `e.isShadow` é
+> `false` e a Mudança 1 **não** se aplica a ele — ele lê corretamente a entrada **base**
+> `gyarados` (rank 57). Quem mata o falso positivo desse mon é a **Mudança 2** (gate
+> master ≤ 20). A Mudança 1 cobre os 50 mons genuinamente Sombrios da coleção. (`isPurified`
+> hoje só é usado para contagem — protegê-lo no veredito é fora do escopo desta fase.)
+
 ---
 
 ## 4. Mudança 2 — `speciesRank` vira porta em `pvpTags`/`THRESHOLDS`
