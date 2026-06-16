@@ -47,14 +47,14 @@ export default function Login() {
         <div className="flex rounded-lg bg-slate-100 p-1 text-sm font-medium">
           <button
             type="button"
-            onClick={() => setModo('entrar')}
+            onClick={() => { setModo('entrar'); setErros({}); setErroGeral(''); }}
             className={`flex-1 rounded-md py-1.5 ${modo === 'entrar' ? 'bg-white shadow text-teal-700' : 'text-slate-500'}`}
           >
             Entrar
           </button>
           <button
             type="button"
-            onClick={() => setModo('criar')}
+            onClick={() => { setModo('criar'); setErros({}); setErroGeral(''); }}
             className={`flex-1 rounded-md py-1.5 ${modo === 'criar' ? 'bg-white shadow text-teal-700' : 'text-slate-500'}`}
           >
             Criar conta
