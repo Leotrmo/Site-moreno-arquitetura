@@ -1,4 +1,12 @@
 node_modules/
 dist/
+dev-dist/
 .env.local
 samples-local/
+
+# Ícones PWA gerados (criados no CI antes do build, não versionados).
+# A fonte é public/logo.svg; o resto sai do @vite-pwa/assets-generator.
+public/pwa-*.png
+public/maskable-icon-*.png
+public/apple-touch-icon-*.png
+public/favicon.ico
