@@ -1,0 +1,42 @@
+# .github/workflows/deploy-financas.yml
+name: Deploy Finanças
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'financas-app/**'
+      - '.github/workflows/deploy-financas.yml'
+  workflow_dispatch: {}
+
+permissions:
+  contents: write
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Instalar dependências
+        working-directory: financas-app
+        run: npm ci
+      - name: Gerar ícones PWA
+        working-directory: financas-app
+        run: npm run generate-pwa-assets
+      - name: Build
+        working-directory: financas-app
+        run: npm run build
+      - name: Commitar build se houve mudança
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          if ! git diff --quiet -- financas; then
+            git add financas
+            git commit -m "chore(financas): build automático [skip ci]"
+            git push
+          else
+            echo "Sem mudanças no build."
+          fi
