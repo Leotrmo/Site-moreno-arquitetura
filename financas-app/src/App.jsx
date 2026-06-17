@@ -8,12 +8,13 @@ import Categorizar from './pages/Categorizar.jsx';
 import Relatorio from './pages/Relatorio.jsx';
 import Configuracoes from './pages/Configuracoes.jsx';
 import { TransacoesProvider } from './data/TransacoesContext.jsx';
+import { PerfilProvider } from './data/PerfilContext.jsx';
 
 export default function App() {
   return (
     <Routes>
       <Route path="/" element={<Login />} />
-      <Route element={<ProtectedRoute><TransacoesProvider><Shell /></TransacoesProvider></ProtectedRoute>}>
+      <Route element={<ProtectedRoute><TransacoesProvider><PerfilProvider><Shell /></PerfilProvider></TransacoesProvider></ProtectedRoute>}>
         <Route path="/dashboard" element={<Dashboard />} />
         <Route path="/upload" element={<Upload />} />
         <Route path="/categorizar" element={<Categorizar />} />
