@@ -43,6 +43,7 @@ create table if not exists public.transacoes (
   banco text not null check (banco in ('itau','bradesco')),
   pessoa text not null check (pessoa in ('leo','luis','compartilhado')),
   categoria text,
+  categoria_auto boolean not null default false, -- true = categoria veio do robô (revisável no Q&A)
   eh_fixo boolean default false,
   parcela_atual int,
   parcela_total int,
@@ -214,6 +215,13 @@ begin
     alter publication supabase_realtime add table public.regras_categoria;
   end if;
 end $$;
+
+-- ----------------------------------------------------------------------------
+-- 7. MIGRAÇÕES INCREMENTAIS (seguras para rodar em banco já existente)
+-- ----------------------------------------------------------------------------
+-- categoria_auto: marca se a categoria foi sugerida pelo robô (revisável no Q&A).
+alter table public.transacoes
+  add column if not exists categoria_auto boolean not null default false;
 
 -- ============================================================================
 -- FIM. Se rodou sem erro: tabelas + RLS + trigger + realtime prontos.
