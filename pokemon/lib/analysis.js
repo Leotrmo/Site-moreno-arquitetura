@@ -17,6 +17,10 @@
     ? require('./meta/pve.js')
     : (typeof globalThis !== 'undefined' ? globalThis.PokePve : null);
 
+  var PokeCost = (typeof require === 'function')
+    ? require('./meta/cost.js')
+    : (typeof globalThis !== 'undefined' ? globalThis.PokeCost : null);
+
   var TYPE_PT = ((typeof require === 'function')
     ? require('./refdata.js') : (typeof globalThis !== 'undefined' ? globalThis : {})).TYPE_PT || {};
 
@@ -364,16 +368,19 @@
     const papel = role === 'raid' ? 'Raid' : 'Ataque de Ginásio';
     const bt = e.pveMeta.bestType && e.pveMeta.byType ? e.pveMeta.byType[e.pveMeta.bestType] : null;
     const rankTxt = (bt && typeof bt.erRank === 'number') ? ' — Top ' + bt.erRank + ' atacante de ' + tipo : '';
+    const ctx = { kind: 'pve', role: role };
     if (e.pveMeta.movesetOk) {
-      return { kind: 'FORTALECER', role: role,
-        reason: 'Fortalecer p/ ' + papel + ' (' + tipo + ')' + rankTxt + ' (estimativa)' };
+      const cs = _costSuffix(e, ctx, [], meta);
+      return { kind: 'FORTALECER', role: role, cost: cs.cost,
+        reason: 'Fortalecer p/ ' + papel + ' (' + tipo + ')' + rankTxt + ' (estimativa)' + cs.suffix };
     }
     // PvE exige os dois golpes do bestMoveset; lista os que faltam.
     const mine = e.moveIds || [];
     const missing = (e.pveMeta.bestMoveset || []).filter(function (id) { return mine.indexOf(id) < 0; });
     return _notReadyAction(e,
       'Ensinar/TM p/ ' + papel + ' (' + tipo + ')' + rankTxt + ' — ' +
-      (missing.length ? _faltaTxt(missing, meta) : 'falta o moveset de ataque') + ' (estimativa)', meta);
+      (missing.length ? _faltaTxt(missing, meta) : 'falta o moveset de ataque') + ' (estimativa)',
+      meta, ctx, missing);
   }
 
   // Humaniza um moveId p/ exibição: 'CLOSE_COMBAT' → 'Close Combat'.
@@ -462,15 +469,33 @@
     return null;
   }
 
+  // Sufixo de custo p/ a razão da ação. Degrada para '' (sem custo) quando faltam dados
+  // — é o que mantém os mons mínimos dos testes de computeAction sem sufixo. Retorna { suffix, cost }.
+  function _costSuffix(e, context, missingMoves, meta) {
+    if (!PokeCost || !meta || !e || !e.speciesId) return { suffix: '', cost: null };
+    var byId = meta.speciesIndex && meta.speciesIndex.byId;
+    var sp = byId && byId[e.speciesId];
+    if (!sp || !sp.baseStats || !e.ivs || typeof e.cp !== 'number' || !meta.cpm)
+      return { suffix: '', cost: null };
+    var cost = PokeCost.estimate({
+      baseStats: sp.baseStats, ivs: e.ivs, cp: e.cp, isShadow: !!e.isShadow,
+      context: context, missingMoves: missingMoves || [], eliteMoves: e.eliteMoves || [], cpm: meta.cpm,
+    });
+    var s = PokeCost.format(cost);
+    return { suffix: s ? ' · ' + s : '', cost: cost };
+  }
+
   // Ação quando o moveset NÃO está pronto: AGUARDAR_EVENTO (golpe legado falta) senão ENSINAR_TM.
-  function _notReadyAction(e, ensinarReason, meta) {
+  // context/missingMoves alimentam o sufixo de custo (Elite TM aparece aqui, no ramo de evento).
+  function _notReadyAction(e, ensinarReason, meta, context, missingMoves) {
+    const cs = _costSuffix(e, context, missingMoves || [], meta);
     const leg = _missingLegacyMove(e);
     if (leg) {
-      return { kind: 'AGUARDAR_EVENTO', legacyMove: leg,
+      return { kind: 'AGUARDAR_EVENTO', legacyMove: leg, cost: cs.cost,
         reason: 'Aguardar Evento — moveset ótimo precisa do golpe legado "' + _moveName(leg, meta) +
-                '"; espere Dia Comunitário / Elite TM' };
+                '"; espere Dia Comunitário / Elite TM' + cs.suffix };
     }
-    return { kind: 'ENSINAR_TM', reason: ensinarReason };
+    return { kind: 'ENSINAR_TM', cost: cs.cost, reason: ensinarReason + cs.suffix };
   }
 
   // Sombrio com Frustração: o golpe Frustração só sai em evento Rocket (Charged TM especial).
@@ -513,8 +538,10 @@
     // P1 (Fase 3): Sombrio meta com Frustração → aguardar evento Rocket (pré-empta Fortalecer).
     // "meta" inclui pré-evoluções de espécies meta (ex.: Machop Sombrio → Shadow Machamp).
     if (isMetaRelevant(e) && _isShadowFrustration(e)) {
-      return { kind: 'AGUARDAR_ROCKET',
-        reason: 'Aguardar Rocket — Sombrio com Frustração; troque o golpe em evento (Charged TM)' };
+      const ctxR = _bestPvpLeague(e) ? { kind: 'pvp', league: _bestPvpLeague(e) } : { kind: 'pve' };
+      const csR = _costSuffix(e, ctxR, [], meta);   // poeira/doce; o Charged TM já está no texto.
+      return { kind: 'AGUARDAR_ROCKET', cost: csR.cost,
+        reason: 'Aguardar Rocket — Sombrio com Frustração; troque o golpe em evento (Charged TM)' + csR.suffix };
     }
     // P1b: evoluir cópia boa cuja evolução é meta (pré-evolução; própria forma não é meta).
     const evo = _evolveAction(e);
@@ -525,14 +552,16 @@
       const L = e.pvpMeta[lg];
       const ligaPt = LEAGUE_PT[lg];
       const ivInfo = 'IV PvP ' + Math.round(L.spPct * 100) + '% (rank ' + L.ivRank + '/4096)';
+      const ctx = { kind: 'pvp', league: lg };
       if (L.movesetOk) {
-        return { kind: 'FORTALECER', league: lg,
-          reason: 'Fortalecer p/ ' + ligaPt + ' — rank ' + L.speciesRank + ' da espécie, seu ' + ivInfo };
+        const cs = _costSuffix(e, ctx, [], meta);
+        return { kind: 'FORTALECER', league: lg, cost: cs.cost,
+          reason: 'Fortalecer p/ ' + ligaPt + ' — rank ' + L.speciesRank + ' da espécie, seu ' + ivInfo + cs.suffix };
       }
       const missing = _missingPvpMoves(e.moveIds, L.moveset);
       return _notReadyAction(e,
         'Ensinar/TM p/ ' + ligaPt + ' — Top ' + L.speciesRank + ', ' +
-        (missing.length ? _faltaTxt(missing, meta) : 'falta o moveset recomendado'), meta);
+        (missing.length ? _faltaTxt(missing, meta) : 'falta o moveset recomendado'), meta, ctx, missing);
     }
     const pve = _pveAction(e, meta);
     if (pve) return pve;
