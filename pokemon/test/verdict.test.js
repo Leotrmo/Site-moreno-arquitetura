@@ -721,3 +721,33 @@ test('analyze: anexa movesetView no pveMeta e passa meta ao computeAction', () =
   // isso vira AGUARDAR_EVENTO — e a razão dele também nomeia o golpe em PT.
   assert.match(e.action.reason, /Golpe Cruzado/);
 });
+
+// ---------------------------------------------------------------------------
+// Fase 3 — custo nas razões de ação
+// ---------------------------------------------------------------------------
+
+test('analyze: FORTALECER sub-nivelado mostra custo de poeira', () => {
+  // Azumarill 0/15/15 great-meta, mas com CP baixo (sub-nivelado) → custo > 0.
+  const fd = { z: { mon_name:'Azumarill', mon_number:184, mon_cp:900, mon_attack:0, mon_defence:15, mon_stamina:15,
+                    mon_height:0.5, mon_isShiny:'NO', mon_isLucky:'NO',
+                    mon_move_1:'Bolha', mon_move_2:'Raio Congelante', mon_move_3:'Jogo Duro' } };
+  const meta = (function () {
+    const { buildSpeciesIndex } = require('../lib/meta/match.js');
+    return {
+      speciesIndex: buildSpeciesIndex(require('../data/species.json')),
+      movesPt: { 'bolha':'BUBBLE', 'raio congelante':'ICE_BEAM', 'jogo duro':'PLAY_ROUGH' },
+      pvpRanks: require('../data/pvp_ranks.json'),
+      cpm: require('../data/cpm.json'),
+    };
+  })();
+  const e = analyze(fd, getPokemonSize, refdata, getPokemonSizeScalar, meta)[0];
+  assert.strictEqual(e.action.kind, 'FORTALECER');
+  assert.match(e.action.reason, /poeira/);
+  assert.ok(e.action.cost && e.action.cost.dust > 0);
+});
+
+test('computeAction: mon mínimo (sem cp/ivs) NÃO ganha sufixo de custo (degradação)', () => {
+  const a = computeAction(pvpMon());     // pvpMon() não tem cp/ivs/speciesId
+  assert.strictEqual(a.kind, 'FORTALECER');
+  assert.doesNotMatch(a.reason, /poeira/);
+});
