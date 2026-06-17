@@ -38,3 +38,26 @@ test('levelForCp: dados faltando → null', () => {
   assert.strictEqual(Cost.levelForCp({ atk: 1, def: 1, hp: 1 }, { atk: 0, def: 0, sta: 0 }, 'x', CPM), null);
   assert.strictEqual(Cost.levelForCp({ atk: 1, def: 1, hp: 1 }, { atk: 0, def: 0, sta: 0 }, 100, null), null);
 });
+
+test('tmCost: classifica faltantes em normal vs elite', () => {
+  assert.deepStrictEqual(Cost.tmCost(['AQUA_TAIL', 'TWISTER'], ['AQUA_TAIL']), { normal: 1, elite: 1 });
+  assert.deepStrictEqual(Cost.tmCost([], []), { normal: 0, elite: 0 });
+  assert.deepStrictEqual(Cost.tmCost(['ICE_BEAM'], []), { normal: 1, elite: 0 });
+});
+
+test('format: enxuto, omite zeros, pluraliza e marca Elite', () => {
+  assert.strictEqual(
+    Cost.format({ dust: 75000, candy: 0, xlCandy: 0, tm: { normal: 1, elite: 0 } }),
+    '~75k poeira · 1 TM');
+  assert.strictEqual(
+    Cost.format({ dust: 270000, candy: 0, xlCandy: 296, tm: { normal: 0, elite: 0 } }),
+    '~270k poeira · 296 Doce XL');
+  assert.strictEqual(
+    Cost.format({ dust: 7500, candy: 1, xlCandy: 0, tm: { normal: 2, elite: 1 } }),
+    '~7.5k poeira · 1 doce · 3 TM (1 Elite)');
+});
+
+test('format: tudo zero ou null → string vazia', () => {
+  assert.strictEqual(Cost.format(null), '');
+  assert.strictEqual(Cost.format({ dust: 0, candy: 0, xlCandy: 0, tm: { normal: 0, elite: 0 } }), '');
+});
