@@ -1,4 +1,5 @@
-const test = require('node:test');
+// pokemon/test/cost.test.js
+const { test } = require('node:test');
 const assert = require('node:assert');
 const Cost = require('../lib/meta/cost.js');
 
@@ -14,6 +15,7 @@ test('powerUpCost: Sombrio encarece (≈ +20% por power-up)', () => {
   const base = Cost.powerUpCost(20, 40, false);
   const sh = Cost.powerUpCost(20, 40, true);
   assert.strictEqual(sh.dust, 270000);        // 225000 * 1.2
+  assert.strictEqual(sh.candy, 312);          // 248 doces com ceil(×1.2) por power-up
   assert.ok(sh.candy > base.candy);           // doce também sobe
 });
 
@@ -86,6 +88,14 @@ test('estimate: Sombrio reflete a sobretaxa (mais poeira que o normal)', () => {
   const shadow = Cost.estimate(gyaradosInput({ isShadow: true }));
   assert.ok(shadow.dust > normal.dust);
   assert.strictEqual(shadow.shadow, true);
+});
+
+test('estimate: contexto great usa bestLevelUnderCap p/ o nível-alvo', () => {
+  const base = SPECIES['gyarados'].baseStats;
+  const ivs = { atk: 15, def: 15, sta: 15 };
+  const est = Cost.estimate(gyaradosInput({ context: { kind: 'pvp', league: 'great' } }));
+  assert.strictEqual(est.toLevel, PokePvp.bestLevelUnderCap(base, ivs, CPM, 1500).level);
+  assert.strictEqual(est.xlCandy, 0);   // alvo great fica abaixo de L40 p/ Gyarados
 });
 
 test('estimate: contexto pve mira L40 (sem Doce XL)', () => {
