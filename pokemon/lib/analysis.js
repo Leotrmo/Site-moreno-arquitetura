@@ -538,7 +538,8 @@
     // P1 (Fase 3): Sombrio meta com Frustração → aguardar evento Rocket (pré-empta Fortalecer).
     // "meta" inclui pré-evoluções de espécies meta (ex.: Machop Sombrio → Shadow Machamp).
     if (isMetaRelevant(e) && _isShadowFrustration(e)) {
-      const ctxR = _bestPvpLeague(e) ? { kind: 'pvp', league: _bestPvpLeague(e) } : { kind: 'pve' };
+      const rocketLg = _bestPvpLeague(e);
+      const ctxR = rocketLg ? { kind: 'pvp', league: rocketLg } : { kind: 'pve' };
       const csR = _costSuffix(e, ctxR, [], meta);   // poeira/doce; o Charged TM já está no texto.
       return { kind: 'AGUARDAR_ROCKET', cost: csR.cost,
         reason: 'Aguardar Rocket — Sombrio com Frustração; troque o golpe em evento (Charged TM)' + csR.suffix };
