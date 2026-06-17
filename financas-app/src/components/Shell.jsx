@@ -1,9 +1,12 @@
 import { NavLink, Outlet } from 'react-router-dom';
 import { NAV_ITENS } from './nav.jsx';
 import { useAuth } from '../auth/AuthContext.jsx';
+import { useTransacoes } from '../data/TransacoesContext.jsx';
 
 export default function Shell() {
   const { nomeMembro } = useAuth();
+  const { pendentes } = useTransacoes();
+  const pendentesCount = pendentes.length;
 
   return (
     <div className="min-h-dvh bg-slate-50 text-slate-800 md:flex">
@@ -26,6 +29,11 @@ export default function Shell() {
             >
               {item.icone}
               {item.label}
+              {item.path === '/categorizar' && pendentesCount > 0 && (
+                <span className="ml-auto inline-flex items-center justify-center min-w-5 h-5 px-1.5 rounded-full bg-teal-600 text-white text-xs font-semibold">
+                  {pendentesCount}
+                </span>
+              )}
             </NavLink>
           ))}
         </nav>
@@ -60,7 +68,14 @@ export default function Shell() {
               }`
             }
           >
-            {item.icone}
+            <span className="relative">
+              {item.icone}
+              {item.path === '/categorizar' && pendentesCount > 0 && (
+                <span className="absolute -top-1 -right-2 inline-flex items-center justify-center min-w-4 h-4 px-1 rounded-full bg-teal-600 text-white text-[10px] font-semibold">
+                  {pendentesCount}
+                </span>
+              )}
+            </span>
             {item.label}
           </NavLink>
         ))}
