@@ -61,3 +61,42 @@ test('format: tudo zero ou null → string vazia', () => {
   assert.strictEqual(Cost.format(null), '');
   assert.strictEqual(Cost.format({ dust: 0, candy: 0, xlCandy: 0, tm: { normal: 0, elite: 0 } }), '');
 });
+
+const SPECIES = require('../data/species.json');
+
+function gyaradosInput(over) {
+  const base = SPECIES['gyarados'].baseStats;     // {atk:237,def:186,hp:216}
+  const ivs = { atk: 15, def: 15, sta: 15 };
+  const cpAt25 = PokePvp.cpFor(base, ivs, CPM.find(e => e.level === 25).cpm);
+  return Object.assign({
+    baseStats: base, ivs: ivs, cp: cpAt25, isShadow: false,
+    context: { kind: 'pvp', league: 'master' }, missingMoves: [], eliteMoves: [], cpm: CPM,
+  }, over || {});
+}
+
+test('estimate: contexto master vai até L50 e usa Doce XL', () => {
+  const est = Cost.estimate(gyaradosInput());
+  assert.strictEqual(est.fromLevel, 25);
+  assert.strictEqual(est.toLevel, 50);
+  assert.ok(est.xlCandy > 0);
+});
+
+test('estimate: Sombrio reflete a sobretaxa (mais poeira que o normal)', () => {
+  const normal = Cost.estimate(gyaradosInput({ isShadow: false }));
+  const shadow = Cost.estimate(gyaradosInput({ isShadow: true }));
+  assert.ok(shadow.dust > normal.dust);
+  assert.strictEqual(shadow.shadow, true);
+});
+
+test('estimate: contexto pve mira L40 (sem Doce XL)', () => {
+  const est = Cost.estimate(gyaradosInput({ context: { kind: 'pve' } }));
+  assert.strictEqual(est.toLevel, 40);
+  assert.strictEqual(est.xlCandy, 0);
+});
+
+test('estimate: dados faltando → null (degradação graciosa)', () => {
+  assert.strictEqual(Cost.estimate(null), null);
+  assert.strictEqual(Cost.estimate(gyaradosInput({ baseStats: null })), null);
+  assert.strictEqual(Cost.estimate(gyaradosInput({ cp: undefined })), null);
+  assert.strictEqual(Cost.estimate(gyaradosInput({ context: null })), null);
+});
