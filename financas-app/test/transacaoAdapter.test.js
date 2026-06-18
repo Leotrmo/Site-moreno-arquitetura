@@ -48,3 +48,8 @@ test('paraAnalise mapeia uma lista inteira', () => {
   assert.equal(out.length, 2);
   assert.equal(out[0].mesReferencia, '2026-06');
 });
+
+test('linhaParaTransacao mapeia serie_id para serieId', () => {
+  assert.equal(linhaParaTransacao({ ...linha, serie_id: 's9' }).serieId, 's9');
+  assert.equal(linhaParaTransacao({ ...linha, serie_id: null }).serieId, null);
+});
