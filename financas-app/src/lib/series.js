@@ -39,3 +39,32 @@ export function levantarSeriesAbertas(transacoes) {
   }
   return abertas;
 }
+
+// Para cada linha parseada, procura uma série em aberto com descrição+valor+banco+
+// pessoa iguais e sugere a próxima parcela. Linhas do Itaú serão salvas com a pessoa
+// `deQuemItau`, então usamos ela no match. Uma série só é sugerida uma vez por arquivo.
+export function detectarSugestoes(parsed, seriesAbertas, { deQuemItau = 'compartilhado' } = {}) {
+  const usadas = new Set();
+  const sugestoes = [];
+  for (const t of parsed) {
+    const pessoa = t.banco === 'itau' ? deQuemItau : t.pessoa;
+    const serie = seriesAbertas.find(
+      (s) =>
+        !usadas.has(s.serieId) &&
+        s.descricao === t.descricao &&
+        s.valor === t.valor &&
+        s.banco === t.banco &&
+        s.pessoa === pessoa,
+    );
+    if (serie) {
+      usadas.add(serie.serieId);
+      sugestoes.push({
+        hash: t.hash,
+        serieId: serie.serieId,
+        proximaParcela: serie.proximaParcela,
+        total: serie.total,
+      });
+    }
+  }
+  return sugestoes;
+}

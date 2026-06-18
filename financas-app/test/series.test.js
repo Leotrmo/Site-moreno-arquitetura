@@ -51,3 +51,59 @@ test('levantarSeriesAbertas exclui séries já completas', () => {
   ]);
   assert.deepEqual(abertas, []);
 });
+
+import { detectarSugestoes } from '../src/lib/series.js';
+
+// Linha parseada camelCase (saída dos parsers + hash).
+const parsed = (over = {}) => ({
+  hash: 'h1',
+  descricao: 'JIM.COM',
+  valor: 392.3,
+  banco: 'itau',
+  pessoa: 'compartilhado',
+  ...over,
+});
+
+const serieAberta = (over = {}) => ({
+  serieId: 's1',
+  descricao: 'JIM.COM',
+  valor: 392.3,
+  banco: 'itau',
+  pessoa: 'compartilhado',
+  total: 3,
+  proximaParcela: 2,
+  ...over,
+});
+
+test('detectarSugestoes casa por descrição+valor+banco+pessoa', () => {
+  const sug = detectarSugestoes([parsed()], [serieAberta()]);
+  assert.equal(sug.length, 1);
+  assert.equal(sug[0].hash, 'h1');
+  assert.equal(sug[0].serieId, 's1');
+  assert.equal(sug[0].proximaParcela, 2);
+  assert.equal(sug[0].total, 3);
+});
+
+test('detectarSugestoes NÃO casa quando o valor difere', () => {
+  const sug = detectarSugestoes([parsed({ valor: 200 })], [serieAberta()]);
+  assert.deepEqual(sug, []);
+});
+
+test('detectarSugestoes usa deQuemItau como pessoa no match do Itaú', () => {
+  // série foi salva com pessoa 'leo'; a linha do Itaú será salva como 'leo'.
+  const sug = detectarSugestoes(
+    [parsed({ pessoa: 'compartilhado' })],
+    [serieAberta({ pessoa: 'leo' })],
+    { deQuemItau: 'leo' },
+  );
+  assert.equal(sug.length, 1);
+});
+
+test('detectarSugestoes não sugere a mesma série para duas linhas iguais', () => {
+  const sug = detectarSugestoes(
+    [parsed({ hash: 'a' }), parsed({ hash: 'b' })],
+    [serieAberta()],
+  );
+  assert.equal(sug.length, 1);
+  assert.equal(sug[0].hash, 'a');
+});
