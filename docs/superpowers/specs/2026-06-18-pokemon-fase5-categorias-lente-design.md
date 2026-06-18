@@ -75,13 +75,26 @@ Isto vale para qualquer lente quando não há scores (a lente não tem eixo para
 
 ### 3.2 Constantes calibráveis
 ```js
-T_INVEST = 20;   // limiar de "vale investir" na escala 0–100 dos scores de investimento
+T_INVEST = 2;    // limiar de "vale investir já" — escala REAL dos scores de investimento
 T_COL    = 50;   // limiar de "troféu" na escala 0–100 do scoreColecao
 ```
-Nomeadas e documentadas no módulo. Os testes verificam **ordem relativa + o caso Gyarados**,
-não contagens absolutas (mesma filosofia da Fase 4). `T_INVEST` será **calibrado contra a
-coleção real (723 mons)** na verificação ao vivo, para os baldes "Investir" não ficarem
-vazios nem transbordando.
+**Escala real dos scores (medida na coleção de 723 mons, não estimada):** os scores de
+investimento são `meta × qualidade × prontidão ÷ custo × 100` e o custo/prontidão **esmaga**
+os valores → quase todos ficam perto de 0; só um punhado passa de 2. Distribuição medida:
+`pve` máx 8.9 / p99 0.6; `pvpBest` máx 26.5 / p99 2.8; `colecao` máx 95.5 / p90 50. Por isso
+**`T_INVEST = 2`** (não 20): seleciona os ~10–12 picks genuinamente eficientes-agora.
+`colecao` está numa escala 0–100 bem distribuída → `T_COL = 50` ≈ top-11% (≈78 mons).
+
+O esmagamento por custo é **proposital aqui**: um mon meta mas **não pronto** (sem nível/sem
+moveset → prontidão baixa / custo alto) pontua baixo e cai em **"Guardar pro futuro"** (=
+vale, invista depois) em vez de "Investir já" — conselho correto. Constantes nomeadas;
+testes verificam **ordem relativa + o caso Gyarados**, não contagens absolutas (filosofia da
+Fase 4). `T_INVEST` será **reconferido ao vivo** com Leo (mostrar contagens dos baldes).
+
+**Nota sobre "Investir já":** exige cruzar `T_INVEST` em PvE **e** PvP ao mesmo tempo — raro
+(nenhum mon na coleção atual de Leo, pois cópias otimizadas para um eixo raramente servem ao
+outro). É honesto (ameaça dupla é rara); afrouxar `T_INVEST`/usar limiar dual menor é decisão
+de calibração ao vivo, não da regra.
 
 ### 3.3 Lente **Eficiência** (padrão) → as 5 categorias
 
@@ -99,7 +112,7 @@ Sejam `pvpBest = max(scores.pvp.great, scores.pvp.ultra, scores.pvp.master)` e
 "Investir já" = **ameaça dupla** (cruza o limiar em PvE **e** PvP). Um pick puro de Liga
 Grande vira "Investir só PvP"; "Investir já" é o caso mais raro (forte nos dois eixos).
 
-**Gyarados:** `pve ≈ 40 ≥ 20`, `pvpBest ≈ 4 < 20` → **Investir só PvE** ✅.
+**Gyarados (medido):** `pve ≈ 4.45 ≥ 2`, `pvpBest ≈ 0.75 < 2` → **Investir só PvE** ✅.
 
 ### 3.4 Divergência categoria × veredito é **intencional**
 
