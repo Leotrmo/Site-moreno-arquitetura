@@ -19,7 +19,7 @@ const PESSOAS = [
 
 export default function Upload() {
   const { householdId } = useAuth();
-  const { hashesExistentes, hashesIgnorados, seriesAbertas, regras, salvarTransacoes, salvarIgnorados } = useTransacoes();
+  const { chavesExistentes, mesesPorHash, hashesIgnorados, seriesAbertas, regras, salvarTransacoes, salvarIgnorados } = useTransacoes();
 
   const [banco, setBanco] = useState('itau');
   const [deQuem, setDeQuem] = useState('compartilhado');
@@ -46,22 +46,27 @@ export default function Upload() {
       const mes = tx[0]?.mesReferencia ?? '';
       setMesReferencia(mes);
 
-      const novos = tx.filter(
-        (t) => !hashesExistentes.has(t.hash) && !hashesIgnorados.has(t.hash),
-      );
-      const sugestoes = detectarSugestoes(novos, seriesAbertas, { deQuemItau: deQuem });
-      const porHash = new Map(sugestoes.map((s) => [s.hash, s]));
-
-      setItens(
-        novos.map((t) => ({
+      const novos = [];
+      for (const t of tx) {
+        // mesma linha + mesmo mês = re-export (dedup silencioso); ignorado permanente = fora.
+        if (chavesExistentes.has(`${t.hash}|${mes}`)) continue;
+        if (hashesIgnorados.has(t.hash)) continue;
+        // meses (≠ atual) em que esse conteúdo já apareceu → repetição a confirmar.
+        const jaVistaEm = (mesesPorHash.get(t.hash) ?? []).filter((m) => m !== mes);
+        novos.push({
           ...t,
           ignorada: false,
+          incluir: jaVistaEm.length === 0, // nova entra incluída; repetição é opt-in
+          jaVistaEm,
           categoriaManual: undefined,
           pessoaOverride: undefined,
           serieId: null,
-          sugestao: porHash.get(t.hash) ?? null,
-        })),
-      );
+          sugestao: null,
+        });
+      }
+      const sugestoes = detectarSugestoes(novos, seriesAbertas, { deQuemItau: deQuem });
+      const porHash = new Map(sugestoes.map((s) => [s.hash, s]));
+      setItens(novos.map((t) => ({ ...t, sugestao: porHash.get(t.hash) ?? null })));
     } catch (err) {
       setItens(null);
       setErro(err.message || 'Falha ao ler o arquivo.');
@@ -77,7 +82,7 @@ export default function Upload() {
     try {
       const { linhas, ignoradas, resumo } = prepararUpload({
         parsed: itens,
-        hashesExistentes,
+        chavesExistentes,
         hashesIgnorados,
         regras,
         householdId,

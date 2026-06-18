@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { formatBRL, formatData } from '../lib/formato.js';
+import { formatBRL, formatData, nomeMes } from '../lib/formato.js';
 
 const CATEGORIAS_RAPIDAS = ['alimentacao', 'transporte', 'saude', 'lazer', 'casa', 'vestuario'];
 
@@ -8,7 +8,7 @@ const CATEGORIAS_RAPIDAS = ['alimentacao', 'transporte', 'saude', 'lazer', 'casa
 //           categoriaManual, pessoaOverride, sugestao? }]
 // sugestao (quando há): { serieId, proximaParcela, total }
 export default function RevisaoImportacao({ itens, seriesAbertas, onChange, onConfirmar, onCancelar, salvando }) {
-  const aVazar = itens.filter((i) => !i.ignorada).length;
+  const aVazar = itens.filter((i) => !i.ignorada && i.incluir !== false).length;
 
   function patch(hash, campos) {
     onChange(itens.map((i) => (i.hash === hash ? { ...i, ...campos } : i)));
@@ -70,6 +70,41 @@ function LinhaRevisao({ item, seriesAbertas, onPatch }) {
         >
           ignorada ↺ desfazer
         </button>
+      </div>
+    );
+  }
+
+  // Repetição: conteúdo idêntico que já apareceu em outro(s) mês(es). Pede confirmação:
+  // é uma nova parcela (importar) ou a mesma compra de sempre (ignorar para sempre)?
+  if (item.jaVistaEm?.length > 0 && !item.incluir) {
+    return (
+      <div className="rounded-xl border border-amber-200 bg-amber-50 p-3 space-y-2">
+        <div className="flex justify-between items-baseline">
+          <div>
+            <span className="font-medium text-slate-800">{item.descricao}</span>
+            <span className="ml-2 text-xs text-slate-400">{formatData(item.data)}</span>
+          </div>
+          <span className="font-bold text-teal-700 whitespace-nowrap">{formatBRL(item.valor)}</span>
+        </div>
+        <p className="text-xs text-amber-800">
+          👀 Essa já apareceu em {item.jaVistaEm.map(nomeMes).join(', ')}. É uma nova parcela deste mês?
+        </p>
+        <div className="flex flex-wrap gap-2">
+          <button
+            type="button"
+            onClick={() => onPatch({ incluir: true })}
+            className="text-xs px-2 py-1 rounded bg-teal-700 text-white"
+          >
+            Importar (é nova parcela)
+          </button>
+          <button
+            type="button"
+            onClick={() => onPatch({ ignorada: true })}
+            className="text-xs px-2 py-1 rounded-full border border-slate-300 text-slate-600"
+          >
+            É a mesma compra — ignorar sempre
+          </button>
+        </div>
       </div>
     );
   }

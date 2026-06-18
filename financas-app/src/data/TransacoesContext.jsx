@@ -83,7 +83,7 @@ export function TransacoesProvider({ children }) {
     if (!linhas.length) return { count: 0 };
     const { error } = await supabase
       .from('transacoes')
-      .upsert(linhas, { onConflict: 'household_id,hash_origem', ignoreDuplicates: true });
+      .upsert(linhas, { onConflict: 'household_id,hash_origem,mes_referencia', ignoreDuplicates: true });
     if (error) throw error;
     return { count: linhas.length };
   }, []);
@@ -150,10 +150,24 @@ export function TransacoesProvider({ children }) {
     () => transacoes.filter((t) => t.categoria != null && t.categoria_auto),
     [transacoes],
   );
-  const hashesExistentes = useMemo(
-    () => new Set(transacoes.map((t) => t.hash_origem)),
+  // Dedup composta: a mesma linha (hash de conteúdo) só é duplicata no MESMO mês.
+  const chavesExistentes = useMemo(
+    () => new Set(transacoes.map((t) => `${t.hash_origem}|${t.mes_referencia}`)),
     [transacoes],
   );
+  // Em quais meses cada conteúdo já apareceu (p/ marcar "já vi em [mês]" na revisão).
+  const mesesPorHash = useMemo(() => {
+    const m = new Map();
+    for (const t of transacoes) {
+      const arr = m.get(t.hash_origem);
+      if (arr) {
+        if (!arr.includes(t.mes_referencia)) arr.push(t.mes_referencia);
+      } else {
+        m.set(t.hash_origem, [t.mes_referencia]);
+      }
+    }
+    return m;
+  }, [transacoes]);
   const hashesIgnorados = useMemo(
     () => new Set(ignorados.map((i) => i.hash_origem)),
     [ignorados],
@@ -168,7 +182,8 @@ export function TransacoesProvider({ children }) {
     transacoes,
     pendentes,
     autoRevisaveis,
-    hashesExistentes,
+    chavesExistentes,
+    mesesPorHash,
     hashesIgnorados,
     seriesAbertas,
     salvarIgnorados,
