@@ -1,6 +1,7 @@
 import { createContext, useContext, useEffect, useState, useCallback, useMemo } from 'react';
 import { supabase } from '../lib/supabase.js';
 import { useAuth } from '../auth/AuthContext.jsx';
+import { levantarSeriesAbertas } from '../lib/series.js';
 
 const TransacoesContext = createContext(null);
 
@@ -13,6 +14,7 @@ export function TransacoesProvider({ children }) {
   const { householdId } = useAuth();
   const [transacoes, setTransacoes] = useState([]);
   const [regras, setRegras] = useState([]);
+  const [ignorados, setIgnorados] = useState([]);
   const [mesReferencia, setMesReferencia] = useState(mesAtual());
   const [loading, setLoading] = useState(true);
   const [erro, setErro] = useState('');
@@ -25,16 +27,18 @@ export function TransacoesProvider({ children }) {
     setLoading(true);
 
     async function carregar() {
-      const [tx, rg] = await Promise.all([
+      const [tx, rg, ig] = await Promise.all([
         supabase.from('transacoes').select('*').eq('household_id', householdId),
         supabase.from('regras_categoria').select('*').eq('household_id', householdId),
+        supabase.from('lancamentos_ignorados').select('hash_origem').eq('household_id', householdId),
       ]);
       if (!ativo) return;
-      if (tx.error || rg.error) {
+      if (tx.error || rg.error || ig.error) {
         setErro('Não foi possível carregar os dados.');
       } else {
         setTransacoes(tx.data ?? []);
         setRegras(rg.data ?? []);
+        setIgnorados(ig.data ?? []);
         setErro('');
       }
       setLoading(false);
@@ -82,6 +86,22 @@ export function TransacoesProvider({ children }) {
       .upsert(linhas, { onConflict: 'household_id,hash_origem', ignoreDuplicates: true });
     if (error) throw error;
     return { count: linhas.length };
+  }, []);
+
+  // Persiste as linhas ignoradas permanentemente (carimba quem ignorou).
+  const salvarIgnorados = useCallback(async (linhas) => {
+    if (!linhas.length) return;
+    const { data: sessao } = await supabase.auth.getUser();
+    const ignoradoPor = sessao?.user?.id ?? null;
+    const comAutor = linhas.map((l) => ({ ...l, ignorado_por: ignoradoPor }));
+    const { error } = await supabase
+      .from('lancamentos_ignorados')
+      .upsert(comAutor, { onConflict: 'household_id,hash_origem', ignoreDuplicates: true });
+    if (error) throw error;
+    setIgnorados((atual) => [
+      ...atual,
+      ...linhas.map((l) => ({ hash_origem: l.hash_origem })),
+    ]);
   }, []);
 
   // Confirma/corrige uma categoria no Q&A: marca categoria_auto=false (sai da revisão).
@@ -134,6 +154,11 @@ export function TransacoesProvider({ children }) {
     () => new Set(transacoes.map((t) => t.hash_origem)),
     [transacoes],
   );
+  const hashesIgnorados = useMemo(
+    () => new Set(ignorados.map((i) => i.hash_origem)),
+    [ignorados],
+  );
+  const seriesAbertas = useMemo(() => levantarSeriesAbertas(transacoes), [transacoes]);
   const transacoesDoMes = useCallback(
     (mes) => transacoes.filter((t) => t.mes_referencia === mes),
     [transacoes],
@@ -144,6 +169,9 @@ export function TransacoesProvider({ children }) {
     pendentes,
     autoRevisaveis,
     hashesExistentes,
+    hashesIgnorados,
+    seriesAbertas,
+    salvarIgnorados,
     transacoesDoMes,
     regras,
     mesReferencia,

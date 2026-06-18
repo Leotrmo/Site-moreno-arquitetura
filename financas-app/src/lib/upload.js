@@ -1,19 +1,19 @@
 import { categorizarAutomatico } from './categorizador.js';
 
-// Transforma as transações parseadas (camelCase, saída dos parsers) em linhas
-// prontas para o INSERT em `transacoes` (snake_case) e calcula as contagens do
-// preview do upload.
+// Mapeia as linhas REVISADAS (camelCase) para linhas de INSERT (snake_case) e separa
+// as ignoradas. Espera receber só linhas novas, mas filtra defensivamente por
+// hashesExistentes e hashesIgnorados.
 //
-// - autoCategorizar (default true): aplica categorizarAutomatico; quando uma
-//   categoria é encontrada, marca categoria_auto=true (revisável no Q&A).
-//   Desligado, tudo entra como pendente (categoria=null, categoria_auto=false).
-// - deQuemItau: sobrescreve `pessoa` SÓ nas linhas do Itaú (cartão compartilhado);
-//   Bradesco mantém o que veio do parser ('luis').
-// - mesReferencia: carimbado em TODAS as linhas (o hash não depende dele, então
-//   trocar o mês não afeta a deduplicação).
+// Campos de override que a tela de revisão pode setar por linha:
+// - serieId: id da série de parcelas (ou novo, gerado na UI)
+// - parcelaAtual/parcelaTotal: já fluíam (Bradesco vem do parser; Itaú vem da revisão)
+// - ignorada: true -> vai para `ignoradas` (tabela lancamentos_ignorados)
+// - categoriaManual: categoria escolhida na revisão (desliga categoria_auto)
+// - pessoaOverride: pessoa escolhida na revisão (vence o default deQuemItau)
 export function prepararUpload({
   parsed,
   hashesExistentes,
+  hashesIgnorados = [],
   regras = [],
   householdId,
   mesReferencia,
@@ -22,22 +22,51 @@ export function prepararUpload({
   autoCategorizar = true,
 }) {
   const existentes = hashesExistentes instanceof Set ? hashesExistentes : new Set(hashesExistentes);
+  const ignorados = hashesIgnorados instanceof Set ? hashesIgnorados : new Set(hashesIgnorados);
+
   let novas = 0;
   let jaProcessadas = 0;
+  let jaIgnoradas = 0;
   let autoCategorizadas = 0;
+  const linhas = [];
+  const ignoradas = [];
 
-  const linhas = parsed.map((t) => {
-    const jaExiste = existentes.has(t.hash);
-    if (jaExiste) jaProcessadas += 1;
-    else novas += 1;
+  for (const t of parsed) {
+    if (existentes.has(t.hash)) {
+      jaProcessadas += 1;
+      continue;
+    }
+    if (ignorados.has(t.hash)) {
+      jaIgnoradas += 1;
+      continue;
+    }
+    if (t.ignorada) {
+      ignoradas.push({
+        household_id: householdId,
+        hash_origem: t.hash,
+        descricao: t.descricao,
+        valor: t.valor,
+        banco: t.banco,
+      });
+      continue;
+    }
 
-    const categoria = autoCategorizar ? categorizarAutomatico(t.descricao, regras) : null;
-    const categoriaAuto = categoria != null;
-    if (!jaExiste && categoriaAuto) autoCategorizadas += 1;
+    novas += 1;
 
-    const pessoa = t.banco === 'itau' ? deQuemItau : t.pessoa;
+    let categoria;
+    let categoriaAuto;
+    if (t.categoriaManual != null) {
+      categoria = t.categoriaManual;
+      categoriaAuto = false;
+    } else {
+      categoria = autoCategorizar ? categorizarAutomatico(t.descricao, regras) : null;
+      categoriaAuto = categoria != null;
+      if (categoriaAuto) autoCategorizadas += 1;
+    }
 
-    return {
+    const pessoa = t.pessoaOverride ?? (t.banco === 'itau' ? deQuemItau : t.pessoa);
+
+    linhas.push({
       household_id: householdId,
       data: t.data,
       descricao: t.descricao,
@@ -50,19 +79,16 @@ export function prepararUpload({
       eh_fixo: t.ehFixo ?? false,
       parcela_atual: t.parcelaAtual ?? null,
       parcela_total: t.parcelaTotal ?? null,
+      serie_id: t.serieId ?? null,
       arquivo_origem: arquivoOrigem,
       mes_referencia: mesReferencia,
       hash_origem: t.hash,
-    };
-  });
+    });
+  }
 
   return {
     linhas,
-    resumo: {
-      encontradas: parsed.length,
-      jaProcessadas,
-      novas,
-      autoCategorizadas,
-    },
+    ignoradas,
+    resumo: { encontradas: parsed.length, jaProcessadas, jaIgnoradas, novas, autoCategorizadas },
   };
 }

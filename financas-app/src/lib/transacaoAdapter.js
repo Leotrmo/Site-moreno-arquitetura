@@ -12,6 +12,7 @@ export function linhaParaTransacao(row) {
     ehFixo: row.eh_fixo ?? false,
     parcelaAtual: row.parcela_atual ?? null,
     parcelaTotal: row.parcela_total ?? null,
+    serieId: row.serie_id ?? null,
     mesReferencia: row.mes_referencia,
   };
 }

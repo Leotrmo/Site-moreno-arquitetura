@@ -223,6 +223,34 @@ end $$;
 alter table public.transacoes
   add column if not exists categoria_auto boolean not null default false;
 
+-- serie_id: liga parcelas da mesma compra (NULL = não parcelada).
+alter table public.transacoes
+  add column if not exists serie_id uuid;
+
+create index if not exists idx_transacoes_serie
+  on public.transacoes (household_id, serie_id);
+
+-- lançamentos ignorados permanentemente (por hash de conteúdo).
+create table if not exists public.lancamentos_ignorados (
+  id uuid primary key default gen_random_uuid(),
+  household_id uuid references public.households(id) on delete cascade,
+  hash_origem text not null,
+  descricao text,
+  valor numeric(10,2),
+  banco text,
+  ignorado_por uuid references auth.users(id),
+  ignorado_em timestamptz default now(),
+  unique (household_id, hash_origem)
+);
+
+alter table public.lancamentos_ignorados enable row level security;
+
+drop policy if exists "household manda em lancamentos_ignorados" on public.lancamentos_ignorados;
+create policy "household manda em lancamentos_ignorados"
+  on public.lancamentos_ignorados for all
+  using (household_id = public.get_household_id())
+  with check (household_id = public.get_household_id());
+
 -- ============================================================================
 -- FIM. Se rodou sem erro: tabelas + RLS + trigger + realtime prontos.
 -- Confira em Table Editor (6 tabelas, households com 1 linha "Leo & Luis")
