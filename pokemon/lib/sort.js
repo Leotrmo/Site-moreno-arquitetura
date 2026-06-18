@@ -87,7 +87,12 @@
   }
   function lensSorter(lens) {
     if (lens === 'xp') {
-      return function (a, b) { return (a.ivPct - b.ivPct) || (a.cp - b.cp) || byName(a, b); };
+      // "o que alimentar p/ doce/XP": fodder (verdict TRANSFERIR) primeiro, depois pior-IV (asc).
+      return function (a, b) {
+        var fa = a.verdict === 'TRANSFERIR' ? 0 : 1;
+        var fb = b.verdict === 'TRANSFERIR' ? 0 : 1;
+        return (fa - fb) || (a.ivPct - b.ivPct) || (a.cp - b.cp) || byName(a, b);
+      };
     }
     return function (a, b) {
       return (_lensScore(b, lens) - _lensScore(a, lens)) || (b.ivPct - a.ivPct) || byName(a, b);

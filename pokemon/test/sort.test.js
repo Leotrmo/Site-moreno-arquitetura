@@ -167,10 +167,15 @@ test('lensSorter colecao: ordena por colecao desc', () => {
   list.sort(lensSorter('colecao'));
   assert.deepStrictEqual(list.map(m => m.name), ['B', 'C', 'A']);
 });
-test('lensSorter xp: pior primeiro (ivPct asc)', () => {
+test('lensSorter xp: pior primeiro (ivPct asc) dentro do mesmo grupo', () => {
   const list = [smon({ name: 'A', ivPct: 90 }), smon({ name: 'B', ivPct: 20 }), smon({ name: 'C', ivPct: 50 })];
   list.sort(lensSorter('xp'));
   assert.deepStrictEqual(list.map(m => m.name), ['B', 'C', 'A']);
+});
+test('lensSorter xp: fodder (TRANSFERIR) vem antes dos mantidos, apesar do IV', () => {
+  const list = [smon({ name: 'keep', ivPct: 10, verdict: 'MANTER' }), smon({ name: 'feed', ivPct: 60, verdict: 'TRANSFERIR' })];
+  list.sort(lensSorter('xp'));
+  assert.deepStrictEqual(list.map(m => m.name), ['feed', 'keep']);
 });
 test('lensSorter eficiencia: ordena por best.value desc', () => {
   const list = [smon({ name: 'A', scores: sc({ bestVal: 1 }) }), smon({ name: 'B', scores: sc({ bestVal: 8 }) }), smon({ name: 'C', scores: sc({ bestVal: 4 }) })];

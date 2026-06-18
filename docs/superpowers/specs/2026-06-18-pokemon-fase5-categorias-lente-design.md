@@ -165,7 +165,9 @@ lensSorter(lens) → (a, b) => <comparador>
 ```
 - `pvp`: `pvpBest` desc → desempate `ivPct` desc → nome.
 - `colecao`: `scores.colecao` desc → `ivPct` desc → nome.
-- `xp`: pior primeiro = `ivPct` **asc** → `cp` asc → nome (o fodder sobe).
+- `xp`: fodder (`verdict === 'TRANSFERIR'`) **primeiro**, depois pior-IV (`ivPct` asc) →
+  `cp` asc → nome. Surfaceia o que alimentar p/ doce/XP no topo (honra "piores duplicados
+  primeiro"; só o `ivPct` asc deixava keepers de IV baixo no topo).
 - `eficiencia`: `scores.best.value` desc → `ivPct` desc → nome. (Usado só se a app pedir
   ordenação por lente em Eficiência; ver §5 — por padrão Eficiência mantém o sort-select.)
 
