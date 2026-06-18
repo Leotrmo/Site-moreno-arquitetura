@@ -51,6 +51,8 @@ create table if not exists public.transacoes (
   mes_referencia char(7) not null,           -- 'AAAA-MM' = mês da FATURA (não da compra)
   hash_origem text not null,                 -- hash de conteúdo (dedup estável)
   criado_em timestamptz default now(),
+  -- dedup base; EVOLUÍDO para (household_id, hash_origem, mes_referencia) na seção 7
+  -- (migrações). Em banco novo, a seção 7 troca esta constraint pela composta.
   unique (household_id, hash_origem)
 );
 
@@ -250,6 +252,15 @@ create policy "household manda em lancamentos_ignorados"
   on public.lancamentos_ignorados for all
   using (household_id = public.get_household_id())
   with check (household_id = public.get_household_id());
+
+-- dedup por CONTEÚDO + MÊS DA FATURA: a mesma linha do Itaú (parcela) aparece
+-- idêntica em cada fatura mensal, então a identidade inclui mes_referencia.
+-- Troca a unique (household_id, hash_origem) pela composta. Idempotente: dropa
+-- a antiga (nome auto do Postgres) e a nova antes de recriar.
+alter table public.transacoes drop constraint if exists transacoes_household_id_hash_origem_key;
+alter table public.transacoes drop constraint if exists transacoes_household_hash_mes_key;
+alter table public.transacoes add constraint transacoes_household_hash_mes_key
+  unique (household_id, hash_origem, mes_referencia);
 
 -- ============================================================================
 -- FIM. Se rodou sem erro: tabelas + RLS + trigger + realtime prontos.
