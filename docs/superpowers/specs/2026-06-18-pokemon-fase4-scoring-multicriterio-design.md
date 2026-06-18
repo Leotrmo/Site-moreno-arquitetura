@@ -49,9 +49,14 @@ PokeScore.scoreMon(e, meta) → {
   pvp:     { great: <num>, ultra: <num>, master: <num> },
   pve:     <num>,
   colecao: <num>,
-  best:    { objective: 'pvp_great'|'pvp_ultra'|'pvp_master'|'pve'|'colecao', value: <num> }
+  best:    { objective: 'pvp_great'|'pvp_ultra'|'pvp_master'|'pve', value: <num> }
 }
 ```
+
+`best` é o melhor objetivo de **investimento** (só PvP + PvE) — `colecao` **não** entra
+no `best`: é um eixo de natureza diferente (você já tem a cópia, sem custo/prontidão) e
+numa escala que dominaria sempre qualquer colecionável. `colecao` é reportado à parte no
+campo próprio.
 
 `e` é a entrada já enriquecida (precisa de `ivs`, `moveIds`, `isShadow`, `cp`,
 `speciesId`, `eliteMoves`, `pvpMeta`, `pveMeta` e as flags de colecionismo). `meta` traz
