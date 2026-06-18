@@ -51,6 +51,8 @@ create table if not exists public.transacoes (
   mes_referencia char(7) not null,           -- 'AAAA-MM' = mês da FATURA (não da compra)
   hash_origem text not null,                 -- hash de conteúdo (dedup estável)
   criado_em timestamptz default now(),
+  -- dedup base; EVOLUÍDO para (household_id, hash_origem, mes_referencia) na seção 7
+  -- (migrações). Em banco novo, a seção 7 troca esta constraint pela composta.
   unique (household_id, hash_origem)
 );
 
