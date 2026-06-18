@@ -143,3 +143,42 @@ test('COMP_RANK_KEYS lista as dimensões ranqueáveis', () => {
   assert.ok(COMP_RANK_KEYS.includes('gym_def'));
   assert.ok(!COMP_RANK_KEYS.includes('rocket')); // rocket não tem rank
 });
+
+// --- Fase 5: lensSorter ---
+const { lensSorter } = require('../lib/sort.js');
+
+function sc(o) {
+  o = o || {};
+  return { pvp: { great: o.great || 0, ultra: o.ultra || 0, master: o.master || 0 },
+           pve: o.pve || 0, colecao: o.colecao || 0,
+           best: { objective: o.bestObj || 'pve', value: o.bestVal || 0 } };
+}
+function smon(over) {
+  return Object.assign({ name: 'M', number: 1, cp: 500, ivPct: 80, verdict: 'MANTER', scores: sc() }, over);
+}
+
+test('lensSorter pvp: ordena por pvpBest desc', () => {
+  const list = [smon({ name: 'A', scores: sc({ great: 1 }) }), smon({ name: 'B', scores: sc({ master: 9 }) }), smon({ name: 'C', scores: sc({ ultra: 5 }) })];
+  list.sort(lensSorter('pvp'));
+  assert.deepStrictEqual(list.map(m => m.name), ['B', 'C', 'A']);
+});
+test('lensSorter colecao: ordena por colecao desc', () => {
+  const list = [smon({ name: 'A', scores: sc({ colecao: 30 }) }), smon({ name: 'B', scores: sc({ colecao: 90 }) }), smon({ name: 'C', scores: sc({ colecao: 60 }) })];
+  list.sort(lensSorter('colecao'));
+  assert.deepStrictEqual(list.map(m => m.name), ['B', 'C', 'A']);
+});
+test('lensSorter xp: pior primeiro (ivPct asc)', () => {
+  const list = [smon({ name: 'A', ivPct: 90 }), smon({ name: 'B', ivPct: 20 }), smon({ name: 'C', ivPct: 50 })];
+  list.sort(lensSorter('xp'));
+  assert.deepStrictEqual(list.map(m => m.name), ['B', 'C', 'A']);
+});
+test('lensSorter eficiencia: ordena por best.value desc', () => {
+  const list = [smon({ name: 'A', scores: sc({ bestVal: 1 }) }), smon({ name: 'B', scores: sc({ bestVal: 8 }) }), smon({ name: 'C', scores: sc({ bestVal: 4 }) })];
+  list.sort(lensSorter('eficiencia'));
+  assert.deepStrictEqual(list.map(m => m.name), ['B', 'C', 'A']);
+});
+test('lensSorter: mon sem scores vai p/ o fim (desc)', () => {
+  const list = [smon({ name: 'A', scores: null }), smon({ name: 'B', scores: sc({ bestVal: 5 }) })];
+  list.sort(lensSorter('eficiencia'));
+  assert.deepStrictEqual(list.map(m => m.name), ['B', 'A']);
+});

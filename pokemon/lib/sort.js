@@ -72,5 +72,27 @@
     return (a, b) => (rankFor(a, key) - rankFor(b, key)) || (b.ivPct - a.ivPct) || byName(a, b);
   }
 
-  return { COMPARATORS, SORT_OPTIONS, getSorter, COMP_RANK_KEYS, rankFor, competitiveRankSorter };
+  // ---- Fase 5: ordenação pela lente ativa. pvp/colecao/eficiencia por score desc;
+  // xp pior-primeiro (IV asc). Mon sem scores → -Infinity (vai p/ o fim em desc).
+  function _pvpBestScore(e) {
+    var s = e.scores;
+    if (!s || !s.pvp) return -Infinity;
+    return Math.max(s.pvp.great || 0, s.pvp.ultra || 0, s.pvp.master || 0);
+  }
+  function _lensScore(e, lens) {
+    var s = e.scores;
+    if (lens === 'pvp') return _pvpBestScore(e);
+    if (lens === 'colecao') return (s && typeof s.colecao === 'number') ? s.colecao : -Infinity;
+    return (s && s.best && typeof s.best.value === 'number') ? s.best.value : -Infinity; // eficiencia
+  }
+  function lensSorter(lens) {
+    if (lens === 'xp') {
+      return function (a, b) { return (a.ivPct - b.ivPct) || (a.cp - b.cp) || byName(a, b); };
+    }
+    return function (a, b) {
+      return (_lensScore(b, lens) - _lensScore(a, lens)) || (b.ivPct - a.ivPct) || byName(a, b);
+    };
+  }
+
+  return { COMPARATORS, SORT_OPTIONS, getSorter, COMP_RANK_KEYS, rankFor, competitiveRankSorter, lensSorter };
 });
