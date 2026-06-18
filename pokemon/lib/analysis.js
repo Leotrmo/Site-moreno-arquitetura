@@ -21,6 +21,10 @@
     ? require('./meta/cost.js')
     : (typeof globalThis !== 'undefined' ? globalThis.PokeCost : null);
 
+  var PokeScore = (typeof require === 'function')
+    ? require('./meta/score.js')
+    : (typeof globalThis !== 'undefined' ? globalThis.PokeScore : null);
+
   var TYPE_PT = ((typeof require === 'function')
     ? require('./refdata.js') : (typeof globalThis !== 'undefined' ? globalThis : {})).TYPE_PT || {};
 
@@ -160,6 +164,8 @@
       evoProj: null,
       evoOwned: false,
       action: null,
+      // Fase 4 — scores multicritério por objetivo (preenchido por analyze).
+      scores: null,
     };
   }
 
@@ -616,6 +622,7 @@
       e.metaEvo = !!e.evoProj;
       e.metaEvoTarget = e.evoProj ? e.evoProj.target : null;
       e.tags = computeTags(e);
+      e.scores = (meta && PokeScore) ? PokeScore.scoreMon(e, meta) : null;
     }
     const owned = _buildOwnedKeepers(list);
     // Passada 2: posse → ações + veredito.
