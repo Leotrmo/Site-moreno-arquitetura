@@ -26,7 +26,6 @@ export default function Upload() {
   const [autoCategorizar, setAutoCategorizar] = useState(true);
   const [arquivo, setArquivo] = useState(null);
   const [mesReferencia, setMesReferencia] = useState('');
-  const [parsed, setParsed] = useState(null);
   const [erro, setErro] = useState('');
   const [analisando, setAnalisando] = useState(false);
   const [salvando, setSalvando] = useState(false);
@@ -53,7 +52,6 @@ export default function Upload() {
       const sugestoes = detectarSugestoes(novos, seriesAbertas, { deQuemItau: deQuem });
       const porHash = new Map(sugestoes.map((s) => [s.hash, s]));
 
-      setParsed(tx);
       setItens(
         novos.map((t) => ({
           ...t,
@@ -65,7 +63,6 @@ export default function Upload() {
         })),
       );
     } catch (err) {
-      setParsed(null);
       setItens(null);
       setErro(err.message || 'Falha ao ler o arquivo.');
     } finally {
@@ -102,7 +99,6 @@ export default function Upload() {
         { onConflict: 'household_id,nome_arquivo', ignoreDuplicates: true },
       );
       setSucesso(`${resumo.novas} novas transações salvas.`);
-      setParsed(null);
       setItens(null);
       setArquivo(null);
     } catch {
@@ -127,7 +123,7 @@ export default function Upload() {
               <button
                 key={b.id}
                 type="button"
-                onClick={() => setBanco(b.id)}
+                onClick={() => { setBanco(b.id); setItens(null); }}
                 className={`flex-1 rounded-lg border py-2 text-sm font-medium ${
                   banco === b.id ? 'border-teal-600 bg-teal-50 text-teal-700' : 'border-slate-200 text-slate-600'
                 }`}
@@ -146,7 +142,7 @@ export default function Upload() {
                 <button
                   key={p.id}
                   type="button"
-                  onClick={() => setDeQuem(p.id)}
+                  onClick={() => { setDeQuem(p.id); setItens(null); }}
                   className={`flex-1 rounded-lg border py-2 text-xs font-medium ${
                     deQuem === p.id ? 'border-teal-600 bg-teal-50 text-teal-700' : 'border-slate-200 text-slate-600'
                   }`}
@@ -165,7 +161,6 @@ export default function Upload() {
             accept=".csv,text/csv"
             onChange={(e) => {
               setArquivo(e.target.files?.[0] ?? null);
-              setParsed(null);
               setItens(null);
               setSucesso('');
             }}
@@ -210,7 +205,7 @@ export default function Upload() {
             seriesAbertas={seriesAbertas}
             onChange={setItens}
             onConfirmar={aoSalvar}
-            onCancelar={() => { setItens(null); setParsed(null); }}
+            onCancelar={() => setItens(null)}
             salvando={salvando}
           />
         </div>
