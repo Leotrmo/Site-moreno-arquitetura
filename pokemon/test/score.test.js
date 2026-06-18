@@ -139,3 +139,22 @@ test('ACEITE: Shadow Gyarados hundo (set de raid) → scorePvE > scorePvP[master
   // best de INVESTIMENTO (colecao fora) = PvE
   assert.strictEqual(s.best.objective, 'pve');
 });
+
+// --- Wiring em analysis.js (e2e leve; não depende de casar nome PT de golpe) ---
+
+const { analyze } = require('../lib/analysis.js');
+const { getPokemonSize, getPokemonSizeScalar } = require('../sizes.js');
+const refdata = require('../lib/refdata.js');
+
+test('analyze: anexa e.scores com shape de objetivos (wiring)', () => {
+  const meta = realMeta();
+  const fd = { g: { mon_name: 'Gyarados', mon_number: 130, mon_cp: 2700,
+                    mon_attack: 15, mon_defence: 15, mon_stamina: 15, mon_height: 6.5,
+                    mon_alignment: 'SHADOW', mon_isShiny: 'NO', mon_isLucky: 'NO',
+                    mon_move_1: 'Cachoeira', mon_move_2: "Jato d'Água" } };
+  const e = analyze(fd, getPokemonSize, refdata, getPokemonSizeScalar, meta)[0];
+  assert.ok(e.scores, 'e.scores deveria existir');
+  assert.strictEqual(typeof e.scores.pve, 'number');
+  assert.ok(e.scores.pvp && typeof e.scores.pvp.master === 'number');
+  assert.ok(e.scores.best && typeof e.scores.best.objective === 'string');
+});
