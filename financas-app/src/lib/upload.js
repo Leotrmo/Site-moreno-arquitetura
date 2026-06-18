@@ -1,18 +1,24 @@
 import { categorizarAutomatico } from './categorizador.js';
 
 // Mapeia as linhas REVISADAS (camelCase) para linhas de INSERT (snake_case) e separa
-// as ignoradas. Espera receber só linhas novas, mas filtra defensivamente por
-// hashesExistentes e hashesIgnorados.
+// as ignoradas. Espera receber só linhas novas, mas filtra defensivamente.
+//
+// Dedup é por CHAVE COMPOSTA `${hash}|${mes_referencia}`: a mesma linha do Itaú
+// aparece idêntica em cada fatura mensal (parcela), então a identidade inclui o mês.
+// Mesma linha + mesmo mês = re-export (duplicata); mesma linha + mês diferente = nova
+// parcela (a tela de revisão pede confirmação via `incluir`).
 //
 // Campos de override que a tela de revisão pode setar por linha:
 // - serieId: id da série de parcelas (ou novo, gerado na UI)
 // - parcelaAtual/parcelaTotal: já fluíam (Bradesco vem do parser; Itaú vem da revisão)
 // - ignorada: true -> vai para `ignoradas` (tabela lancamentos_ignorados)
+// - incluir: false -> repetição de outro mês NÃO confirmada como parcela; fica de fora
+//   (não salva, não ignora — só não importa agora)
 // - categoriaManual: categoria escolhida na revisão (desliga categoria_auto)
 // - pessoaOverride: pessoa escolhida na revisão (vence o default deQuemItau)
 export function prepararUpload({
   parsed,
-  hashesExistentes,
+  chavesExistentes = [],
   hashesIgnorados = [],
   regras = [],
   householdId,
@@ -21,7 +27,7 @@ export function prepararUpload({
   arquivoOrigem = null,
   autoCategorizar = true,
 }) {
-  const existentes = hashesExistentes instanceof Set ? hashesExistentes : new Set(hashesExistentes);
+  const existentes = chavesExistentes instanceof Set ? chavesExistentes : new Set(chavesExistentes);
   const ignorados = hashesIgnorados instanceof Set ? hashesIgnorados : new Set(hashesIgnorados);
 
   let novas = 0;
@@ -32,7 +38,7 @@ export function prepararUpload({
   const ignoradas = [];
 
   for (const t of parsed) {
-    if (existentes.has(t.hash)) {
+    if (existentes.has(`${t.hash}|${mesReferencia}`)) {
       jaProcessadas += 1;
       continue;
     }
@@ -48,6 +54,10 @@ export function prepararUpload({
         valor: t.valor,
         banco: t.banco,
       });
+      continue;
+    }
+    if (t.incluir === false) {
+      // repetição de outro mês que o usuário não confirmou como parcela: deixa de fora.
       continue;
     }
 

@@ -22,7 +22,7 @@ const tx = (over = {}) => ({
 test('prepararUpload mapeia para as colunas snake_case do banco', () => {
   const { linhas } = prepararUpload({
     parsed: [tx()],
-    hashesExistentes: new Set(),
+    chavesExistentes: new Set(),
     regras: [],
     householdId: 'HH',
     mesReferencia: '2026-06',
@@ -42,11 +42,12 @@ test('prepararUpload mapeia para as colunas snake_case do banco', () => {
   assert.equal(l.categoria_auto, false);
 });
 
-test('prepararUpload conta já processadas vs novas pelo hash', () => {
+test('prepararUpload conta já processadas pela chave conteúdo+mês', () => {
+  // h1 já existe NO MESMO mês (2026-06) → já processada; h2 é nova.
   const parsed = [tx({ hash: 'h1' }), tx({ hash: 'h2' })];
   const { resumo } = prepararUpload({
     parsed,
-    hashesExistentes: new Set(['h1']),
+    chavesExistentes: new Set(['h1|2026-06']),
     regras: [],
     householdId: 'HH',
     mesReferencia: '2026-06',
@@ -57,12 +58,53 @@ test('prepararUpload conta já processadas vs novas pelo hash', () => {
   assert.equal(resumo.novas, 1);
 });
 
+test('prepararUpload: MESMO conteúdo em MÊS diferente NÃO é duplicata (parcela)', () => {
+  // h1 existe em 2026-03; importando em 2026-04 → chave h1|2026-04 é nova.
+  const parsed = [tx({ hash: 'h1' })];
+  const { linhas, resumo } = prepararUpload({
+    parsed,
+    chavesExistentes: new Set(['h1|2026-03']),
+    householdId: 'HH',
+    mesReferencia: '2026-04',
+    autoCategorizar: false,
+  });
+  assert.equal(linhas.length, 1);
+  assert.equal(resumo.novas, 1);
+  assert.equal(resumo.jaProcessadas, 0);
+  assert.equal(linhas[0].mes_referencia, '2026-04');
+});
+
+test('prepararUpload: MESMO conteúdo no MESMO mês É duplicata (re-export)', () => {
+  const parsed = [tx({ hash: 'h1' })];
+  const { linhas, resumo } = prepararUpload({
+    parsed,
+    chavesExistentes: new Set(['h1|2026-06']),
+    householdId: 'HH',
+    mesReferencia: '2026-06',
+    autoCategorizar: false,
+  });
+  assert.equal(linhas.length, 0);
+  assert.equal(resumo.jaProcessadas, 1);
+});
+
+test('prepararUpload: linha com incluir=false (repetição não confirmada) é deixada de fora', () => {
+  const parsed = [tx({ hash: 'a' }), tx({ hash: 'b', incluir: false })];
+  const { linhas, ignoradas, resumo } = prepararUpload({
+    parsed, chavesExistentes: new Set(), householdId: 'HH',
+    mesReferencia: '2026-06', autoCategorizar: false,
+  });
+  assert.equal(linhas.length, 1);
+  assert.equal(linhas[0].hash_origem, 'a');
+  assert.equal(ignoradas.length, 0); // não vai pra ignorados: só não importa agora
+  assert.equal(resumo.novas, 1);
+});
+
 test('prepararUpload auto-categoriza e conta só as novas categorizadas', () => {
   // 'IFOOD' casa em alimentacao pelo dicionário AUTO_CATEGORIAS; hash novo.
   const parsed = [tx({ hash: 'novo', descricao: 'IFOOD CLUB' })];
   const { linhas, resumo } = prepararUpload({
     parsed,
-    hashesExistentes: new Set(),
+    chavesExistentes: new Set(),
     regras: [],
     householdId: 'HH',
     mesReferencia: '2026-06',
@@ -80,7 +122,7 @@ test('prepararUpload aplica "de quem" só ao Itaú; Bradesco fica Luis', () => {
   ];
   const { linhas } = prepararUpload({
     parsed,
-    hashesExistentes: new Set(),
+    chavesExistentes: new Set(),
     regras: [],
     householdId: 'HH',
     mesReferencia: '2026-06',
@@ -95,7 +137,7 @@ test('prepararUpload carimba o mês de referência escolhido em todas as linhas'
   const parsed = [tx({ hash: 'a', mesReferencia: '2026-05' })];
   const { linhas } = prepararUpload({
     parsed,
-    hashesExistentes: new Set(),
+    chavesExistentes: new Set(),
     regras: [],
     householdId: 'HH',
     mesReferencia: '2026-06',
@@ -107,7 +149,7 @@ test('prepararUpload carimba o mês de referência escolhido em todas as linhas'
 test('prepararUpload carrega serie_id e respeita parcela manual', () => {
   const parsed = [tx({ hash: 'p', serieId: 's1', parcelaAtual: 2, parcelaTotal: 3 })];
   const { linhas } = prepararUpload({
-    parsed, hashesExistentes: new Set(), householdId: 'HH',
+    parsed, chavesExistentes: new Set(), householdId: 'HH',
     mesReferencia: '2026-06', autoCategorizar: false,
   });
   assert.equal(linhas[0].serie_id, 's1');
@@ -118,7 +160,7 @@ test('prepararUpload carrega serie_id e respeita parcela manual', () => {
 test('prepararUpload roteia linha ignorada para "ignoradas" e não para "linhas"', () => {
   const parsed = [tx({ hash: 'a' }), tx({ hash: 'b', ignorada: true, descricao: 'CONTESTADA' })];
   const { linhas, ignoradas, resumo } = prepararUpload({
-    parsed, hashesExistentes: new Set(), householdId: 'HH',
+    parsed, chavesExistentes: new Set(), householdId: 'HH',
     mesReferencia: '2026-06', autoCategorizar: false,
   });
   assert.equal(linhas.length, 1);
@@ -133,7 +175,7 @@ test('prepararUpload roteia linha ignorada para "ignoradas" e não para "linhas"
 test('prepararUpload exclui hashes já ignorados e conta jaIgnoradas', () => {
   const parsed = [tx({ hash: 'a' }), tx({ hash: 'velho' })];
   const { linhas, resumo } = prepararUpload({
-    parsed, hashesExistentes: new Set(), hashesIgnorados: new Set(['velho']),
+    parsed, chavesExistentes: new Set(), hashesIgnorados: new Set(['velho']),
     householdId: 'HH', mesReferencia: '2026-06', autoCategorizar: false,
   });
   assert.equal(linhas.length, 1);
@@ -144,7 +186,7 @@ test('prepararUpload exclui hashes já ignorados e conta jaIgnoradas', () => {
 test('prepararUpload honra override manual de categoria e pessoa', () => {
   const parsed = [tx({ hash: 'm', banco: 'itau', categoriaManual: 'lazer', pessoaOverride: 'leo' })];
   const { linhas } = prepararUpload({
-    parsed, hashesExistentes: new Set(), householdId: 'HH',
+    parsed, chavesExistentes: new Set(), householdId: 'HH',
     mesReferencia: '2026-06', deQuemItau: 'compartilhado', autoCategorizar: true,
   });
   assert.equal(linhas[0].categoria, 'lazer');
