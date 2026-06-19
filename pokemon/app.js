@@ -3,7 +3,14 @@
   let allMons = [];            // lista enriquecida
   const SORT_KEY = 'pokemon-sort';
   const DIR_KEY = 'pokemon-sort-dir';
-  const state = { verdict: null, special: null, query: '', sort: loadSort(), dirRev: loadDir() };
+  const LENS_KEY = 'pokemon-lens';
+  const LENSES = [
+    ['eficiencia', '🎯 Eficiência'],
+    ['pvp', '⚔️ PvP'],
+    ['colecao', '✨ Coleção'],
+    ['xp', '🍬 XP'],
+  ];
+  const state = { verdict: null, special: null, query: '', sort: loadSort(), dirRev: loadDir(), lens: loadLens() };
 
   function loadSort() {
     const saved = localStorage.getItem(SORT_KEY);
@@ -12,6 +19,11 @@
 
   function loadDir() {
     return localStorage.getItem(DIR_KEY) === 'rev';
+  }
+
+  function loadLens() {
+    const saved = localStorage.getItem(LENS_KEY);
+    return LENSES.some(l => l[0] === saved) ? saved : 'eficiencia';
   }
 
   async function loadMeta() {
@@ -42,6 +54,7 @@
       renderCounts();
       renderChips();
       renderSortOptions();
+      renderLensSelector();
       applyFilters();
     } catch (err) {
       document.getElementById('updated').textContent = 'erro ao carregar dados';
@@ -117,19 +130,55 @@
     btn.title = state.dirRev ? 'Ordem invertida (toque p/ normal)' : 'Ordem normal (toque p/ inverter)';
   }
 
+  function renderLensSelector() {
+    const wrap = document.getElementById('lens');
+    if (!wrap) return;
+    wrap.innerHTML = '';
+    for (const [key, label] of LENSES) {
+      const b = document.createElement('button');
+      b.className = 'lens-btn';
+      b.dataset.lens = key;
+      b.textContent = label;
+      b.addEventListener('click', () => {
+        state.lens = key;
+        try { localStorage.setItem(LENS_KEY, key); } catch {}
+        syncLens();
+        applyFilters();
+      });
+      wrap.appendChild(b);
+    }
+    syncLens();
+  }
+
+  function syncLens() {
+    document.querySelectorAll('.lens-btn').forEach(b =>
+      b.classList.toggle('active', b.dataset.lens === state.lens));
+    // Fora da Eficiência, a lente dita a ordem → desabilita sort-select/dir.
+    const lensActive = state.lens !== 'eficiencia';
+    const sel = document.getElementById('sort');
+    const dir = document.getElementById('sort-dir');
+    if (sel) sel.disabled = lensActive;
+    if (dir) dir.disabled = lensActive;
+  }
+
   function applyFilters() {
     let rows = allMons;
     if (state.verdict) rows = rows.filter(e => e.verdict === state.verdict);
     if (state.special && state._specialFns[state.special]) rows = rows.filter(state._specialFns[state.special]);
     if (state.query) rows = rows.filter(e => e.name.toLowerCase().includes(state.query));
-    // Com um chip competitivo ranqueável ativo, ordena pelo rank daquela dimensão (melhor primeiro).
-    const sorter = (state.special && COMP_RANK_KEYS.includes(state.special))
-      ? competitiveRankSorter(state.special)
-      : getSorter(state.sort, state.dirRev);
+    // Fora da Eficiência, a lente vence a ordenação; nela, mantém o sort-select / chip competitivo.
+    let sorter;
+    if (state.lens !== 'eficiencia') {
+      sorter = lensSorter(state.lens);
+    } else if (state.special && COMP_RANK_KEYS.includes(state.special)) {
+      sorter = competitiveRankSorter(state.special);
+    } else {
+      sorter = getSorter(state.sort, state.dirRev);
+    }
     rows = rows.slice().sort(sorter);
 
     const list = document.getElementById('list');
-    list.innerHTML = rows.map(cardHtml).join('');
+    list.innerHTML = rows.map(e => cardHtml(e, state.lens)).join('');
     document.getElementById('empty').hidden = rows.length > 0;
 
     syncChips();

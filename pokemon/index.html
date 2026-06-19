@@ -157,6 +157,34 @@ h1 {
 .chip:active { transform: translateY(2px); box-shadow: none; }
 .chip.active { background: var(--amarelo); }
 
+/* Seletor de lente por objetivo */
+.lens-bar { display: flex; gap: 6px; flex-wrap: wrap; margin-bottom: 8px; }
+.lens-btn {
+  font-family: inherit; font-size: 16px; line-height: 1;
+  background: #fff; color: var(--tinta);
+  border: 2px solid var(--preto); border-radius: 6px;
+  box-shadow: 0 2px 0 var(--preto);
+  padding: 6px 9px; cursor: pointer;
+}
+.lens-btn:active { transform: translateY(2px); box-shadow: none; }
+.lens-btn.active { background: var(--azul-lente); color: #fff; }
+.sort-select:disabled, .sort-dir:disabled { opacity: .45; cursor: not-allowed; }
+
+/* Rótulo de categoria por card */
+.pk-category {
+  font-family: 'Press Start 2P', monospace; font-size: 8px; line-height: 1.5;
+  text-transform: uppercase; align-self: flex-start;
+  background: #fff; border: 2px solid var(--preto); border-radius: 6px; padding: 4px 6px;
+}
+.cat-invest   { color: var(--investir); }
+.cat-trophy   { color: var(--dourado); }
+.cat-keep     { color: var(--manter); }
+.cat-transfer { color: var(--transferir); }
+.cat-feed     { color: var(--laranja); }
+
+/* Quebra de scores no detalhe */
+.pk-scores { font-size: 15px; line-height: 1.3; color: var(--tinta-fraca); padding: 4px 0; }
+
 /* Toolbar sticky: busca + ordenação (+ barra de transferir quando visível) */
 .toolbar-wrap {
   position: sticky; top: 0;
@@ -315,6 +343,7 @@ h1 {
 
         <!-- Busca + filtros (gruda no topo da rolagem) -->
         <div class="toolbar-wrap">
+          <div class="lens-bar" id="lens"></div>
           <div class="toolbar">
             <input type="search" id="search" placeholder="🔎 Buscar por nome…" autocomplete="off">
             <select id="sort" class="sort-select" aria-label="Ordenar Pokémons"></select>

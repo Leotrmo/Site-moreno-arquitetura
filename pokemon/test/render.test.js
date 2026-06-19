@@ -324,3 +324,41 @@ test('cardHtml: sem movesetTip → sem linha moveset-tip (não-regressão)', () 
   const html = cardHtml(pvpStub());
   assert.doesNotMatch(html, /moveset-tip/);
 });
+
+// --- Fase 5: rótulo de categoria + quebra de scores ---
+function scoredMon(over) {
+  return Object.assign({
+    id: 'z', name: 'Hydreigon', verdict: 'INVESTIR', reason: 'x', ivPct: 96, cp: 3200,
+    size: null, isHundo: false, isShiny: false, isShadow: false, isPurified: false, isLucky: false,
+    isLegendary: false, isCostume: false, isXSComfort: false, isXLComfort: false, hasSecondCharge: false,
+    tradeBoost: null, action: null, movesetTip: null, tags: [], pvp: null, pvpMeta: null, pveMeta: null,
+    moves: ['x'], ivs: { atk: 15, def: 15, sta: 15 }, height: 1.8, weight: 160,
+    scores: { pvp: { great: 0, ultra: 0, master: 0 }, pve: 8.9, colecao: 60, best: { objective: 'pve', value: 8.9 } },
+  }, over || {});
+}
+
+test('cardHtml: rótulo de categoria (Investir só PvE) na lente padrão', () => {
+  const html = cardHtml(scoredMon());
+  assert.match(html, /pk-category/);
+  assert.match(html, /Investir só PvE/);
+});
+test('cardHtml: categoria muda com a lente', () => {
+  assert.match(cardHtml(scoredMon(), 'colecao'), /Troféu/);
+  assert.match(cardHtml(scoredMon(), 'pvp'), /Guardar/);   // pvpBest 0 < 2
+});
+test('cardHtml: sem scores → rótulo por veredito (degradação)', () => {
+  const html = cardHtml(scoredMon({ scores: null, verdict: 'MANTER' }));
+  assert.match(html, /pk-category/);
+  assert.match(html, /Guardar pro futuro/);
+});
+test('cardHtml(e) sem lens assume Eficiência', () => {
+  assert.match(cardHtml(scoredMon()), /Investir só PvE/);
+});
+test('detailHtml: quebra de scores quando há e.scores', () => {
+  const html = detailHtml(scoredMon());
+  assert.match(html, /pk-scores/);
+  assert.match(html, /PvE 9/);   // round(8.9)=9
+});
+test('detailHtml: sem scores → sem quebra (não-regressão)', () => {
+  assert.doesNotMatch(detailHtml(scoredMon({ scores: null })), /pk-scores/);
+});

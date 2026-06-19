@@ -166,6 +166,8 @@
       action: null,
       // Fase 4 — scores multicritério por objetivo (preenchido por analyze).
       scores: null,
+      // Fase 5 — categoria de decisão (preenchida por analyze).
+      category: null,
     };
   }
 
@@ -354,6 +356,52 @@
     if (e.ivPct < 80)
       return { verdict: 'TRANSFERIR', reason: 'Você já tem um ' + e.name + ' melhor' };
     return { verdict: 'MANTER', reason: 'Duplicata ok (IV ' + e.ivPct + '%)' };
+  }
+
+  // ---- Fase 5: categoria de decisão (camada derivada de verdict + scores, reenquadrada
+  // pela lente). Invariante: 'transfer'/'feed' só quando verdict === 'TRANSFERIR'.
+  const T_INVEST = 2;    // limiar "vale investir já" na escala REAL dos scores (ver spec Fase 5)
+  const T_COL = 50;      // limiar "troféu" na escala 0–100 do scoreColecao
+
+  function _pvpBest(s) {
+    if (!s || !s.pvp) return 0;
+    return Math.max(s.pvp.great || 0, s.pvp.ultra || 0, s.pvp.master || 0);
+  }
+
+  function categorize(e, lens) {
+    lens = lens || 'eficiencia';
+    const transfer = e.verdict === 'TRANSFERIR';
+    // Degradação: sem scores (meta ausente), rótulo só pelo veredito.
+    if (!e.scores) {
+      if (transfer) return lens === 'xp'
+        ? { key: 'feed', label: 'Alimentar (doce/XP)' }
+        : { key: 'transfer', label: 'Transferir' };
+      if (e.verdict === 'INVESTIR') return { key: 'invest', label: 'Investir' };
+      return { key: 'keep', label: 'Guardar pro futuro' };
+    }
+    const s = e.scores;
+    if (lens === 'pvp') {
+      if (transfer) return { key: 'transfer', label: 'Transferir' };
+      if (_pvpBest(s) >= T_INVEST) return { key: 'invest', label: 'Investir (PvP)' };
+      return { key: 'keep', label: 'Guardar' };
+    }
+    if (lens === 'colecao') {
+      if (transfer) return { key: 'transfer', label: 'Transferir' };
+      if ((s.colecao || 0) >= T_COL) return { key: 'trophy', label: 'Troféu' };
+      return { key: 'keep', label: 'Guardar' };
+    }
+    if (lens === 'xp') {
+      if (transfer) return { key: 'feed', label: 'Alimentar (doce/XP)' };
+      return { key: 'keep', label: 'Guardar' };
+    }
+    // 'eficiencia' (padrão) → as 5 categorias.
+    if (transfer) return { key: 'transfer', label: 'Transferir' };
+    const invPve = (s.pve || 0) >= T_INVEST;
+    const invPvp = _pvpBest(s) >= T_INVEST;
+    if (invPve && invPvp) return { key: 'invest_both', label: 'Investir já' };
+    if (invPve) return { key: 'invest_pve', label: 'Investir só PvE' };
+    if (invPvp) return { key: 'invest_pvp', label: 'Investir só PvP' };
+    return { key: 'keep', label: 'Guardar pro futuro' };
   }
 
   const LEAGUE_PT = { great: 'Liga Grande', ultra: 'Liga Ultra', master: 'Liga Mestre' };
@@ -632,6 +680,7 @@
       const v = computeVerdict(e);
       e.verdict = v.verdict;
       e.reason = v.reason;
+      e.category = categorize(e, 'eficiencia');
       e.tradeBoost = tradeBoost(e);
       e.movesetTip = _secondChargeTip(e, meta);
     }
@@ -666,6 +715,6 @@
     return c;
   }
 
-  return { ivPct, speciesKey, enrichOne, enrichCollection, isProtected, isPvpMeta, isPveMeta, isMetaRelevant, computeVerdict, computeTags, computeAction, canBestFriendTrade, tradeBoost, analyze, computeCounts,
+  return { ivPct, speciesKey, enrichOne, enrichCollection, isProtected, isPvpMeta, isPveMeta, isMetaRelevant, computeVerdict, computeTags, computeAction, canBestFriendTrade, tradeBoost, analyze, computeCounts, categorize,
            TRADE_MIN_IV_PCT, TRADE_EXPECTED_IV_PCT };
 });

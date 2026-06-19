@@ -13,6 +13,50 @@
   var TYPE_PT = ((typeof require === 'function')
     ? require('./refdata.js') : (typeof globalThis !== 'undefined' ? globalThis : {})).TYPE_PT || {};
 
+  // Fase 5: acesso a categorize (Node: require; browser: global de analysis.js, carregado antes).
+  var Analysis = ((typeof require === 'function')
+    ? require('./analysis.js') : (typeof globalThis !== 'undefined' ? globalThis : {}));
+
+  const CATEGORY_ICON = {
+    invest_both: '💪', invest_pve: '💪', invest_pvp: '💪', invest: '💪',
+    trophy: '🏆', keep: '🛡️', transfer: '❌', feed: '🍬',
+  };
+  const CATEGORY_CLASS = {
+    invest_both: 'cat-invest', invest_pve: 'cat-invest', invest_pvp: 'cat-invest', invest: 'cat-invest',
+    trophy: 'cat-trophy', keep: 'cat-keep', transfer: 'cat-transfer', feed: 'cat-feed',
+  };
+
+  // Score do eixo da lente p/ exibir ao lado da categoria (null = não exibe número).
+  function _lensAxisScore(e, lens) {
+    const s = e.scores;
+    if (!s) return null;
+    if (lens === 'pvp') return Math.max(s.pvp.great || 0, s.pvp.ultra || 0, s.pvp.master || 0);
+    if (lens === 'colecao') return s.colecao || 0;
+    if (lens === 'xp') return null;
+    return (s.best && typeof s.best.value === 'number') ? s.best.value : null; // eficiencia
+  }
+  function _fmtScore(n) { return (n < 10) ? n.toFixed(1) : String(Math.round(n)); }
+
+  // Linha de categoria por card; só mostra número p/ categorias positivas (invest/trophy).
+  function categoryLineHtml(e, lens) {
+    const cat = Analysis.categorize ? Analysis.categorize(e, lens) : null;
+    if (!cat) return '';
+    const positive = cat.key.indexOf('invest') === 0 || cat.key === 'trophy';
+    const sc = positive ? _lensAxisScore(e, lens) : null;
+    const scTxt = (sc != null) ? ' · ' + _fmtScore(sc) : '';
+    return '<div class="pk-category ' + (CATEGORY_CLASS[cat.key] || 'cat-keep') + '">' +
+           (CATEGORY_ICON[cat.key] || '') + ' ' + esc(cat.label) + scTxt + '</div>';
+  }
+
+  // Quebra de scores no detalhe (power-user). '' quando não há e.scores.
+  function scoresHtml(e) {
+    if (!e.scores) return '';
+    const s = e.scores, r = Math.round;
+    return '<div class="pk-scores"><strong>Scores</strong> — ⚔️ G ' + r(s.pvp.great) +
+           ' · U ' + r(s.pvp.ultra) + ' · M ' + r(s.pvp.master) +
+           ' · 🔥 PvE ' + r(s.pve) + ' · ✨ Col ' + r(s.colecao) + '</div>';
+  }
+
   function badgesHtml(e) {
     const b = [];
     if (e.isHundo)    b.push('<span class="badge b-hundo">★</span>');
@@ -50,7 +94,8 @@
     return 'iv-low';
   }
 
-  function cardHtml(e) {
+  function cardHtml(e, lens) {
+    lens = lens || 'eficiencia';
     return (
       '<div class="pk ' + VERDICT_CLASS[e.verdict] + '" data-id="' + esc(e.id) +
         '" data-verdict="' + e.verdict + '" data-name="' + esc(e.name.toLowerCase()) + '">' +
@@ -63,6 +108,7 @@
           '<span class="cp">CP ' + e.cp + '</span>' +
           badgesHtml(e) +
         '</div>' +
+        categoryLineHtml(e, lens) +
         '<div class="reason">' + esc(e.reason) + '</div>' +
         (e.action ? '<div class="pk-action">' + (ACTION_ICON[e.action.kind] || '⚔️') + ' ' + esc(e.action.reason) + '</div>' : '') +
         (e.tradeBoost ? '<div class="trade-tip">🔁 ' + esc(e.tradeBoost.reason) + '</div>' : '') +
@@ -125,12 +171,14 @@
     const pvp = e.pvp ? (e.pvp.pvp_won + '/' + e.pvp.pvp_total + ' vitórias') : '—';
     const compare = (e.verdict === 'TRANSFERIR' && e.betterCopy) ? compareHtml(e, e.betterCopy) : '';
     const competitive = competitiveHtml(e);
+    const scores = scoresHtml(e);
     return (
       '<div class="pk-detail">' +
         '<div>IVs: <strong>' + e.ivs.atk + '/' + e.ivs.def + '/' + e.ivs.sta + '</strong></div>' +
         '<div>Golpes: ' + (moves || '—') + '</div>' +
         '<div>Altura: ' + e.height.toFixed(2) + ' m · Peso: ' + e.weight.toFixed(1) + ' kg</div>' +
         '<div>Batalhas: ' + pvp + '</div>' +
+        scores +
         competitive +
         compare +
       '</div>'
