@@ -3,14 +3,12 @@
   let allMons = [];            // lista enriquecida
   const SORT_KEY = 'pokemon-sort';
   const DIR_KEY = 'pokemon-sort-dir';
-  const LENS_KEY = 'pokemon-lens';
-  const LENSES = [
-    ['eficiencia', '🎯 Eficiência'],
-    ['pvp', '⚔️ PvP'],
-    ['colecao', '✨ Coleção'],
-    ['xp', '🍬 XP'],
-  ];
-  const state = { verdict: null, special: null, query: '', sort: loadSort(), dirRev: loadDir(), lens: loadLens() };
+  const MODE_KEY = 'pokemon-mode';
+  const MODES = [['resumo','🏠 Resumo'],['limpar','🧹 Limpar'],['usar','⚔️ Usar'],['investir','💪 Investir']];
+  const OBJECTIVES = [['pvp_great','⚔️ Grande'],['pvp_ultra','⚔️ Ultra'],['pvp_master','⚔️ Mestre'],['raid','🔥 Raid/PvE'],['colecao','✨ Coleção']];
+  // Abre sempre no Resumo neutro (pedido do usuário); MODE_KEY é gravado p/ uso futuro.
+  const state = { mode: 'resumo', objective: 'colecao', special: null, query: '', todos: false,
+                  sort: loadSort(), dirRev: loadDir() };
 
   function loadSort() {
     const saved = localStorage.getItem(SORT_KEY);
@@ -19,11 +17,6 @@
 
   function loadDir() {
     return localStorage.getItem(DIR_KEY) === 'rev';
-  }
-
-  function loadLens() {
-    const saved = localStorage.getItem(LENS_KEY);
-    return LENSES.some(l => l[0] === saved) ? saved : 'eficiencia';
   }
 
   async function loadMeta() {
@@ -54,7 +47,9 @@
       renderCounts();
       renderChips();
       renderSortOptions();
-      renderLensSelector();
+      renderModeBar();
+      renderObjectiveBar();
+      showView();
       applyFilters();
     } catch (err) {
       document.getElementById('updated').textContent = 'erro ao carregar dados';
@@ -88,29 +83,80 @@
       ['rocket',  '🚀 Rocket ' + c.rocket,    e => e.tags.includes('rocket')],
       ['evoluir', '⬆️ Evoluir ' + c.evoluir,  e => e.action && e.action.kind === 'EVOLUIR'],
     ];
-    const wrap = document.getElementById('chips');
-    wrap.innerHTML = '';
+    const resumoWrap = document.getElementById('chips');
+    const filterWrap = document.getElementById('filter-chips');
+    resumoWrap.innerHTML = ''; filterWrap.innerHTML = '';
     state._specialFns = {};
     for (const [key, label, fn] of defs) {
       state._specialFns[key] = fn;
-      const b = document.createElement('button');
-      b.className = 'chip';
-      b.dataset.special = key;
-      b.textContent = label;
-      b.addEventListener('click', () => {
+      // chip do Resumo: navega pra lista (objetivo competitivo ou browse filtrado)
+      const r = document.createElement('button');
+      r.className = 'chip'; r.dataset.special = key; r.textContent = label;
+      r.addEventListener('click', () => {
+        if (COMP_RANK_KEYS.includes(key)) { state.objective = key; state.special = null; state.todos = false; goMode('usar'); }
+        else { state.objective = 'colecao'; state.special = key; state.todos = true; goMode('usar'); }
+      });
+      resumoWrap.appendChild(r);
+      // chip do painel Filtros: liga/desliga filtro na lista atual
+      const f = document.createElement('button');
+      f.className = 'chip'; f.dataset.special = key; f.textContent = label;
+      f.addEventListener('click', () => {
         state.special = state.special === key ? null : key;
         syncChips(); applyFilters();
       });
-      wrap.appendChild(b);
+      filterWrap.appendChild(f);
     }
   }
 
   function syncChips() {
-    document.querySelectorAll('.chip').forEach(c =>
+    document.querySelectorAll('#filter-chips .chip').forEach(c =>
       c.classList.toggle('active', c.dataset.special === state.special));
-    document.querySelectorAll('.hero-card').forEach(h =>
-      h.classList.toggle('active', h.dataset.filterVerdict === state.verdict));
-    document.getElementById('clear-filters').hidden = !(state.verdict || state.special || state.query);
+  }
+
+  function renderModeBar() {
+    const wrap = document.getElementById('mode-bar');
+    wrap.innerHTML = '';
+    for (const [key, label] of MODES) {
+      const b = document.createElement('button');
+      b.className = 'mode-btn'; b.dataset.mode = key; b.textContent = label;
+      b.addEventListener('click', () => goMode(key));
+      wrap.appendChild(b);
+    }
+    syncModeBar();
+  }
+
+  function syncModeBar() {
+    document.querySelectorAll('.mode-btn').forEach(b => b.classList.toggle('active', b.dataset.mode === state.mode));
+  }
+
+  function showView() {
+    const isResumo = state.mode === 'resumo';
+    document.getElementById('view-resumo').hidden = !isResumo;
+    document.getElementById('view-list').hidden = isResumo;
+    document.getElementById('objective').hidden = state.mode !== 'usar';
+  }
+
+  function goMode(mode) {
+    state.mode = mode;
+    try { localStorage.setItem(MODE_KEY, mode); } catch {}
+    syncModeBar(); showView();
+    if (mode === 'usar') renderObjectiveBar();
+    if (mode !== 'resumo') applyFilters();
+  }
+
+  function renderObjectiveBar() {
+    const wrap = document.getElementById('objective');
+    wrap.innerHTML = '';
+    for (const [key, label] of OBJECTIVES) {
+      const b = document.createElement('button');
+      b.className = 'chip'; b.dataset.objective = key; b.textContent = label;
+      b.classList.toggle('active', key === state.objective);
+      b.addEventListener('click', () => {
+        state.objective = key; state.todos = false;
+        renderObjectiveBar(); applyFilters();
+      });
+      wrap.appendChild(b);
+    }
   }
 
   function renderSortOptions() {
@@ -130,69 +176,56 @@
     btn.title = state.dirRev ? 'Ordem invertida (toque p/ normal)' : 'Ordem normal (toque p/ inverter)';
   }
 
-  function renderLensSelector() {
-    const wrap = document.getElementById('lens');
-    if (!wrap) return;
-    wrap.innerHTML = '';
-    for (const [key, label] of LENSES) {
-      const b = document.createElement('button');
-      b.className = 'lens-btn';
-      b.dataset.lens = key;
-      b.textContent = label;
-      b.addEventListener('click', () => {
-        state.lens = key;
-        try { localStorage.setItem(LENS_KEY, key); } catch {}
-        syncLens();
-        applyFilters();
-      });
-      wrap.appendChild(b);
+  function lensForMode() {
+    if (state.mode === 'usar') {
+      if (state.objective && state.objective.indexOf('pvp_') === 0) return 'pvp';
+      if (state.objective === 'colecao') return 'colecao';
     }
-    syncLens();
+    return 'eficiencia';
   }
 
-  function syncLens() {
-    document.querySelectorAll('.lens-btn').forEach(b =>
-      b.classList.toggle('active', b.dataset.lens === state.lens));
-    // Fora da Eficiência, a lente dita a ordem → desabilita sort-select/dir.
-    const lensActive = state.lens !== 'eficiencia';
-    const sel = document.getElementById('sort');
-    const dir = document.getElementById('sort-dir');
-    if (sel) sel.disabled = lensActive;
-    if (dir) dir.disabled = lensActive;
+  function baseRows() {
+    if (state.todos) return allMons;
+    if (state.mode === 'limpar')   return allMons.filter(e => e.verdict === 'TRANSFERIR');
+    if (state.mode === 'investir') return allMons.filter(e => e.verdict === 'INVESTIR');
+    if (state.mode === 'usar') {
+      if (COMP_RANK_KEYS.includes(state.objective)) return allMons.filter(e => e.tags.includes(state.objective));
+      return allMons; // coleção: tudo, ranqueado pela lente colecao
+    }
+    return allMons;
+  }
+
+  function sorterForView() {
+    if (state.mode === 'usar') {
+      if (COMP_RANK_KEYS.includes(state.objective)) return competitiveRankSorter(state.objective);
+      return lensSorter('colecao');
+    }
+    if (state.mode === 'limpar')   return getSorter('recomendado', true);  // transferir no topo
+    if (state.mode === 'investir') return getSorter('recomendado', false); // investir no topo
+    return getSorter(state.sort, state.dirRev);
   }
 
   function applyFilters() {
-    let rows = allMons;
-    if (state.verdict) rows = rows.filter(e => e.verdict === state.verdict);
+    if (state.mode === 'resumo') return;
+    let rows = baseRows();
     if (state.special && state._specialFns[state.special]) rows = rows.filter(state._specialFns[state.special]);
     if (state.query) rows = rows.filter(e => e.name.toLowerCase().includes(state.query));
-    // Fora da Eficiência, a lente vence a ordenação; nela, mantém o sort-select / chip competitivo.
-    let sorter;
-    if (state.lens !== 'eficiencia') {
-      sorter = lensSorter(state.lens);
-    } else if (state.special && COMP_RANK_KEYS.includes(state.special)) {
-      sorter = competitiveRankSorter(state.special);
-    } else {
-      sorter = getSorter(state.sort, state.dirRev);
-    }
-    rows = rows.slice().sort(sorter);
+    rows = rows.slice().sort(sorterForView());
 
+    const lens = lensForMode();
     const list = document.getElementById('list');
-    list.innerHTML = rows.map(e => cardHtml(e, state.lens)).join('');
+    list.innerHTML = rows.map(e => cardHtml(e, { mode: state.mode, lens })).join('');
     document.getElementById('empty').hidden = rows.length > 0;
-
     syncChips();
     toggleTransferMode();
   }
 
   // wiring
-  document.querySelectorAll('.hero-card').forEach(card => {
-    card.addEventListener('click', () => {
-      const v = card.dataset.filterVerdict;
-      state.verdict = state.verdict === v ? null : v;
-      applyFilters();
-    });
-  });
+  document.querySelectorAll('[data-go-mode]').forEach(el =>
+    el.addEventListener('click', () => goMode(el.dataset.goMode)));
+  document.querySelectorAll('[data-go-todos]').forEach(el =>
+    el.addEventListener('click', () => { state.todos = true; state.special = null; goMode('usar'); }));
+
   document.getElementById('search').addEventListener('input', e => {
     state.query = e.target.value.trim().toLowerCase();
     applyFilters();
@@ -208,10 +241,20 @@
     syncSortDir();
     applyFilters();
   });
+
+  document.getElementById('open-filters').addEventListener('click', () => {
+    const p = document.getElementById('filters-panel'); p.hidden = !p.hidden;
+  });
+  document.getElementById('filters-close').addEventListener('click', () =>
+    document.getElementById('filters-panel').hidden = true);
+  document.getElementById('filt-todos').addEventListener('change', e => {
+    state.todos = e.target.checked; applyFilters();
+  });
   document.getElementById('clear-filters').addEventListener('click', () => {
-    state.verdict = null; state.special = null; state.query = '';
+    state.special = null; state.query = ''; state.todos = false;
     document.getElementById('search').value = '';
-    applyFilters();
+    document.getElementById('filt-todos').checked = false;
+    syncChips(); applyFilters();
   });
 
   document.getElementById('list').addEventListener('click', e => {
@@ -234,7 +277,7 @@
   function tfSaveDone(set) { localStorage.setItem(TF_KEY, JSON.stringify([...set])); }
 
   function toggleTransferMode() {
-    const on = state.verdict === 'TRANSFERIR';
+    const on = state.mode === 'limpar';
     document.getElementById('transfer-controls').hidden = !on;
     if (!on) return;
     const done = tfGetDone();
@@ -281,6 +324,6 @@
     tfUpdateProgress();
   });
 
-  window.__pokeApp = { boot, applyFilters, getState: () => state, getMons: () => allMons };
+  window.__pokeApp = { boot, applyFilters, goMode, getState: () => state, getMons: () => allMons };
   boot();
 })();

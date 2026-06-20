@@ -48,6 +48,31 @@
            (CATEGORY_ICON[cat.key] || '') + ' ' + esc(cat.label) + scTxt + '</div>';
   }
 
+  // Modos de veredito único: o verbo já está no cabeçalho → o card mostra só o porquê.
+  const SINGLE_VERDICT_MODE = { limpar: 'TRANSFERIR', investir: 'INVESTIR' };
+
+  // Porquê curto: ação (investir) ou motivo (resto). Usa só dado que o motor já produz.
+  function _decisionQualifier(e) {
+    if (e.verdict === 'INVESTIR' && e.action && e.action.reason) return e.action.reason;
+    return e.reason || '';
+  }
+
+  // Linha ÚNICA de decisão por card. opts = { mode, lens }.
+  function decisionLine(e, opts) {
+    opts = opts || {};
+    const lens = opts.lens || 'eficiencia';
+    const mode = opts.mode || 'todos';
+    const cat = (Analysis.categorize ? Analysis.categorize(e, lens) : null) || { key: 'keep', label: 'Guardar' };
+    const icon = CATEGORY_ICON[cat.key] || '';
+    const qualifier = _decisionQualifier(e);
+    const implied = SINGLE_VERDICT_MODE[mode] === e.verdict;
+    const body = implied
+      ? esc(qualifier)
+      : (esc(cat.label) + (qualifier ? ' · ' + esc(qualifier) : ''));
+    return '<div class="pk-decision ' + (CATEGORY_CLASS[cat.key] || 'cat-keep') + '">' +
+           icon + ' ' + body + '</div>';
+  }
+
   // Quebra de scores no detalhe (power-user). '' quando não há e.scores.
   function scoresHtml(e) {
     if (!e.scores) return '';
@@ -94,25 +119,20 @@
     return 'iv-low';
   }
 
-  function cardHtml(e, lens) {
-    lens = lens || 'eficiencia';
+  function cardHtml(e, opts) {
+    opts = opts || {};
     return (
       '<div class="pk ' + VERDICT_CLASS[e.verdict] + '" data-id="' + esc(e.id) +
         '" data-verdict="' + e.verdict + '" data-name="' + esc(e.name.toLowerCase()) + '">' +
         '<div class="pk-top">' +
           '<span class="pk-name">' + esc(e.name) + '</span>' +
-          '<span class="verdict v-' + VERDICT_CLASS[e.verdict] + '">' + VERDICT_LABEL[e.verdict] + '</span>' +
+          '<span class="pk-stats">' +
+            '<span class="iv ' + ivClass(e.ivPct) + '">' + e.ivPct + '%</span>' +
+            '<span class="cp">CP ' + e.cp + '</span>' +
+            badgesHtml(e) +
+          '</span>' +
         '</div>' +
-        '<div class="pk-stats">' +
-          '<span class="iv ' + ivClass(e.ivPct) + '">' + e.ivPct + '%</span>' +
-          '<span class="cp">CP ' + e.cp + '</span>' +
-          badgesHtml(e) +
-        '</div>' +
-        categoryLineHtml(e, lens) +
-        '<div class="reason">' + esc(e.reason) + '</div>' +
-        (e.action ? '<div class="pk-action">' + (ACTION_ICON[e.action.kind] || '⚔️') + ' ' + esc(e.action.reason) + '</div>' : '') +
-        (e.tradeBoost ? '<div class="trade-tip">🔁 ' + esc(e.tradeBoost.reason) + '</div>' : '') +
-        (e.movesetTip ? '<div class="moveset-tip">💥 ' + esc(e.movesetTip.reason) + '</div>' : '') +
+        decisionLine(e, opts) +
       '</div>'
     );
   }
@@ -270,5 +290,5 @@
     );
   }
 
-  return { esc, badgesHtml, cardHtml, detailHtml, ivClass, compareHtml };
+  return { esc, badgesHtml, cardHtml, detailHtml, ivClass, compareHtml, decisionLine };
 });
