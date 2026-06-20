@@ -309,6 +309,32 @@ h1 {
 .pk.done { opacity: .5; }
 .pk .tf-check { margin-left: 8px; flex-shrink: 0; }
 .empty { text-align: center; font-size: 20px; color: var(--tinta-fraca); padding: 30px 10px; }
+
+/* Barra de modo persistente */
+.mode-bar { position: sticky; top: 0; z-index: 6; display: flex; gap: 6px; flex-wrap: wrap;
+  background: var(--lcd); padding: 6px 0 8px; margin-bottom: 10px; border-bottom: 2px solid var(--lcd-borda); }
+.mode-btn { font-family: inherit; font-size: 16px; line-height: 1; background: #fff; color: var(--tinta);
+  border: 2px solid var(--preto); border-radius: 6px; box-shadow: 0 2px 0 var(--preto); padding: 6px 9px; cursor: pointer; }
+.mode-btn:active { transform: translateY(2px); box-shadow: none; }
+.mode-btn.active { background: var(--amarelo); }
+.view[hidden] { display: none; }
+.resumo-hint { font-size: 15px; color: var(--tinta-fraca); margin: 4px 0 6px; }
+.objective-bar { display: flex; gap: 6px; flex-wrap: wrap; margin-bottom: 8px; }
+.objective-bar[hidden] { display: none; }
+/* Linha única de decisão (reusa as cores de categoria) */
+.pk-decision { font-size: 16px; line-height: 1.15; }
+.cat-invest { color: var(--investir); }
+.cat-trophy { color: var(--dourado); }
+.cat-transfer { color: var(--transferir); }
+.cat-feed { color: var(--laranja); }
+.cat-keep { color: var(--manter); }
+/* Painel de filtros (folha sobre a lista) */
+.filters-panel { background: #fff; border: 3px solid var(--preto); border-radius: 8px;
+  box-shadow: 0 3px 0 var(--preto); padding: 10px; margin-bottom: 12px; display: flex; flex-direction: column; gap: 10px; }
+.filters-panel[hidden] { display: none; }
+.filters-head { display: flex; justify-content: space-between; align-items: center; }
+.filters-todos { font-size: 17px; display: flex; gap: 6px; align-items: center; }
+.filters-sort { display: flex; gap: 8px; }
 </style></head>
 <body>
 <div class="pokedex">
@@ -331,35 +357,45 @@ h1 {
           <div class="total-count" id="total">—</div>
         </header>
 
-        <!-- O que fazer agora -->
-        <div class="hero" id="hero">
-          <button class="hero-card t" data-filter-verdict="TRANSFERIR"><span class="n" id="c-transfer">—</span><span class="l">❌ Transferir</span></button>
-          <button class="hero-card i" data-filter-verdict="INVESTIR"><span class="n" id="c-invest">—</span><span class="l">💪 Investir</span></button>
-          <button class="hero-card k" data-filter-verdict="MANTER"><span class="n" id="c-keep">—</span><span class="l">🛡️ Manter</span></button>
-        </div>
+        <div class="mode-bar" id="mode-bar"></div>
 
-        <!-- Atalhos de destaque -->
-        <div class="chips" id="chips"></div>
+        <section id="view-resumo" class="view">
+          <div class="hero" id="hero">
+            <button class="hero-card t" data-go-mode="limpar"><span class="n" id="c-transfer">—</span><span class="l">❌ Transferir</span></button>
+            <button class="hero-card i" data-go-mode="investir"><span class="n" id="c-invest">—</span><span class="l">💪 Investir</span></button>
+            <button class="hero-card k" data-go-todos="1"><span class="n" id="c-keep">—</span><span class="l">🛡️ Manter</span></button>
+          </div>
+          <div class="resumo-hint">Destaques (toque → abre a lista)</div>
+          <div class="chips" id="chips"></div>
+        </section>
 
-        <!-- Busca + filtros (gruda no topo da rolagem) -->
-        <div class="toolbar-wrap">
-          <div class="lens-bar" id="lens"></div>
-          <div class="toolbar">
-            <input type="search" id="search" placeholder="🔎 Buscar por nome…" autocomplete="off">
+        <section id="view-list" class="view" hidden>
+          <div class="toolbar-wrap">
+            <div class="objective-bar" id="objective" hidden></div>
+            <div class="toolbar">
+              <input type="search" id="search" placeholder="🔎 Buscar por nome…" autocomplete="off">
+              <button class="filt-btn" id="open-filters" type="button">Filtros ▾</button>
+            </div>
+            <div class="transfer-controls" id="transfer-controls" hidden>
+              <span class="transfer-progress" id="tf-progress"></span>
+              <button class="filter-btn" id="tf-filter">👁 ver pendentes</button>
+              <button class="filter-btn" id="tf-clear">↩ limpar marcações</button>
+            </div>
+          </div>
+          <div id="empty" class="empty" hidden>Nenhum Pokémon com esse filtro.</div>
+          <div class="mon-list" id="list"></div>
+        </section>
+
+        <div id="filters-panel" class="filters-panel" hidden>
+          <div class="filters-head"><strong>Filtros</strong><button class="filter-btn" id="filters-close">✕</button></div>
+          <label class="filters-todos"><input type="checkbox" id="filt-todos"> Todos (inclui Manter)</label>
+          <div class="chips" id="filter-chips"></div>
+          <div class="filters-sort">
             <select id="sort" class="sort-select" aria-label="Ordenar Pokémons"></select>
             <button id="sort-dir" class="sort-dir" type="button" aria-label="Inverter ordem" aria-pressed="false">↓</button>
-            <button class="filt-btn" id="clear-filters" hidden>✕ limpar filtros</button>
           </div>
-          <!-- Barra do modo transferir (só aparece no filtro Transferir) -->
-          <div class="transfer-controls" id="transfer-controls" hidden>
-            <button class="filter-btn" id="tf-filter">🔍 Ver pendentes</button>
-            <button class="filter-btn" id="tf-clear">↩ Limpar marcações</button>
-            <span class="transfer-progress" id="tf-progress"></span>
-          </div>
+          <button class="filt-btn" id="clear-filters">✕ limpar filtros</button>
         </div>
-
-        <div id="empty" class="empty" hidden>Nenhum Pokémon com esse filtro.</div>
-        <div class="mon-list" id="list"></div>
       </div>
     </div>
   </div>
