@@ -118,7 +118,39 @@ test('compareHtml: 2º carregado — ✔ pra quem tem, ✖ pra quem não tem', (
   assert.match(html, /2º carr[\s\S]*?\bwin\b/);
 });
 
-const { detailHtml } = require('../lib/render.js');
+const { detailHtml, decisionLine } = require('../lib/render.js');
+
+test('decisionLine: modo veredito único (limpar) omite o verbo "Transferir"', () => {
+  const fd = {
+    trash: { mon_name:'Pidgey', mon_number:16, mon_cp:80, mon_attack:2, mon_defence:5, mon_stamina:7, mon_height:0.3, mon_isShiny:'NO', mon_isLucky:'NO' },
+    best:  { mon_name:'Pidgey', mon_number:16, mon_cp:300, mon_attack:14, mon_defence:14, mon_stamina:14, mon_height:0.3, mon_isShiny:'NO', mon_isLucky:'NO' },
+  };
+  const list = analyze(fd, getPokemonSize, refdata, getPokemonSizeScalar);
+  const e = list.find(el => el.id === 'trash');
+  const html = decisionLine(e, { mode: 'limpar', lens: 'eficiencia' });
+  assert.doesNotMatch(html, /Transferir/i);
+  assert.match(html, /❌/);
+  assert.match(html, new RegExp(e.reason.slice(0, 8)));
+});
+
+test('decisionLine: vista mista (todos) mostra o verbo uma vez', () => {
+  const fd = {
+    trash: { mon_name:'Pidgey', mon_number:16, mon_cp:80, mon_attack:2, mon_defence:5, mon_stamina:7, mon_height:0.3, mon_isShiny:'NO', mon_isLucky:'NO' },
+    best:  { mon_name:'Pidgey', mon_number:16, mon_cp:300, mon_attack:14, mon_defence:14, mon_stamina:14, mon_height:0.3, mon_isShiny:'NO', mon_isLucky:'NO' },
+  };
+  const list = analyze(fd, getPokemonSize, refdata, getPokemonSizeScalar);
+  const e = list.find(el => el.id === 'trash');
+  const html = decisionLine(e, { mode: 'todos', lens: 'eficiencia' });
+  assert.match(html, /Transferir/);
+  assert.equal((html.match(/Transferir/g) || []).length, 1);
+});
+
+test('decisionLine: investir usa a razão da ação', () => {
+  const e = one();
+  assert.equal(e.verdict, 'INVESTIR');
+  const html = decisionLine(e, { mode: 'investir', lens: 'eficiencia' });
+  assert.match(html, /💪/);
+});
 
 test('detailHtml inclui comparador quando verdict é TRANSFERIR', () => {
   const fd = {

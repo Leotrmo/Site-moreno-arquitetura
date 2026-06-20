@@ -48,6 +48,31 @@
            (CATEGORY_ICON[cat.key] || '') + ' ' + esc(cat.label) + scTxt + '</div>';
   }
 
+  // Modos de veredito único: o verbo já está no cabeçalho → o card mostra só o porquê.
+  const SINGLE_VERDICT_MODE = { limpar: 'TRANSFERIR', investir: 'INVESTIR' };
+
+  // Porquê curto: ação (investir) ou motivo (resto). Usa só dado que o motor já produz.
+  function _decisionQualifier(e) {
+    if (e.verdict === 'INVESTIR' && e.action && e.action.reason) return e.action.reason;
+    return e.reason || '';
+  }
+
+  // Linha ÚNICA de decisão por card. opts = { mode, lens }.
+  function decisionLine(e, opts) {
+    opts = opts || {};
+    const lens = opts.lens || 'eficiencia';
+    const mode = opts.mode || 'todos';
+    const cat = (Analysis.categorize ? Analysis.categorize(e, lens) : null) || { key: 'keep', label: 'Guardar' };
+    const icon = CATEGORY_ICON[cat.key] || '';
+    const qualifier = _decisionQualifier(e);
+    const implied = SINGLE_VERDICT_MODE[mode] === e.verdict;
+    const body = implied
+      ? esc(qualifier)
+      : (esc(cat.label) + (qualifier ? ' · ' + esc(qualifier) : ''));
+    return '<div class="pk-decision ' + (CATEGORY_CLASS[cat.key] || 'cat-keep') + '">' +
+           icon + ' ' + body + '</div>';
+  }
+
   // Quebra de scores no detalhe (power-user). '' quando não há e.scores.
   function scoresHtml(e) {
     if (!e.scores) return '';
@@ -270,5 +295,5 @@
     );
   }
 
-  return { esc, badgesHtml, cardHtml, detailHtml, ivClass, compareHtml };
+  return { esc, badgesHtml, cardHtml, detailHtml, ivClass, compareHtml, decisionLine };
 });
