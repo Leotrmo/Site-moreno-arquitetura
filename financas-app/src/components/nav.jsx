@@ -55,6 +55,20 @@ export const NAV_ITENS = [
     ),
   },
   {
+    path: '/lancamentos',
+    label: 'Lançamentos',
+    icone: (
+      <Icone>
+        <rect x="3" y="5" width="2.6" height="2.6" rx="0.6" />
+        <rect x="3" y="10.7" width="2.6" height="2.6" rx="0.6" />
+        <rect x="3" y="16.4" width="2.6" height="2.6" rx="0.6" />
+        <path d="M9 6.3h12" />
+        <path d="M9 12h12" />
+        <path d="M9 17.7h12" />
+      </Icone>
+    ),
+  },
+  {
     path: '/relatorio',
     label: 'Relatório',
     icone: (

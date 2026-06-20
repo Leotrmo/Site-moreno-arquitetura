@@ -2,6 +2,7 @@
 // para o shape camelCase que `analisar()` consome.
 export function linhaParaTransacao(row) {
   return {
+    id: row.id ?? null,
     data: row.data,
     descricao: row.descricao,
     descricaoOriginal: row.descricao_original ?? null,
