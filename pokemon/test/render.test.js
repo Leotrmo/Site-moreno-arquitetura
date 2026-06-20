@@ -19,12 +19,18 @@ function oneFull(over) {
   return analyze(fd, getPokemonSize, refdata, getPokemonSizeScalar)[0];
 }
 
-test('card mostra nome, veredito e id', () => {
+test('card mostra nome, mantém data-verdict e NÃO traz o selo caps', () => {
   const html = cardHtml(one());
   assert.match(html, /Machop/);
-  assert.match(html, /INVESTIR/);
   assert.match(html, /data-id="x"/);
   assert.match(html, /data-verdict="INVESTIR"/);
+  assert.doesNotMatch(html, /class="verdict /);
+});
+
+test('card fechado tem exatamente UMA linha de decisão', () => {
+  const html = cardHtml(one(), { mode: 'todos' });
+  assert.equal((html.match(/class="pk-decision/g) || []).length, 1);
+  assert.doesNotMatch(html, /class="pk-category/);
 });
 
 test('selos: shiny, sombrio e tamanho aparecem', () => {
@@ -171,9 +177,8 @@ test('badge e dica de troca aparecem para candidato a troca de IV', () => {
   const e = analyze(fd, getPokemonSize, refdata, getPokemonSizeScalar)[0];
   assert.ok(e.tradeBoost);
   const html = cardHtml(e);
-  assert.match(html, /🔁/);
-  assert.match(html, /trade-tip/);
-  assert.match(html, /Melhor Amigo/);
+  assert.match(html, /🔁/);  // badge no card (de troca de IV)
+  // nota: trade-tip deixou de aparecer no card collapsado
 });
 
 test('sem badge nem dica de troca quando IV já é alto', () => {
@@ -217,9 +222,11 @@ test('badgesHtml: ⚔️U e ⚔️M com ultra/master', () => {
 });
 
 test('cardHtml: mostra a linha de ação quando há e.action', () => {
-  const html = cardHtml(pvpStub());
+  const e = pvpStub();
+  const html = cardHtml(e);
+  // Ação agora aparece na decision line do card
   assert.match(html, /Fortalecer/);
-  assert.match(html, /pk-action/);
+  assert.match(html, /pk-decision/);
 });
 
 test('cardHtml: sem ação → sem linha pk-action (não-regressão)', () => {
@@ -288,12 +295,12 @@ test('badgesHtml: sem tag rocket → sem 🚀 (não-regressão)', () => {
   assert.doesNotMatch(html, /🚀/);
 });
 
-test('cardHtml: ícone da ação por kind (🚀 AGUARDAR_ROCKET, 🗓️ AGUARDAR_EVENTO, 🔁 TROCAR)', () => {
-  assert.match(cardHtml(pvpStub({ action: { kind:'AGUARDAR_ROCKET', reason:'Aguardar Rocket — x' } })), /🚀/);
-  assert.match(cardHtml(pvpStub({ action: { kind:'AGUARDAR_EVENTO', reason:'Aguardar Evento — x' } })), /🗓️/);
-  assert.match(cardHtml(pvpStub({ action: { kind:'TROCAR', reason:'Trocar — x' } })), /🔁/);
-  // combate mantém ⚔️
-  assert.match(cardHtml(pvpStub({ action: { kind:'FORTALECER', reason:'Fortalecer — x' } })), /⚔️/);
+test('cardHtml: decision line mostra razão da ação por kind', () => {
+  // Card collapsado mostra razão da ação no decision line (com ícone de categoria, não de ação)
+  assert.match(cardHtml(pvpStub({ action: { kind:'AGUARDAR_ROCKET', reason:'Aguardar Rocket — x' } })), /Aguardar Rocket/);
+  assert.match(cardHtml(pvpStub({ action: { kind:'AGUARDAR_EVENTO', reason:'Aguardar Evento — x' } })), /Aguardar Evento/);
+  assert.match(cardHtml(pvpStub({ action: { kind:'TROCAR', reason:'Trocar — x' } })), /Trocar/);
+  assert.match(cardHtml(pvpStub({ action: { kind:'FORTALECER', reason:'Fortalecer — x' } })), /Fortalecer/);
 });
 
 test('detailHtml: linha PvP lista o moveset recomendado com ✓/(falta)', () => {
@@ -345,11 +352,12 @@ test('detailHtml: moveset recomendado mostra ⚡ (ágil) e 💥 (carregado)', ()
 });
 
 test('cardHtml: linha moveset-tip aparece quando há e.movesetTip', () => {
-  const html = cardHtml(pvpStub({ movesetTip:{ move:'PLAY_ROUGH', league:'great',
-    reason:'Desbloquear 2º carregado p/ Liga Grande: Focinhada' } }));
-  assert.match(html, /moveset-tip/);
-  assert.match(html, /Desbloquear 2º carregado/);
-  assert.match(html, /💥/);
+  const e = pvpStub({ movesetTip:{ move:'PLAY_ROUGH', league:'great',
+    reason:'Desbloquear 2º carregado p/ Liga Grande: Focinhada' } });
+  const html = cardHtml(e);
+  // moveset-tip deixou de aparecer no card collapsado
+  assert.doesNotMatch(html, /moveset-tip/);
+  // mas o ícone ⚡/💥 pode aparecer em badges
 });
 
 test('cardHtml: sem movesetTip → sem linha moveset-tip (não-regressão)', () => {
@@ -371,16 +379,16 @@ function scoredMon(over) {
 
 test('cardHtml: rótulo de categoria (Investir só PvE) na lente padrão', () => {
   const html = cardHtml(scoredMon());
-  assert.match(html, /pk-category/);
+  assert.match(html, /pk-decision/);
   assert.match(html, /Investir só PvE/);
 });
 test('cardHtml: categoria muda com a lente', () => {
-  assert.match(cardHtml(scoredMon(), 'colecao'), /Troféu/);
-  assert.match(cardHtml(scoredMon(), 'pvp'), /Guardar/);   // pvpBest 0 < 2
+  assert.match(cardHtml(scoredMon(), { lens: 'colecao' }), /Troféu/);
+  assert.match(cardHtml(scoredMon(), { lens: 'pvp' }), /Guardar/);   // pvpBest 0 < 2
 });
 test('cardHtml: sem scores → rótulo por veredito (degradação)', () => {
   const html = cardHtml(scoredMon({ scores: null, verdict: 'MANTER' }));
-  assert.match(html, /pk-category/);
+  assert.match(html, /pk-decision/);
   assert.match(html, /Guardar pro futuro/);
 });
 test('cardHtml(e) sem lens assume Eficiência', () => {

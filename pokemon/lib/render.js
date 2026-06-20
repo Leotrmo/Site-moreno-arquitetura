@@ -119,25 +119,20 @@
     return 'iv-low';
   }
 
-  function cardHtml(e, lens) {
-    lens = lens || 'eficiencia';
+  function cardHtml(e, opts) {
+    opts = opts || {};
     return (
       '<div class="pk ' + VERDICT_CLASS[e.verdict] + '" data-id="' + esc(e.id) +
         '" data-verdict="' + e.verdict + '" data-name="' + esc(e.name.toLowerCase()) + '">' +
         '<div class="pk-top">' +
           '<span class="pk-name">' + esc(e.name) + '</span>' +
-          '<span class="verdict v-' + VERDICT_CLASS[e.verdict] + '">' + VERDICT_LABEL[e.verdict] + '</span>' +
+          '<span class="pk-stats">' +
+            '<span class="iv ' + ivClass(e.ivPct) + '">' + e.ivPct + '%</span>' +
+            '<span class="cp">CP ' + e.cp + '</span>' +
+            badgesHtml(e) +
+          '</span>' +
         '</div>' +
-        '<div class="pk-stats">' +
-          '<span class="iv ' + ivClass(e.ivPct) + '">' + e.ivPct + '%</span>' +
-          '<span class="cp">CP ' + e.cp + '</span>' +
-          badgesHtml(e) +
-        '</div>' +
-        categoryLineHtml(e, lens) +
-        '<div class="reason">' + esc(e.reason) + '</div>' +
-        (e.action ? '<div class="pk-action">' + (ACTION_ICON[e.action.kind] || '⚔️') + ' ' + esc(e.action.reason) + '</div>' : '') +
-        (e.tradeBoost ? '<div class="trade-tip">🔁 ' + esc(e.tradeBoost.reason) + '</div>' : '') +
-        (e.movesetTip ? '<div class="moveset-tip">💥 ' + esc(e.movesetTip.reason) + '</div>' : '') +
+        decisionLine(e, opts) +
       '</div>'
     );
   }
