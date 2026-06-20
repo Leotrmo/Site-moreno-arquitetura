@@ -53,3 +53,8 @@ test('linhaParaTransacao mapeia serie_id para serieId', () => {
   assert.equal(linhaParaTransacao({ ...linha, serie_id: 's9' }).serieId, 's9');
   assert.equal(linhaParaTransacao({ ...linha, serie_id: null }).serieId, null);
 });
+
+test('linhaParaTransacao carrega o id da linha', () => {
+  assert.equal(linhaParaTransacao(linha).id, 'uuid-1');
+  assert.equal(linhaParaTransacao({ ...linha, id: undefined }).id, null);
+});
