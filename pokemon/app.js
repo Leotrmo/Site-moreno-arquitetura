@@ -341,6 +341,92 @@
     tfUpdateProgress();
   });
 
+  // ---- Importação de coleção: painel, arquivo/colar, prévia/confirmação ----
+  const importEls = {
+    panel:       document.getElementById('import-panel'),
+    file:        document.getElementById('import-file'),
+    pasteToggle: document.getElementById('import-paste-toggle'),
+    pasteWrap:   document.getElementById('import-paste-wrap'),
+    text:        document.getElementById('import-text'),
+    pasteUse:    document.getElementById('import-paste-use'),
+    error:       document.getElementById('import-error'),
+    result:      document.getElementById('import-result'),
+    actions:     document.getElementById('import-actions'),
+    confirm:     document.getElementById('import-confirm'),
+    cancel:      document.getElementById('import-cancel'),
+    restore:     document.getElementById('import-restore'),
+  };
+  let importPending = null;   // data validada aguardando confirmação
+
+  function resetImport() {
+    importPending = null;
+    importEls.error.hidden = true;  importEls.error.textContent = '';
+    importEls.result.hidden = true; importEls.result.innerHTML = '';
+    importEls.actions.hidden = true;
+    importEls.pasteWrap.hidden = true;
+    importEls.text.value = '';
+    importEls.file.value = '';
+  }
+  function openImport()  { resetImport(); importEls.panel.hidden = false; }
+  function closeImport() { importEls.panel.hidden = true; }
+
+  function showImportError(msg) {
+    importPending = null;
+    importEls.result.hidden = true; importEls.actions.hidden = true;
+    importEls.error.textContent = msg;
+    importEls.error.hidden = false;
+  }
+
+  function handleImportText(text) {
+    const res = parseCollection(text);
+    if (!res.ok) { showImportError(res.error); return; }
+    importPending = res.data;
+    const diff = diffCollections(currentData, res.data);
+    const linhaMud = diff.first
+      ? 'Primeira importação.'
+      : '+' + diff.novos + ' novos · −' + diff.transferidos + ' transferidos · ' + diff.fortalecidos + ' fortalecidos';
+    const atual = Object.keys((currentData && currentData.fileData) || {}).length;
+    importEls.error.hidden = true;
+    importEls.result.innerHTML =
+      '<p><strong>' + esc(res.summary.fileName || 'arquivo') + '</strong></p>' +
+      '<p>' + res.summary.count + ' Pokémon · exportado ' + esc(res.summary.exportTime || '?') + '</p>' +
+      '<p class="import-diff">' + esc(linhaMud) + '</p>' +
+      '<p>Substituir a coleção atual (' + atual + ')?</p>';
+    importEls.result.hidden = false;
+    importEls.actions.hidden = false;
+  }
+
+  document.getElementById('import-open').addEventListener('click', openImport);
+  document.getElementById('import-close').addEventListener('click', closeImport);
+  importEls.pasteToggle.addEventListener('click', () => {
+    importEls.pasteWrap.hidden = !importEls.pasteWrap.hidden;
+  });
+  importEls.file.addEventListener('change', e => {
+    const f = e.target.files && e.target.files[0];
+    if (!f) return;
+    const reader = new FileReader();
+    reader.onload  = () => handleImportText(String(reader.result || ''));
+    reader.onerror = () => showImportError('Não consegui ler o arquivo.');
+    reader.readAsText(f);
+  });
+  importEls.pasteUse.addEventListener('click', () => handleImportText(importEls.text.value));
+  importEls.cancel.addEventListener('click', resetImport);
+  importEls.confirm.addEventListener('click', () => {
+    if (!importPending) return;
+    if (!saveCollection(importPending)) {
+      showImportError('Não consegui salvar no aparelho (armazenamento cheio?).');
+      return;
+    }
+    closeImport();
+    boot();   // recarrega: agora loadStoredCollection() devolve o import
+  });
+  importEls.restore.addEventListener('click', () => {
+    if (!confirm('Restaurar a coleção padrão (descartar o import)?')) return;
+    clearStoredCollection();
+    closeImport();
+    boot();
+  });
+
   window.__pokeApp = { boot, applyFilters, goMode, getState: () => state, getMons: () => allMons };
   boot();
 })();
