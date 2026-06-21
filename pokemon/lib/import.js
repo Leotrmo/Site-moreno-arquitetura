@@ -44,5 +44,27 @@
     };
   }
 
-  return { parseCollection };
+  // Compara dois snapshots completos pelo id estável (chave de fileData = id do Pokémon GO).
+  // Detecta novos / transferidos / fortalecidos. Evoluídos ficam de fora (o GO troca o id
+  // ao evoluir). Defensivo: sem snapshot anterior, devolve { first: true }.
+  function diffCollections(oldData, newData) {
+    const newFd = (newData && newData.fileData) || {};
+    const oldFd = oldData && oldData.fileData;
+    if (!oldFd || Object.keys(oldFd).length === 0) {
+      return { first: true };
+    }
+    let novos = 0, transferidos = 0, fortalecidos = 0;
+    for (const id of Object.keys(newFd)) {
+      if (!(id in oldFd)) { novos++; continue; }
+      const oldCp = Number(oldFd[id].mon_cp) || 0;
+      const newCp = Number(newFd[id].mon_cp) || 0;
+      if (newCp > oldCp) fortalecidos++;
+    }
+    for (const id of Object.keys(oldFd)) {
+      if (!(id in newFd)) transferidos++;
+    }
+    return { novos, transferidos, fortalecidos };
+  }
+
+  return { parseCollection, diffCollections };
 });

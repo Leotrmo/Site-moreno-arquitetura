@@ -1,7 +1,7 @@
 // pokemon/test/import.test.js
 const { test } = require('node:test');
 const assert = require('node:assert');
-const { parseCollection } = require('../lib/import.js');
+const { parseCollection, diffCollections } = require('../lib/import.js');
 
 // helpers de fixture
 function mon(extra) {
@@ -46,4 +46,29 @@ test('parseCollection: entradas que não parecem Pokémon são rejeitadas', () =
   const res = parseCollection(JSON.stringify(coll({ '1': { foo: 'bar' } })));
   assert.equal(res.ok, false);
   assert.match(res.error, /Pokémon|mon_name/);
+});
+
+test('diffCollections: sem coleção anterior → first', () => {
+  const res = diffCollections(null, coll({ '1': mon() }));
+  assert.deepEqual(res, { first: true });
+});
+
+test('diffCollections: detecta novos, transferidos e fortalecidos', () => {
+  const old = coll({
+    'a': mon({ mon_cp: 500 }),   // vai fortalecer
+    'b': mon({ mon_cp: 100 }),   // some → transferido
+    'c': mon({ mon_cp: 800 }),   // inalterado
+  });
+  const neu = coll({
+    'a': mon({ mon_cp: 1500 }),  // fortalecido (CP subiu)
+    'c': mon({ mon_cp: 800 }),   // inalterado
+    'd': mon({ mon_cp: 200 }),   // novo
+  });
+  assert.deepEqual(diffCollections(old, neu), { novos: 1, transferidos: 1, fortalecidos: 1 });
+});
+
+test('diffCollections: mesmo CP não conta como fortalecido', () => {
+  const old = coll({ 'a': mon({ mon_cp: 500 }) });
+  const neu = coll({ 'a': mon({ mon_cp: 500 }) });
+  assert.deepEqual(diffCollections(old, neu), { novos: 0, transferidos: 0, fortalecidos: 0 });
 });
