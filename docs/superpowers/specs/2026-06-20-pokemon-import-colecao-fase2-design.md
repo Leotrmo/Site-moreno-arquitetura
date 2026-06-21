@@ -16,7 +16,9 @@ Hoje, para atualizar a coleção, o Leo:
 4. Commita.
 
 É manual, frágil e passa pelo GitHub. **Objetivo da Fase 2:** exportar do SpooferPro e
-**importar direto no web app** (no celular), acabando com o passo do GitHub.
+**importar direto no web app** (no celular), acabando com o passo do GitHub. **De brinde**,
+mostrar na hora um **resumo do que mudou** (novos/transferidos/fortalecidos) desde o último
+import — possível porque cada Pokémon tem um id estável no JSON (ver §4.1b).
 
 ## 2. Decisão central: local, sem backend
 
@@ -61,6 +63,30 @@ parseCollection(text) -> {
 Responsabilidade única: receber uma **string** (de arquivo ou de textarea), `JSON.parse`,
 validar o shape e resumir. **Pura e testável** com `node --test`. Não toca DOM, storage
 nem rede.
+
+> `summary.count` = `Object.keys(fileData).length` (contagem real das entradas), **não** o
+> campo `pokemonCount` do topo — eles divergem (o export atual tem `pokemonCount: 723` mas
+> 722 ids únicos). Confiamos no que está realmente em `fileData`.
+
+### 4.1b Diff entre snapshots: `diffCollections` (no mesmo módulo)
+
+Como cada Pokémon tem um **id estável** (a chave em `fileData`, o id interno do Pokémon GO),
+dá pra detectar o que mudou **comparando dois snapshots completos** — sem merge de storage.
+
+```js
+diffCollections(oldData, newData) -> {
+  novos: number,         // id presente no novo, ausente no antigo
+  transferidos: number,  // id presente no antigo, ausente no novo
+  fortalecidos: number,  // mesmo id, mon_cp maior no novo
+}
+```
+
+Pura e testável. Detecta de forma **limpa**: novos, transferidos, fortalecidos.
+**Evoluídos ficam de fora** — o Pokémon GO troca o id ao evoluir, então uma evolução
+aparece como "1 transferido + 1 novo"; ligar os dois exigiria heurística frágil, não vale.
+**Defensivo:** se não houver snapshot anterior (1º import), pula o diff e marca "primeira
+importação". Se os ids não baterem (improvável), o diff degrada para "tudo novo/tudo
+transferido" — visível na hora.
 
 ### 4.2 Wrapper de armazenamento (browser)
 
@@ -111,20 +137,31 @@ Tudo a jusante (`analyze`, contagens, chips, render, ordenação) **não muda**,
 - **Ao escolher arquivo ou colar** → `parseCollection(text)`:
   - **Inválido** → mostra `error` inline em PT; **mantém a coleção atual** (nada é
     destruído).
-  - **Válido** → **passo de prévia/confirmação** (segurança, porque substitui tudo):
-    > Arquivo: **Pokemons-LeoTrevisan-16-06-2026** · **723 Pokémon** · exportado **16 jun.**
-    > Substituir a coleção atual (**723**)?  **[Confirmar]**  **[Cancelar]**
+  - **Válido** → **passo de prévia/confirmação** (segurança, porque substitui tudo), já com
+    o **resumo de mudanças** (`diffCollections` contra a coleção atual):
+    > Arquivo: **Pokemons-LeoTrevisan-16-06-2026** · **722 Pokémon** · exportado **16 jun.**
+    > Comparado com a coleção atual: **+12 novos**, **−5 transferidos**, **3 fortalecidos**
+    > Substituir a coleção atual (**722**)?  **[Confirmar]**  **[Cancelar]**
+
+    (No 1º import, sem coleção anterior pra comparar, mostra "primeira importação" no lugar
+    da linha de mudanças.)
 - **Confirmar** → `saveCollection(data)` → re-roda o carregamento/`analyze` → fecha o painel;
   lista, contagens, chips e o cabeçalho (`#updated`/`#total`) atualizam com os novos dados.
 - **Cancelar** → fecha sem mudar nada.
 - **"Restaurar padrão"** (link discreto no painel) → `clearStoredCollection()` → recarrega
   do `colecao.json` versionado. Recuperação caso um import dê errado.
 
-### Semântica: substituição total
+### Semântica: substituição total (com histórico via diff, não merge)
 
-Cada export do SpooferPro é a coleção **completa** (`pokemonCount` = tudo). Import =
-**substituição total** da coleção, não merge. Isso espelha o fluxo manual de hoje
-("apaga tudo e cola o novo").
+Cada export do SpooferPro é a coleção **completa**. Import = **substituição total** do que
+é guardado, não merge. Isso espelha o fluxo manual de hoje ("apaga tudo e cola o novo") e é
+mais simples.
+
+O desejo de **histórico** (saber o que foi novo/transferido/fortalecido) **não exige merge**:
+os ids estáveis deixam `diffCollections` comparar o snapshot anterior com o novo e produzir
+esse resumo. Guardamos só o snapshot novo inteiro; o "o que mudou" é computado, mostrado na
+confirmação e descartado (sem log persistente — isso seria a opção de histórico persistente,
+deixada para uma fase futura).
 
 ## 6. Validação (`parseCollection`)
 
@@ -162,6 +199,12 @@ Mexe em assets **cache-first** (`app.js`, `index.html`) e adiciona arquivo servi
   - sem `fileData` → `!ok`;
   - `fileData` vazio → `!ok`;
   - entrada-lixo (sem `mon_name`/`mon_cp`/`mon_number`) → `!ok`.
+- **Mesmo arquivo** cobrindo `diffCollections`:
+  - id novo → conta em `novos`;
+  - id sumido → conta em `transferidos`;
+  - mesmo id com `mon_cp` maior → conta em `fortalecidos`;
+  - mesmo id sem mudança de CP → não conta;
+  - `oldData` ausente/null → diff "primeira importação" (sem erro).
 - O wrapper de storage é browser-only (`localStorage`); mantido fino. Se valer, testar com
   um shim de `localStorage` em Node; senão, fica como wiring de browser verificado ao vivo.
 - **Não rodar `npm install`** (quebra no Drive). Testes = `node --test` em `pokemon/`.
@@ -174,12 +217,14 @@ Mexe em assets **cache-first** (`app.js`, `index.html`) e adiciona arquivo servi
 - Gotcha conhecido do projeto: navegação por hash não recarrega doc/SW → se precisar,
   forçar reload com `?cb=...`.
 
-## 10. Fora de escopo (fica pra Fase 3)
+## 10. Fora de escopo
 
-- Supabase / sincronização entre aparelhos.
-- Dois usuários (Leo + Luis) com coleção por pessoa.
-- Merge incremental de coleções (Fase 2 é substituição total).
-- Histórico de imports / versões anteriores.
+- **Histórico persistente** (log de cada import ao longo do tempo + tela de histórico) — o
+  diff da Fase 2 é mostrado na hora e descartado; persistir vira uma fase futura.
+- **Detecção de evoluídos** (o id muda ao evoluir; só daria por heurística frágil).
+- Merge incremental de coleções no storage (Fase 2 é substituição total).
+- Supabase / sincronização entre aparelhos (Fase 3).
+- Dois usuários (Leo + Luis) com coleção por pessoa (Fase 3).
 
 ## 11. Critérios de aceite
 
@@ -187,8 +232,10 @@ Mexe em assets **cache-first** (`app.js`, `index.html`) e adiciona arquivo servi
       pelo GitHub.
 - [ ] Import válido substitui a coleção; lista, contagens, chips e cabeçalho refletem os
       novos dados.
+- [ ] A confirmação mostra o resumo de mudanças (novos/transferidos/fortalecidos) contra a
+      coleção anterior — ou "primeira importação" se não houver anterior.
 - [ ] Import inválido não destrói a coleção atual e mostra erro claro em PT.
 - [ ] Colar JSON funciona como reserva do seletor de arquivo.
 - [ ] "Restaurar padrão" volta ao `colecao.json` versionado.
-- [ ] `node --test` verde, incluindo `import.test.js`.
+- [ ] `node --test` verde, incluindo `import.test.js` (parse + diff).
 - [ ] SW bumpado para `v24`, `ASSETS` e ordem de `<script>` atualizados.
