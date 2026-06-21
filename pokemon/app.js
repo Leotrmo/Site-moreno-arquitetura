@@ -1,6 +1,7 @@
 // pokemon/app.js
 (function () {
   let allMons = [];            // lista enriquecida
+  let currentData = null;      // objeto de coleção carregado (p/ diff no import)
   const SORT_KEY = 'pokemon-sort';
   const DIR_KEY = 'pokemon-sort-dir';
   const MODE_KEY = 'pokemon-mode';
@@ -17,6 +18,20 @@
 
   function loadDir() {
     return localStorage.getItem(DIR_KEY) === 'rev';
+  }
+
+  // ---- Armazenamento da coleção importada (localStorage; fallback = colecao.json) ----
+  const COLLECTION_KEY = 'pokemon-colecao';
+  function saveCollection(data) {
+    try { localStorage.setItem(COLLECTION_KEY, JSON.stringify(data)); return true; }
+    catch (e) { console.error('falha ao salvar coleção:', e); return false; }
+  }
+  function loadStoredCollection() {
+    try { const s = localStorage.getItem(COLLECTION_KEY); return s ? JSON.parse(s) : null; }
+    catch { return null; }
+  }
+  function clearStoredCollection() {
+    try { localStorage.removeItem(COLLECTION_KEY); } catch {}
   }
 
   async function loadMeta() {
@@ -37,10 +52,12 @@
 
   async function boot() {
     try {
-      const res = await fetch('./colecao.json', { cache: 'no-store' });
-      const data = await res.json();
+      const data = loadStoredCollection()
+        || await fetch('./colecao.json', { cache: 'no-store' }).then(r => r.json());
+      currentData = data;
+      const count = Object.keys((data && data.fileData) || {}).length;
       document.getElementById('updated').textContent = 'Leo · ' + (data.exportTime || '');
-      document.getElementById('total').textContent = (data.pokemonCount || 0) + ' Pokémons';
+      document.getElementById('total').textContent = count + ' Pokémons';
       const meta = await loadMeta();   // null se datasets ausentes
       allMons = analyze(data.fileData, getPokemonSize,
                         { LEGENDARY, REGIONAL, TRADE_EVO }, getPokemonSizeScalar, meta);
