@@ -113,7 +113,7 @@ body {
 .lcd-scroll::-webkit-scrollbar-thumb { background: var(--lcd-borda); border-radius: 3px; }
 
 /* Header (rola para fora junto com heros e chips) */
-header { text-align: center; padding-top: 12px; margin-bottom: 14px; }
+header { position: relative; text-align: center; padding-top: 12px; margin-bottom: 14px; }
 h1 {
   font-family: 'Press Start 2P', monospace;
   font-size: 14px; line-height: 1.6; color: var(--preto);
@@ -335,6 +335,30 @@ h1 {
 .filters-head { display: flex; justify-content: space-between; align-items: center; }
 .filters-todos { font-size: 17px; display: flex; gap: 6px; align-items: center; }
 .filters-sort { display: flex; gap: 8px; }
+/* Importação de coleção (Fase 2) */
+.import-btn {
+  position: absolute; top: 6px; right: 0;
+  background: var(--amarelo); color: var(--preto);
+  border: 2px solid var(--preto); border-radius: 6px; box-shadow: 0 2px 0 var(--preto);
+  font-size: 16px; line-height: 1; padding: 6px 8px; cursor: pointer;
+}
+.import-btn:active { transform: translateY(2px); box-shadow: none; }
+.import-panel { background: #fff; border: 3px solid var(--preto); border-radius: 8px;
+  box-shadow: 0 3px 0 var(--preto); padding: 10px; margin-bottom: 12px;
+  display: flex; flex-direction: column; gap: 10px; }
+.import-panel[hidden] { display: none; }
+.import-hint { font-size: 15px; color: var(--tinta-fraca); }
+.import-file-label { text-align: center; }
+.import-link { background: none; border: none; color: var(--azul-dado);
+  font-family: 'VT323', monospace; font-size: 17px; text-decoration: underline;
+  cursor: pointer; align-self: flex-start; padding: 0; }
+.import-panel textarea { width: 100%; font-family: monospace; font-size: 13px;
+  border: 2px solid var(--preto); border-radius: 6px; padding: 6px; resize: vertical; }
+.import-error { color: var(--transferir); font-size: 16px; }
+.import-result { font-size: 16px; display: flex; flex-direction: column; gap: 4px; }
+.import-diff { font-weight: bold; }
+.import-actions { display: flex; gap: 8px; }
+.import-restore { color: var(--transferir); align-self: flex-start; }
 </style></head>
 <body>
 <div class="pokedex">
@@ -352,6 +376,7 @@ h1 {
     <div class="lcd">
       <div class="lcd-scroll">
         <header>
+          <button type="button" class="import-btn" id="import-open" aria-label="Importar coleção" title="Importar coleção">📥</button>
           <h1>🎮 Análise da Coleção</h1>
           <div class="subtitle" id="updated">carregando…</div>
           <div class="total-count" id="total">—</div>
@@ -396,6 +421,26 @@ h1 {
           </div>
           <button class="filt-btn" id="clear-filters">✕ limpar filtros</button>
         </div>
+
+        <div id="import-panel" class="import-panel" hidden>
+          <div class="filters-head"><strong>📥 Importar coleção</strong><button class="filter-btn" id="import-close">✕</button></div>
+          <p class="import-hint">Escolha o arquivo .json exportado do SpooferPro.</p>
+          <label class="filt-btn import-file-label">Escolher arquivo .json
+            <input type="file" id="import-file" accept=".json,application/json" hidden>
+          </label>
+          <button class="import-link" id="import-paste-toggle" type="button">ou colar JSON</button>
+          <div id="import-paste-wrap" hidden>
+            <textarea id="import-text" rows="4" placeholder="Cole aqui o conteúdo do .json"></textarea>
+            <button class="filt-btn" id="import-paste-use" type="button">Usar texto colado</button>
+          </div>
+          <p class="import-error" id="import-error" hidden></p>
+          <div class="import-result" id="import-result" hidden></div>
+          <div class="import-actions" id="import-actions" hidden>
+            <button class="filt-btn" id="import-confirm" type="button">Confirmar</button>
+            <button class="filter-btn" id="import-cancel" type="button">Cancelar</button>
+          </div>
+          <button class="import-link import-restore" id="import-restore" type="button">↩ Restaurar padrão</button>
+        </div>
       </div>
     </div>
   </div>
@@ -411,6 +456,7 @@ h1 {
 <script src="./lib/analysis.js"></script>
 <script src="./lib/render.js"></script>
 <script src="./lib/sort.js"></script>
+<script src="./lib/import.js"></script>
 <script src="./app.js"></script>
 
 <script>
