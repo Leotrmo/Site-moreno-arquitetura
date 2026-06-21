@@ -367,7 +367,13 @@
     importEls.text.value = '';
     importEls.file.value = '';
   }
-  function openImport()  { resetImport(); importEls.panel.hidden = false; }
+  function openImport()  {
+    resetImport();
+    importEls.panel.hidden = false;
+    // o painel nasce no fim do conteúdo (depois das tags); traz ele pra tela.
+    // scroll instantâneo (smooth é instável no iOS/standalone e pode não rolar).
+    importEls.panel.scrollIntoView({ block: 'start' });
+  }
   function closeImport() { importEls.panel.hidden = true; }
 
   function showImportError(msg) {

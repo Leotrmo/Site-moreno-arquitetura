@@ -1,4 +1,4 @@
-const CACHE = 'pokemon-leo-v24';
+const CACHE = 'pokemon-leo-v25';
 const ASSETS = [
   './index.html', './app.js', './sizes.js',
   './lib/refdata.js', './lib/analysis.js', './lib/render.js', './lib/sort.js', './lib/import.js', './lib/meta/match.js', './lib/meta/pvp.js', './lib/meta/pve.js', './lib/meta/cost.js', './lib/meta/score.js',
